@@ -173,6 +173,13 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 #tooltip{position:fixed;background:#000d16ee;border:1px solid var(--accent);padding:5px 9px;
   font-family:var(--font-hud);font-size:9px;color:var(--accent);pointer-events:none;z-index:200;
   border-radius:2px;display:none;white-space:nowrap;}
+/* Refresh interval slider */
+.refresh-interval-wrap{display:flex;align-items:center;gap:6px;padding:2px 0 0;}
+.ri-label{font-size:7px;color:var(--muted);font-family:var(--font-hud);white-space:nowrap;}
+#refresh-slider{flex:1;-webkit-appearance:none;appearance:none;height:2px;background:var(--dim);outline:none;border-radius:2px;cursor:pointer;}
+#refresh-slider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--accent);cursor:pointer;}
+#refresh-slider::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:var(--accent);cursor:pointer;border:none;}
+#refresh-val{font-size:9px;color:var(--accent);font-family:var(--font-hud);min-width:22px;text-align:right;}
 </style>
 </head>
 <body>
@@ -368,7 +375,10 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
       <div class="plot-status">5 REVS FROM NOW · CLICK TO MOVE SITE</div>
       <canvas id="gt-canvas" class="plot-canvas"></canvas>
       <div class="site-info-gt" id="site-label-gt">⬟ PSU (40.79°N, 77.86°W)</div>
-      <div class="auto-refresh-badge"><div class="refresh-dot"></div><span id="refresh-countdown">AUTO-REFRESH 30s</span></div>
+      <div class="auto-refresh-badge">
+        <div class="refresh-dot"></div>
+        <span id="refresh-countdown">MARKER 1s · TRAJ 60min</span>
+      </div>
       <div id="pass-table-wrap" style="display:none;">
         <div class="pt-header">
           <span class="pt-title">VISIBILITY PASSES</span>
@@ -397,8 +407,11 @@ const F_WGS=1/298.257223563,E2_WGS=F_WGS*(2-F_WGS);
 let SITE={lat_deg:40.7945,lon_deg:-77.8616,h_m:1114,tz:'America/New_York',tzOffsetMin:-240};
 const NUM_REVS=5;
 let currentTLE=null,currentPasses=null,currentData=null;
-let autoRefreshTimer=null,countdownTimer=null,refreshSecsLeft=30;
-let lastPasses=[];// for CSV export
+let propagationTime=null;       // Date when last full propagation ran
+let propagationGMST0=null;      // GMST (rad) at propagation start — for ECI Earth rotation
+let markerTimer=null;
+let trajTimer=null;
+let lastPasses=[];
 
 /* ════ CLOCK ════ */
 const padZ=n=>String(n).padStart(2,'0');
@@ -637,7 +650,7 @@ function propagate(tle){
     el_[k]=Math.asin(Math.max(-1,Math.min(1,U_/rng)))*180/Math.PI;
     if(k<N) x=rk4(x,step);
   }
-  return{tArr,xECI:xECI_,xECEF:xECEF_,lat:lat_,lon:lon_,az:az_,el:el_,N,now};
+  return{tArr,xECI:xECI_,xECEF:xECEF_,lat:lat_,lon:lon_,az:az_,el:el_,N,now,GMST0};
 }
 
 /* ════ PASSES ════ */
@@ -739,11 +752,16 @@ function initThree(cid){
   // Earth - placeholder material first, texture loaded async
   let earthMat=new THREE.MeshPhongMaterial({color:0x1a3a5a,specular:new THREE.Color(0x0a1520),shininess:6});
   let earthMesh=new THREE.Mesh(new THREE.SphereGeometry(RE_KM,56,56),earthMat);
+  // Earth mesh — texture offset worked out from UV mapping:
+  // Three.js SphereGeometry UV: longitude 0° (Greenwich) → -Z_three at rotation.y=0.
+  // With our mapping Z_three=-y_orb, -Z_three = +y_orb direction (ECEF-y=0, x>0 = Greenwich). ✓
+  // No offset needed. For ECI: rotation.y = +GMST rotates Greenwich eastward. ✓
+  earthMesh.userData.texOffset = 0;
   earthMesh.name='earth';scene.add(earthMesh);
   loadEarthTex(tex=>{earthMat.map=tex;earthMat.color.set(0xffffff);earthMat.needsUpdate=true;});
 
-  // Axes
-  [[0xff4444,[2.2*RE_KM,0,0]],[0x44ff44,[0,2.2*RE_KM,0]],[0x4444ff,[0,0,2.2*RE_KM]]].forEach(([c,to])=>{
+  // Axis indicators: X_three=x_orb (red), Y_three=z_orb/north (green), Z_three=-y_orb (blue)
+  [[0xff4444,[2.2*RE_KM,0,0]],[0x44ff44,[0,2.2*RE_KM,0]],[0x4444ff,[0,0,-2.2*RE_KM]]].forEach(([c,to])=>{
     let g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(...to)]);
     scene.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:c,transparent:true,opacity:.2})));
   });
@@ -769,23 +787,60 @@ function initThree(cid){
     camera.position.setLength(rad);camera.lookAt(0,0,0);
   },{passive:false});
   new ResizeObserver(()=>{let w=container.clientWidth,h=container.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}).observe(container);
-  return{renderer,scene,camera};
+  return{renderer,scene,camera,earthMesh};
+}
+
+/* GMST reference: rotation angle at J2000.0 (Jan 1.5 2000 UTC).
+   We compute GMST(now) each animation frame — completely free, just trig. */
+const J2000_MS = Date.UTC(2000,0,1,12,0,0,0); // J2000.0 epoch in ms
+
+function currentGMST(){
+  // Seconds since J2000.0
+  let T = (Date.now() - J2000_MS) / 1000;
+  // GMST in radians (IAU 1982 approximation, accurate to ~0.1s/century)
+  let gmst = 67310.54841 + (876600*3600 + 8640184.812866)*(T/86400/36525)
+              + 0.093104*(T/86400/36525)**2;
+  gmst = ((gmst % 86400) + 86400) % 86400; // mod to [0,86400) seconds
+  return gmst / 240 * Math.PI / 180;        // → radians
 }
 
 function initThreeScenes(){
-  if(!eciThree){eciThree=initThree('eci-container');(function L(){requestAnimationFrame(L);eciThree.renderer.render(eciThree.scene,eciThree.camera);})();}
-  if(!ecefThree){ecefThree=initThree('ecef-container');(function L(){requestAnimationFrame(L);ecefThree.renderer.render(ecefThree.scene,ecefThree.camera);})();}
+  if(!eciThree){
+    eciThree=initThree('eci-container');
+    // ECI animation loop: rotate Earth by current GMST every frame — smooth & free
+    (function loop(){
+      requestAnimationFrame(loop);
+      // With corrected mapping (Z_three=-y_orb), positive rotation.y rotates
+      // the globe eastward — consistent with Earth's actual eastward spin.
+      // rotation.y = +GMST places Greenwich at the correct longitude under the orbit.
+      if(eciThree.earthMesh && propagationGMST0!==null && propagationTime!==null){
+        const elapsed=(Date.now()-propagationTime.getTime())/1000;
+        eciThree.earthMesh.rotation.y = propagationGMST0 + WE*elapsed;
+      }
+      eciThree.renderer.render(eciThree.scene,eciThree.camera);
+    })();
+  }
+  if(!ecefThree){
+    ecefThree=initThree('ecef-container');
+    // ECEF: globe is body-fixed. Set once — texOffset aligns Greenwich with ECEF-x.
+    (function loop(){
+      requestAnimationFrame(loop);
+      // ECEF: globe is body-fixed. rotation.y=0 correctly places Greenwich
+      // at -Z_three = ECEF-x direction with our corrected axis mapping.
+      if(ecefThree.earthMesh) ecefThree.earthMesh.rotation.y = 0;
+      ecefThree.renderer.render(ecefThree.scene,ecefThree.camera);
+    })();
+  }
 }
 
 function drawOrbit3D(scene,pts,color){
   ['orbit','orbitDots','satMarker','satRing'].forEach(n=>{let o=scene.getObjectByName(n);if(o)scene.remove(o);});
   if(pts.length<2) return;
 
-  const v3pts=pts.map(p=>new THREE.Vector3(p[0],p[2],p[1]));
+  // Correct RH mapping: X_three=x_orb, Y_three=z_orb (north pole up), Z_three=-y_orb
+  // Previous code used +y_orb which mirrored east↔west. Negating fixes it.
+  const v3pts=pts.map(p=>new THREE.Vector3(p[0],p[2],-p[1]));
 
-  /* ── Thick "line" via a tube geometry ─────────────────────────────
-     THREE.LineBasicMaterial linewidth >1 is ignored on WebGL on most
-     platforms. Use a thin TubeGeometry instead for a solid, visible line. */
   const curve=new THREE.CatmullRomCurve3(v3pts,false,'chordal');
   const segments=Math.min(v3pts.length*2,1200);
   const tubeGeo=new THREE.TubeGeometry(curve,segments,28,6,false);
@@ -793,23 +848,139 @@ function drawOrbit3D(scene,pts,color){
   const tube=new THREE.Mesh(tubeGeo,tubeMat);
   tube.name='orbit';scene.add(tube);
 
-  /* ── Satellite marker (current position) ── */
   let p=pts[0];
-  let mk=new THREE.Mesh(
-    new THREE.SphereGeometry(160,20,20),
-    new THREE.MeshBasicMaterial({color:0xffcc00})
-  );
-  mk.position.set(p[0],p[2],p[1]);mk.name='satMarker';scene.add(mk);
+  let mk=new THREE.Mesh(new THREE.SphereGeometry(160,20,20),new THREE.MeshBasicMaterial({color:0xffcc00}));
+  mk.position.set(p[0],p[2],-p[1]);mk.name='satMarker';scene.add(mk);
 
-  /* ── Pulsing ring around marker ── */
-  let ring=new THREE.Mesh(
-    new THREE.TorusGeometry(300,38,10,36),
-    new THREE.MeshBasicMaterial({color:0xffcc00,transparent:true,opacity:.3})
-  );
+  let ring=new THREE.Mesh(new THREE.TorusGeometry(300,38,10,36),
+    new THREE.MeshBasicMaterial({color:0xffcc00,transparent:true,opacity:.3}));
   ring.position.copy(mk.position);ring.lookAt(0,0,0);ring.name='satRing';scene.add(ring);
 }
 
-/* ════ FOOTPRINT CIRCLE ════ */
+/* ════ NOW-MARKER UPDATE (cheap, every 1s) ════
+   Uses module-level propagationTime (set at renderAll) — not currentData.now —
+   to avoid stale-closure bugs. Interpolates position from stored arrays.
+   Moves 3D markers in-place, repaints only the live layer on ground track,
+   and updates meta strip with pass-state-aware live text.                    */
+function updateNowMarker(){
+  if(!currentData||!currentTLE||!propagationTime) return;
+  const{tArr,xECI,xECEF,lat,lon,az,el,N}=currentData;
+
+  // elapsed seconds since this propagation batch started
+  const elapsed=(Date.now()-propagationTime.getTime())/1000;
+  const tEnd=tArr[N];
+  if(elapsed<0||elapsed>tEnd) return;  // stale — wait for next reprop
+
+  // ── Binary search + linear interpolation ──
+  let lo=0,hi=N;
+  while(lo<hi-1){const mid=(lo+hi)>>1;if(tArr[mid]<=elapsed)lo=mid;else hi=mid;}
+  const span=tArr[lo+1]-tArr[lo];
+  const alpha=span>0?Math.max(0,Math.min(1,(elapsed-tArr[lo])/span)):0;
+  const lerp=(a,b)=>a+(b-a)*alpha;
+
+  // Interpolated positions
+  const ex=lerp(xECI[3*lo],  xECI[3*lo+3]);
+  const ey=lerp(xECI[3*lo+1],xECI[3*lo+4]);
+  const ez=lerp(xECI[3*lo+2],xECI[3*lo+5]);
+  const fx=lerp(xECEF[3*lo],  xECEF[3*lo+3]);
+  const fy=lerp(xECEF[3*lo+1],xECEF[3*lo+4]);
+  const fz=lerp(xECEF[3*lo+2],xECEF[3*lo+5]);
+  const curLat=lerp(lat[lo],lat[lo+1]);
+  const curLon=lerp(lon[lo],lon[lo+1]);
+  const curEl =lerp(el[lo], el[lo+1]);
+  const curAz =lerp(az[lo], az[lo+1]);
+
+  // ── Move ECI 3D marker (no geometry rebuild) ──
+  // Axis mapping: X_three=x_ECI, Y_three=z_ECI, Z_three=-y_ECI
+  if(eciThree){
+    const mk=eciThree.scene.getObjectByName('satMarker');
+    const rg=eciThree.scene.getObjectByName('satRing');
+    if(mk) mk.position.set(ex,ez,-ey);
+    if(rg){rg.position.set(ex,ez,-ey);rg.lookAt(0,0,0);}
+  }
+
+  // ── Move ECEF 3D marker ──
+  // Axis mapping: X_three=fx, Y_three=fz, Z_three=-fy
+  if(ecefThree){
+    const mk=ecefThree.scene.getObjectByName('satMarker');
+    const rg=ecefThree.scene.getObjectByName('satRing');
+    if(mk) mk.position.set(fx,fz,-fy);
+    if(rg){rg.position.set(fx,fz,-fy);rg.lookAt(0,0,0);}
+  }
+
+  // ── Ground track: restore cached background then paint live layer only ──
+  const gtC=document.getElementById('gt-canvas');
+  if(gtC&&gtC.width>0&&gtC._bgCache){
+    const ctx=gtC.getContext('2d');
+    const W=gtC.width,H=gtC.height;
+
+    // Validate cache dimensions match current canvas (canvas can resize)
+    if(gtC._bgCache.width===W&&gtC._bgCache.height===H){
+      ctx.putImageData(gtC._bgCache,0,0);
+    } else {
+      // Cache is stale (canvas resized) — trigger a full redraw next tick
+      gtC._bgCache=null;
+      return;
+    }
+
+    // Live footprint circle
+    if(currentTLE){
+      ctx.strokeStyle='rgba(0,212,255,0.38)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+      footprintCircle(curLat,curLon,currentTLE.alt_km,ctx,W,H);
+      ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='rgba(0,212,255,0.06)';
+      footprintCircle(curLat,curLon,currentTLE.alt_km,ctx,W,H);
+      ctx.fill();
+    }
+
+    // NOW dot
+    const nx=((curLon+180)/360)*W;
+    const ny=((90-curLat)/180)*H;
+    ctx.strokeStyle='rgba(255,170,0,0.5)';ctx.lineWidth=1.3;
+    ctx.beginPath();ctx.arc(nx,ny,13,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle='#ffaa00';ctx.beginPath();ctx.arc(nx,ny,5,0,2*Math.PI);ctx.fill();
+    ctx.fillStyle='rgba(255,200,0,0.9)';ctx.font='bold 8px IBM Plex Mono';
+    ctx.fillText('NOW',nx+9,ny-5);
+    // Live lat/lon subtitle (proves interpolation is working)
+    ctx.fillStyle='rgba(255,170,0,0.55)';ctx.font='7px IBM Plex Mono';
+    ctx.fillText(curLat.toFixed(2)+'°N  '+curLon.toFixed(2)+'°E',nx+9,ny+5);
+  }
+
+  // ── Meta strip: pass-state-aware live updates ──
+  const curAlt=Math.sqrt(ex*ex+ey*ey+ez*ez)-RE_KM;
+  if(curAlt>0) document.getElementById('m-alt').textContent=curAlt.toFixed(0)+' km';
+
+  if(!currentPasses) return;
+  // Find the pass whose window contains or follows current elapsed
+  const inPass=currentPasses.find(p=>p.t_rise<=elapsed&&elapsed<=p.t_set);
+  const nextPass=currentPasses.find(p=>p.t_rise>elapsed);
+
+  if(inPass){
+    // Currently in a pass — show countdown to SET
+    const tos=inPass.t_set-elapsed;
+    document.getElementById('m-ttr').textContent='IN PASS · −'+fmtHMS(tos);
+    document.getElementById('m-ttr').className='mv green';
+    // Rise already happened; show it greyed, focus on set
+    const setAbs=new Date(propagationTime.getTime()+inPass.t_set*1000);
+    document.getElementById('m-set').textContent=fmtUTCShort(setAbs);
+    document.getElementById('m-set-local').textContent=fmtLocalShort(setAbs,SITE.tz);
+    document.getElementById('m-elev').textContent=curEl.toFixed(1)+'° (live)';
+    document.getElementById('m-elev').className='mv green';
+  } else if(nextPass){
+    // Next pass in future
+    const ttr=nextPass.t_rise-elapsed;
+    document.getElementById('m-ttr').textContent=fmtHMS(ttr);
+    document.getElementById('m-ttr').className='mv amber';
+    const riseAbs=new Date(propagationTime.getTime()+nextPass.t_rise*1000);
+    const setAbs =new Date(propagationTime.getTime()+nextPass.t_set*1000);
+    document.getElementById('m-rise').textContent=fmtUTCShort(riseAbs);
+    document.getElementById('m-rise-local').textContent=fmtLocalShort(riseAbs,SITE.tz);
+    document.getElementById('m-set').textContent=fmtUTCShort(setAbs);
+    document.getElementById('m-set-local').textContent=fmtLocalShort(setAbs,SITE.tz);
+    document.getElementById('m-elev').textContent=nextPass.el_peak.toFixed(1)+'°';
+    document.getElementById('m-elev').className='mv'+(nextPass.el_peak>30?' green':nextPass.el_peak>10?' amber':'');
+  }
+}
 function footprintCircle(latDeg,lonDeg,altKm,ctx,W,H){
   // Half-angle of Earth visible from satellite
   let rho=Math.acos(RE_KM/(RE_KM+altKm)); // Earth central angle
@@ -854,16 +1025,8 @@ function drawGroundTrack(canvas,lat,lon,passes,now,tle){
 
   let N=lat.length;
 
-  // Footprint circle at current position
-  if(tle){
-    ctx.strokeStyle='rgba(0,212,255,0.35)';ctx.lineWidth=1;
-    ctx.setLineDash([4,4]);
-    footprintCircle(lat[0],lon[0],tle.alt_km,ctx,W,H);
-    ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(0,212,255,0.05)';
-    footprintCircle(lat[0],lon[0],tle.alt_km,ctx,W,H);
-    ctx.fill();
-  }
+  // Footprint + pass footprints drawn during initial render only
+  // (live footprint is redrawn each second by updateNowMarker)
 
   // Full orbit trace
   ctx.strokeStyle='rgba(0,180,220,0.5)';ctx.lineWidth=1.1;
@@ -903,14 +1066,7 @@ function drawGroundTrack(canvas,lat,lon,passes,now,tle){
     ctx.beginPath();ctx.moveTo(5,0);ctx.lineTo(-3,-2.5);ctx.lineTo(-3,2.5);ctx.closePath();ctx.fill();ctx.restore();
   }
 
-  // Current position
-  let{x:nx,y:ny}=xy(lat[0],lon[0]);
-  ctx.strokeStyle='rgba(255,170,0,0.45)';ctx.lineWidth=1;
-  ctx.beginPath();ctx.arc(nx,ny,12,0,2*Math.PI);ctx.stroke();
-  ctx.fillStyle='#ffaa00';ctx.beginPath();ctx.arc(nx,ny,5,0,2*Math.PI);ctx.fill();
-  ctx.fillStyle='rgba(255,170,0,0.85)';ctx.font='bold 8px IBM Plex Mono';ctx.fillText('NOW',nx+8,ny-4);
-
-  // Site marker (draggable)
+  // PSU / observer site marker
   let{x:sx,y:sy}=xy(SITE.lat_deg,SITE.lon_deg);
   ctx.fillStyle='#ff4444';
   ctx.beginPath();ctx.moveTo(sx,sy-8);ctx.lineTo(sx+6,sy);ctx.lineTo(sx,sy+8);ctx.lineTo(sx-6,sy);ctx.closePath();ctx.fill();
@@ -1092,40 +1248,75 @@ function exportCSV(){
 /* ════ CANVAS RESIZE ════ */
 function resizeCanvas(c){let r=c.getBoundingClientRect();let w=Math.max(1,Math.round(r.width)),h=Math.max(1,Math.round(r.height));if(c.width!==w||c.height!==h){c.width=w;c.height=h;}}
 
-/* ════ RENDER EVERYTHING ════ */
-function renderAll(tle,skipPropagate){
+/* ════ RENDER EVERYTHING (full reprop) ════ */
+function renderAll(tle){
   if(!tle) return;
-  let data=skipPropagate&&currentData?currentData:propagate(tle);
-  if(!skipPropagate) currentData=data;
-  let{tArr,xECI,xECEF,lat,lon,az,el,N,now}=data;
+  currentData=propagate(tle);
+  propagationTime=currentData.now;
+  propagationGMST0=currentData.GMST0;  // exact GMST used in ECEF computation
+  const{tArr,xECI,xECEF,lat,lon,az,el,N,now}=currentData;
 
-  let eciPts=[],ecefPts=[];
-  for(let k=0;k<=N;k++){eciPts.push([xECI[3*k],xECI[3*k+1],xECI[3*k+2]]);ecefPts.push([xECEF[3*k],xECEF[3*k+1],xECEF[3*k+2]]);}
-  drawOrbit3D(eciThree.scene,eciPts,0xccff00);   // neon chartreuse — pops on blue Earth
-  drawOrbit3D(ecefThree.scene,ecefPts,0xff6600);  // vivid orange — warm contrast on blue
+  const eciPts=[],ecefPts=[];
+  for(let k=0;k<=N;k++){
+    eciPts.push([xECI[3*k],xECI[3*k+1],xECI[3*k+2]]);
+    ecefPts.push([xECEF[3*k],xECEF[3*k+1],xECEF[3*k+2]]);
+  }
+  drawOrbit3D(eciThree.scene,eciPts,0xccff00);   // neon chartreuse
+  drawOrbit3D(ecefThree.scene,ecefPts,0xff6600);  // vivid orange
 
-  let tF=Array.from(tArr),azF=Array.from(az),elF=Array.from(el);
-  let latF=Array.from(lat),lonF=Array.from(lon);
-  let passes=findPasses(azF,elF,tF);
+  const tF=Array.from(tArr),azF=Array.from(az),elF=Array.from(el);
+  const latF=Array.from(lat),lonF=Array.from(lon);
+  const passes=findPasses(azF,elF,tF);
   currentPasses=passes;
 
-  let gtC=document.getElementById('gt-canvas');resizeCanvas(gtC);
-  let skyC=document.getElementById('sky-canvas');resizeCanvas(skyC);
-  const doGT=()=>drawGroundTrack(gtC,latF,lonF,passes,now,tle);
+  const gtC=document.getElementById('gt-canvas');resizeCanvas(gtC);
+  const skyC=document.getElementById('sky-canvas');resizeCanvas(skyC);
+
+  const doGT=()=>{
+    gtC._bgCache=null;  // invalidate old cache before drawing
+    drawGroundTrack(gtC,latF,lonF,passes,now,tle);
+    // Cache AFTER drawing — NOW dot is NOT drawn inside drawGroundTrack anymore,
+    // so the cache is clean and updateNowMarker can safely restore + add dot only.
+    try{
+      const img=gtC.getContext('2d').getImageData(0,0,gtC.width,gtC.height);
+      gtC._bgCache=img;
+    }catch(e){}
+    // Immediately paint the initial NOW dot so there's no blank moment
+    updateNowMarker();
+  };
   if(worldMapImg) doGT(); else loadWorldMap(()=>doGT());
+
   drawSkyPlot(skyC,passes,azF,elF,tF,now);
   updateMeta(tle,passes,now);
 }
 
-/* ════ AUTO REFRESH ════ */
-function startAutoRefresh(){
-  clearInterval(autoRefreshTimer);clearInterval(countdownTimer);
-  refreshSecsLeft=30;
-  countdownTimer=setInterval(()=>{
-    refreshSecsLeft--;
-    document.getElementById('refresh-countdown').textContent='AUTO-REFRESH '+refreshSecsLeft+'s';
-    if(refreshSecsLeft<=0){refreshSecsLeft=30;if(currentTLE){currentData=null;renderAll(currentTLE,false);}}
+/* ════ TIERED REFRESH ════
+   Tier 1 — every 1s:  move NOW marker, update meta text   (free)
+   Tier 2 — every 60min: full re-propagation + canvas/tube rebuild       */
+const TRAJ_REPROP_MS = 60 * 60 * 1000;  // 60 minutes
+
+function startTimers(){
+  clearInterval(markerTimer);
+  clearInterval(trajTimer);
+
+  // Tier 1: lightweight marker + meta update every second
+  markerTimer=setInterval(()=>{
+    if(currentTLE&&currentData) updateNowMarker();
   },1000);
+
+  // Tier 2: full re-propagation every 60 minutes
+  trajTimer=setInterval(()=>{
+    if(currentTLE){
+      document.getElementById('refresh-countdown').textContent='REFRESHING TRAJ…';
+      // Yield to browser paint first, then re-propagate
+      setTimeout(()=>{
+        renderAll(currentTLE);
+        document.getElementById('refresh-countdown').textContent='MARKER 1s · TRAJ 60min';
+      },50);
+    }
+  }, TRAJ_REPROP_MS);
+
+  document.getElementById('refresh-countdown').textContent='MARKER 1s · TRAJ 60min';
 }
 
 /* ════ SELECT SAT ════ */
@@ -1135,8 +1326,8 @@ function selectSat(tle,itemEl){
   itemEl.classList.add('active');activeItem=itemEl;
   currentTLE=tle;currentData=null;
   initThreeScenes();
-  renderAll(tle,false);
-  startAutoRefresh();
+  renderAll(tle);
+  startTimers();
 }
 
 /* ════ PASS QUALITY COLOR FOR LIST ════ */
@@ -1230,7 +1421,7 @@ async function applySite(){
   document.getElementById('inp-lon').value=lon.toFixed(4);
   document.getElementById('site-label-gt').textContent='⬟ '+lat.toFixed(2)+'°N '+Math.abs(lon).toFixed(2)+'°'+(lon>=0?'E':'W');
   updateLocalTZLabel();
-  if(currentTLE){currentData=null;renderAll(currentTLE,false);}
+  if(currentTLE){currentData=null;renderAll(currentTLE);}
 }
 
 async function geolocateMe(){
