@@ -6,6 +6,7 @@
 <title>CARE Lab · SSA Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.min.js"></script>
 <style>
 :root{
   --bg:#030608;--panel:#070d12;--border:#0f2535;
@@ -117,7 +118,6 @@ select.hud-sel:focus{border-color:var(--accent);}
 #site-tz-display{font-size:8px;color:var(--muted);font-family:var(--font-hud);padding-top:2px;}
 
 /* ── MAIN CONTENT ── */
-#main{display:grid;grid-template-rows:auto 1fr;overflow:hidden;}
 
 /* Meta strip */
 #meta-strip{padding:7px 14px;border-bottom:1px solid var(--border);
@@ -173,6 +173,24 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 #tooltip{position:fixed;background:#000d16ee;border:1px solid var(--accent);padding:5px 9px;
   font-family:var(--font-hud);font-size:9px;color:var(--accent);pointer-events:none;z-index:200;
   border-radius:2px;display:none;white-space:nowrap;}
+/* ── OBSERVING CONDITIONS STRIP ── */
+#wx-strip{padding:5px 14px 4px;border-bottom:1px solid var(--border);background:#040c12;flex-shrink:0;}
+.wx-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
+.wx-title{font-family:var(--font-head);font-size:8px;letter-spacing:2px;color:var(--purple);flex-shrink:0;}
+.wx-site{font-size:8px;color:var(--muted);font-family:var(--font-hud);}
+.wx-status{font-size:7px;color:var(--muted);font-family:var(--font-hud);margin-left:auto;}
+#wx-timeline{display:flex;flex-direction:column;gap:2px;}
+.wx-row{display:flex;align-items:center;gap:6px;}
+.wx-row-label{font-size:7px;color:var(--muted);font-family:var(--font-hud);width:36px;flex-shrink:0;letter-spacing:1px;}
+.wx-cells{display:flex;gap:1px;flex:1;overflow:hidden;}
+.wx-cell{flex:1;min-width:0;height:12px;border-radius:1px;position:relative;cursor:default;transition:opacity .15s;}
+.wx-cell:hover{opacity:.75;outline:1px solid rgba(255,255,255,.25);}
+.wx-cell-label{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:6px;color:var(--muted);font-family:var(--font-hud);white-space:nowrap;pointer-events:none;margin-bottom:1px;}
+.wx-now-marker{position:absolute;top:0;bottom:0;width:1px;background:var(--amber);opacity:.8;pointer-events:none;z-index:5;}
+
+/* Update main grid to fit the strip */
+#main{display:grid;grid-template-rows:auto auto 1fr;overflow:hidden;}
+
 /* Refresh interval slider */
 .refresh-interval-wrap{display:flex;align-items:center;gap:6px;padding:2px 0 0;}
 .ri-label{font-size:7px;color:var(--muted);font-family:var(--font-hud);white-space:nowrap;}
@@ -293,6 +311,7 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
   <div id="oe-block">
     <div class="oe-header" onclick="toggleOE()">
       <span class="oe-title">ORBITAL ELEMENTS</span>
+      <button class="pt-export" id="tle-dl-btn" onclick="event.stopPropagation();downloadTLE()" title="Download TLE file" style="font-size:8px;margin-left:auto;margin-right:6px;">⬇ TLE</button>
       <span class="oe-toggle" id="oe-toggle-btn">▾</span>
     </div>
     <div id="oe-grid">
@@ -344,10 +363,10 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
       <div id="norad-id">NORAD: —</div>
     </div>
     <div class="msep"></div>
-    <div class="mi"><div class="ml">NEXT RISE (UTC)</div><div class="mv green" id="m-rise">—</div></div>
-    <div class="mi"><div class="ml">NEXT RISE (LOCAL)</div><div class="mv amber" id="m-rise-local">—</div></div>
-    <div class="mi"><div class="ml">NEXT SET (UTC)</div><div class="mv red" id="m-set">—</div></div>
-    <div class="mi"><div class="ml">NEXT SET (LOCAL)</div><div class="mv red" id="m-set-local" style="opacity:.7">—</div></div>
+    <div class="mi"><div class="ml">NEXT RISE (LOCAL)</div><div class="mv green" id="m-rise">—</div></div>
+    <div class="mi"><div class="ml">NEXT RISE (UTC)</div><div class="mv amber" id="m-rise-local">—</div></div>
+    <div class="mi"><div class="ml">NEXT SET (LOCAL)</div><div class="mv red" id="m-set">—</div></div>
+    <div class="mi"><div class="ml">NEXT SET (UTC)</div><div class="mv red" id="m-set-local" style="opacity:.7">—</div></div>
     <div class="mi"><div class="ml">TIME TO RISE</div><div class="mv amber" id="m-ttr">—</div></div>
     <div class="mi"><div class="ml">PEAK EL (°)</div><div class="mv" id="m-elev">—</div></div>
     <div class="msep"></div>
@@ -359,15 +378,34 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
     <div class="mi"><div class="ml">FOOTPRINT</div><div class="mv" id="m-fp">—</div></div>
   </div>
 
+  <!-- OBSERVING CONDITIONS STRIP -->
+  <div id="wx-strip">
+    <div class="wx-header">
+      <span class="wx-title">OBSERVING CONDITIONS</span>
+      <span class="wx-site" id="wx-site-label">—</span>
+      <span class="wx-status" id="wx-status">LOADING…</span>
+      <button class="pt-export" onclick="fetchConditions()" title="Refresh conditions" style="margin-left:8px;font-size:8px;">↺ REFRESH</button>
+    </div>
+    <div id="wx-timeline">
+      <div id="wx-hours-row" class="wx-row"><span class="wx-row-label">TIME</span><div class="wx-cells" id="wx-hours"></div></div>
+      <div id="wx-cloud-row" class="wx-row"><span class="wx-row-label">CLOUD</span><div class="wx-cells" id="wx-cloud"></div></div>
+      <div id="wx-see-row"   class="wx-row"><span class="wx-row-label">SEEING</span><div class="wx-cells" id="wx-seeing"></div></div>
+      <div id="wx-trans-row" class="wx-row"><span class="wx-row-label">TRANSP</span><div class="wx-cells" id="wx-transp"></div></div>
+      <div id="wx-dark-row"  class="wx-row"><span class="wx-row-label">DARK</span><div class="wx-cells" id="wx-dark"></div></div>
+      <div id="wx-wind-row"  class="wx-row"><span class="wx-row-label">WIND</span><div class="wx-cells" id="wx-wind"></div></div>
+      <div id="wx-smoke-row" class="wx-row"><span class="wx-row-label">SMOKE</span><div class="wx-cells" id="wx-smoke"></div></div>
+    </div>
+  </div>
+
   <div id="plots-grid">
     <div class="plot-panel">
       <div class="plot-label">ECI TRAJECTORY</div>
-      <div class="plot-status">TWO-BODY · J2000 · DRAG/SCROLL</div>
+      <div class="plot-status" id="eci-prop-status">SGP4 · J2000 · DRAG/SCROLL</div>
       <div id="eci-container"></div>
     </div>
     <div class="plot-panel">
       <div class="plot-label">ECEF TRAJECTORY</div>
-      <div class="plot-status">GMST · WGS-84 · DRAG/SCROLL</div>
+      <div class="plot-status" id="ecef-prop-status">SGP4 · WGS-84 · DRAG/SCROLL</div>
       <div id="ecef-container"></div>
     </div>
     <div class="plot-panel" id="gt-panel">
@@ -562,17 +600,18 @@ function parseTLE(name,l1,l2){
     let a=Math.pow(MU_E/(n_rad*n_rad),1/3);
     let T_s=86400/n;
     let alt=a-RE_KM;
-    // Orbit type classification
     let orbitType='LEO';
     if(ecc>0.25&&T_s>43200&&inc>50) orbitType='MOLNIYA';
     else if(ecc>0.15) orbitType='HEO';
     else if(T_s>80000) orbitType='GEO';
     else if(T_s>20000) orbitType='MEO';
     else orbitType='LEO';
-    // Footprint radius (half-angle of Earth disk from altitude)
     let fp_rad=Math.acos(RE_KM/(RE_KM+alt))*180/Math.PI;
     let fp_km=RE_KM*fp_rad*Math.PI/180;
-    return{name,satnum,epoch,bstar,inc,raan,ecc,argp,M,n,n_rad,a,T_s,alt_km:alt,orbitType,fp_km};
+    // Build SGP4 satrec — used for propagation
+    let satrec=null;
+    try{if(typeof satellite!=='undefined') satrec=satellite.twoline2satrec(l1,l2);}catch(e){}
+    return{name,satnum,epoch,bstar,inc,raan,ecc,argp,M,n,n_rad,a,T_s,alt_km:alt,orbitType,fp_km,satrec};
   }catch(e){return null;}
 }
 
@@ -609,37 +648,126 @@ function topoRotm(lat,lon){
   return[-sl,cl,0,-sp*cl,-sp*sl,cp,cp*cl,cp*sl,sp];
 }
 
+/* ════ SGP4 PROPAGATOR — adaptive sampling ════
+   Uses satellite.js (SGP4/SDP4) for physics.
+   Step size adapts to altitude: dense near perigee, sparse at apogee.
+   Falls back to two-body RK4 if satrec is unavailable.              */
+
+function adaptiveStep(altKm, T_s){
+  // Near perigee: short steps to capture sharp curvature
+  // At apogee / GEO: long steps, motion is slow and nearly linear
+  // Floor: 10s  Ceiling: min(T_s/60, 300s)
+  let ceiling=Math.min(T_s/60, 300);
+  let step=Math.max(10, Math.min(ceiling, altKm/30));
+  return step;
+}
+
+function sgp4ECI(satrec, date){
+  // Returns {r:[x,y,z], v:[vx,vy,vz]} in km, km/s ECI  — or null on error
+  let m=(date.getTime()-Date.UTC(1970,0,1))/60000; // minutes since Unix epoch
+  // satellite.js wants minutes since epoch
+  let minutesSinceEpoch=(date-satrec.jdsatepoch_ms)/60000;
+  // Use propagateFromMinutesAfterEpoch if available, otherwise propagate with date
+  let pv;
+  try{
+    pv=satellite.propagate(satrec, date);
+  }catch(e){return null;}
+  if(!pv||!pv.position||pv.position===true) return null;
+  return{r:[pv.position.x,pv.position.y,pv.position.z],
+         v:[pv.velocity.x,pv.velocity.y,pv.velocity.z]};
+}
+
 function propagate(tle){
   let now=new Date();
-  let dt_ep=(now.getTime()-tle.epoch.getTime())/1000;
-  let M_now=((tle.M*Math.PI/180+tle.n_rad*dt_ep)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
-  let e=tle.ecc,a=tle.a,inc_r=tle.inc*Math.PI/180;
-  let RAAN=tle.raan*Math.PI/180,argp=tle.argp*Math.PI/180;
-  let nu=trueFromMean(M_now,e);
-  let p_=a*(1-e*e),r_=p_/(1+e*Math.cos(nu));
-  let C=dcmPQW2ECI(RAAN,inc_r,argp);
-  let sqp=Math.sqrt(MU_E/p_);
-  let rECI=mv3(C,[r_*Math.cos(nu),r_*Math.sin(nu),0]);
-  let vECI=mv3(C,[-sqp*Math.sin(nu),sqp*(e+Math.cos(nu)),0]);
-  let x=[rECI[0],rECI[1],rECI[2],vECI[0],vECI[1],vECI[2]];
-
-  let tEnd=NUM_REVS*tle.T_s;
-  let N=Math.min(Math.round(NUM_REVS*180),3200);
-  let step=tEnd/N;
   let GMST0=gmst_from_jd(julianDate(now));
   let siteECEF=geo2ecef(SITE.lat_deg,SITE.lon_deg,SITE.h_m);
   let Re2enu=topoRotm(SITE.lat_deg,SITE.lon_deg);
 
-  let tArr=new Float64Array(N+1),xECI_=new Float64Array((N+1)*3);
+  /* ── Build adaptive time array ── */
+  let tEnd=NUM_REVS*tle.T_s;
+  let times=[];
+  let t=0;
+  while(t<=tEnd){
+    times.push(t);
+    // Estimate current altitude from SGP4 or use mean alt as initial step guide
+    let step=adaptiveStep(tle.alt_km, tle.T_s); // initial guess; refined below
+    t+=step;
+  }
+  // Refine: after first pass estimate altitude at each point to set steps
+  // (Do a quick coarse pass first, then build fine adaptive array)
+  if(tle.satrec){
+    times=[];t=0;
+    let coarseStep=Math.max(30,tle.T_s/120);
+    // Coarse pass to sample altitude profile
+    let altProfile=[];
+    let tc=0;
+    while(tc<=tEnd){
+      let d=new Date(now.getTime()+tc*1000);
+      let pv=sgp4ECI(tle.satrec,d);
+      let altEst=pv?Math.sqrt(pv.r[0]**2+pv.r[1]**2+pv.r[2]**2)-RE_KM:tle.alt_km;
+      altProfile.push({tc,alt:Math.max(100,altEst)});
+      tc+=coarseStep;
+    }
+    // Build fine adaptive array by interpolating altitude
+    t=0;let pi=0;
+    while(t<=tEnd+1){
+      times.push(t);
+      // Interpolate altitude at t
+      while(pi<altProfile.length-2&&altProfile[pi+1].tc<t) pi++;
+      let alt=altProfile[pi].alt;
+      if(pi+1<altProfile.length){
+        let frac=(t-altProfile[pi].tc)/(altProfile[pi+1].tc-altProfile[pi].tc+1e-9);
+        alt=altProfile[pi].alt+(altProfile[pi+1].alt-altProfile[pi].alt)*frac;
+      }
+      t+=adaptiveStep(Math.max(100,alt), tle.T_s);
+    }
+  }
+
+  let N=times.length-1;
+  let tArr=new Float64Array(N+1);
+  let xECI_=new Float64Array((N+1)*3);
   let xECEF_=new Float64Array((N+1)*3);
   let lat_=new Float64Array(N+1),lon_=new Float64Array(N+1);
   let az_=new Float64Array(N+1),el_=new Float64Array(N+1);
 
+  /* ── Two-body fallback state (used only if satrec unavailable) ── */
+  let x_tb=null;
+  if(!tle.satrec){
+    let dt_ep=(now.getTime()-tle.epoch.getTime())/1000;
+    let M_now=((tle.M*Math.PI/180+tle.n_rad*dt_ep)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+    let e=tle.ecc,a=tle.a,inc_r=tle.inc*Math.PI/180;
+    let RAAN=tle.raan*Math.PI/180,argp=tle.argp*Math.PI/180;
+    let nu=trueFromMean(M_now,e);
+    let p_=a*(1-e*e),r_=p_/(1+e*Math.cos(nu));
+    let C=dcmPQW2ECI(RAAN,inc_r,argp);
+    let sqp=Math.sqrt(MU_E/p_);
+    let rECI=mv3(C,[r_*Math.cos(nu),r_*Math.sin(nu),0]);
+    let vECI=mv3(C,[-sqp*Math.sin(nu),sqp*(e+Math.cos(nu)),0]);
+    x_tb=[rECI[0],rECI[1],rECI[2],vECI[0],vECI[1],vECI[2]];
+  }
+
   for(let k=0;k<=N;k++){
-    let t=k*step;tArr[k]=t;
-    xECI_[3*k]=x[0];xECI_[3*k+1]=x[1];xECI_[3*k+2]=x[2];
+    let t=times[k]; tArr[k]=t;
+    let rx,ry,rz;
+
+    if(tle.satrec){
+      // SGP4: direct analytic evaluation at time t
+      let d=new Date(now.getTime()+t*1000);
+      let pv=sgp4ECI(tle.satrec,d);
+      if(pv){rx=pv.r[0];ry=pv.r[1];rz=pv.r[2];}
+      else{rx=0;ry=0;rz=RE_KM+500;} // error guard
+    } else {
+      // Two-body RK4 fallback — step from previous
+      rx=x_tb[0];ry=x_tb[1];rz=x_tb[2];
+      if(k<N){
+        let dt=times[k+1]-times[k];
+        x_tb=rk4(x_tb,dt);
+      }
+    }
+
+    xECI_[3*k]=rx;xECI_[3*k+1]=ry;xECI_[3*k+2]=rz;
     let th=GMST0+WE*t,ct=Math.cos(th),st=Math.sin(th);
-    let fx=ct*x[0]+st*x[1],fy=-st*x[0]+ct*x[1],fz=x[2];
+    let fx=ct*rx+st*ry,fy=-st*rx+ct*ry,fz=rz;
     xECEF_[3*k]=fx;xECEF_[3*k+1]=fy;xECEF_[3*k+2]=fz;
     lon_[k]=((Math.atan2(fy,fx)*180/Math.PI+540)%360)-180;
     lat_[k]=Math.atan2(fz,Math.sqrt(fx*fx+fy*fy))*180/Math.PI;
@@ -648,7 +776,6 @@ function propagate(tle){
     let E_=enu[0],N__=enu[1],U_=enu[2],rng=Math.sqrt(E_*E_+N__*N__+U_*U_);
     az_[k]=((Math.atan2(E_,N__)*180/Math.PI)%360+360)%360;
     el_[k]=Math.asin(Math.max(-1,Math.min(1,U_/rng)))*180/Math.PI;
-    if(k<N) x=rk4(x,step);
   }
   return{tArr,xECI:xECI_,xECEF:xECEF_,lat:lat_,lon:lon_,az:az_,el:el_,N,now,GMST0};
 }
@@ -740,7 +867,7 @@ function initThree(cid){
   rim.position.set(0,-3e4,3e4);scene.add(rim);
 
   // Stars
-  let sv=[];for(let i=0;i<2000;i++){let th=Math.random()*2*Math.PI,ph=Math.acos(2*Math.random()-1),r=RE_KM*14;sv.push(r*Math.sin(ph)*Math.cos(th),r*Math.cos(ph),r*Math.sin(ph)*Math.sin(th));}
+  let sv=[];for(let i=0;i<2000;i++){let th=Math.random()*2*Math.PI,ph=Math.acos(2*Math.random()-1),r=RE_KM*55;sv.push(r*Math.sin(ph)*Math.cos(th),r*Math.cos(ph),r*Math.sin(ph)*Math.sin(th));}
   let sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sv,3));
   scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xffffff,size:25,transparent:true,opacity:.5})));
 
@@ -766,7 +893,7 @@ function initThree(cid){
     scene.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:c,transparent:true,opacity:.2})));
   });
 
-  let camera=new THREE.PerspectiveCamera(45,W/H,100,5e5);
+  let camera=new THREE.PerspectiveCamera(45,W/H,100,2e6);
   camera.position.set(RE_KM*2.5,RE_KM*1.4,RE_KM*2.5);camera.lookAt(0,0,0);
 
   // Drag orbit controls
@@ -783,7 +910,7 @@ function initThree(cid){
   });
   renderer.domElement.addEventListener('wheel',e=>{
     e.preventDefault();
-    rad=Math.max(RE_KM*1.12,Math.min(RE_KM*14,rad*Math.exp(e.deltaY*.001)));
+    rad=Math.max(RE_KM*1.12,Math.min(RE_KM*50,rad*Math.exp(e.deltaY*.001)));
     camera.position.setLength(rad);camera.lookAt(0,0,0);
   },{passive:false});
   new ResizeObserver(()=>{let w=container.clientWidth,h=container.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}).observe(container);
@@ -843,8 +970,8 @@ function drawOrbit3D(scene,pts,color){
 
   const curve=new THREE.CatmullRomCurve3(v3pts,false,'chordal');
   const segments=Math.min(v3pts.length*2,1200);
-  const tubeGeo=new THREE.TubeGeometry(curve,segments,28,6,false);
-  const tubeMat=new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide});
+  const tubeGeo=new THREE.TubeGeometry(curve,segments,48,8,false);
+  const tubeMat=new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide,transparent:true,opacity:0.9});
   const tube=new THREE.Mesh(tubeGeo,tubeMat);
   tube.name='orbit';scene.add(tube);
 
@@ -956,27 +1083,24 @@ function updateNowMarker(){
   const nextPass=currentPasses.find(p=>p.t_rise>elapsed);
 
   if(inPass){
-    // Currently in a pass — show countdown to SET
     const tos=inPass.t_set-elapsed;
     document.getElementById('m-ttr').textContent='IN PASS · −'+fmtHMS(tos);
     document.getElementById('m-ttr').className='mv green';
-    // Rise already happened; show it greyed, focus on set
     const setAbs=new Date(propagationTime.getTime()+inPass.t_set*1000);
-    document.getElementById('m-set').textContent=fmtUTCShort(setAbs);
-    document.getElementById('m-set-local').textContent=fmtLocalShort(setAbs,SITE.tz);
+    document.getElementById('m-set').textContent=fmtLocalShort(setAbs,SITE.tz);
+    document.getElementById('m-set-local').textContent=fmtUTCShort(setAbs);
     document.getElementById('m-elev').textContent=curEl.toFixed(1)+'° (live)';
     document.getElementById('m-elev').className='mv green';
   } else if(nextPass){
-    // Next pass in future
     const ttr=nextPass.t_rise-elapsed;
     document.getElementById('m-ttr').textContent=fmtHMS(ttr);
     document.getElementById('m-ttr').className='mv amber';
     const riseAbs=new Date(propagationTime.getTime()+nextPass.t_rise*1000);
     const setAbs =new Date(propagationTime.getTime()+nextPass.t_set*1000);
-    document.getElementById('m-rise').textContent=fmtUTCShort(riseAbs);
-    document.getElementById('m-rise-local').textContent=fmtLocalShort(riseAbs,SITE.tz);
-    document.getElementById('m-set').textContent=fmtUTCShort(setAbs);
-    document.getElementById('m-set-local').textContent=fmtLocalShort(setAbs,SITE.tz);
+    document.getElementById('m-rise').textContent=fmtLocalShort(riseAbs,SITE.tz);
+    document.getElementById('m-rise-local').textContent=fmtUTCShort(riseAbs);
+    document.getElementById('m-set').textContent=fmtLocalShort(setAbs,SITE.tz);
+    document.getElementById('m-set-local').textContent=fmtUTCShort(setAbs);
     document.getElementById('m-elev').textContent=nextPass.el_peak.toFixed(1)+'°';
     document.getElementById('m-elev').className='mv'+(nextPass.el_peak>30?' green':nextPass.el_peak>10?' amber':'');
   }
@@ -1144,14 +1268,11 @@ function drawSkyPlot(canvas,passes,az,el,tArr,now){
       let ar=azDeg*Math.PI/180,ro=R*1.04;
       let px=cx-ro*Math.sin(ar),py=cy-ro*Math.cos(ar);
       let dt=new Date(now.getTime()+t_sec*1000);
-      let utcStr=padZ(dt.getUTCHours())+':'+padZ(dt.getUTCMinutes());
       let localStr=fmtLocalTime(dt,SITE.tz).slice(0,5);
       ctx.fillStyle=isRise?'#00ff88':'#ff6666';ctx.font='bold 7px IBM Plex Mono';ctx.textAlign='center';
       ctx.beginPath();ctx.arc(px,py,3,0,2*Math.PI);ctx.fill();
       let lx=cx-(ro+20)*Math.sin(ar),ly=cy-(ro+20)*Math.cos(ar);
-      ctx.fillText(utcStr,lx,ly+1);
-      ctx.fillStyle=isRise?'rgba(0,255,136,0.6)':'rgba(255,102,102,0.6)';
-      ctx.fillText(localStr,lx,ly+10);
+      ctx.fillText(localStr,lx,ly+4);
     };
     lblAt(p.az_rise,p.t_rise,true);lblAt(p.az_set,p.t_set,false);
     // Peak
@@ -1160,7 +1281,7 @@ function drawSkyPlot(canvas,passes,az,el,tArr,now){
     ctx.fillStyle=col;ctx.beginPath();ctx.arc(xpk,ypk,4,0,2*Math.PI);ctx.fill();
     let dtpk=new Date(now.getTime()+p.t_peak*1000);
     ctx.fillStyle=col;ctx.font='7px IBM Plex Mono';ctx.textAlign='left';
-    ctx.fillText(padZ(dtpk.getUTCHours())+':'+padZ(dtpk.getUTCMinutes())+' '+p.el_peak.toFixed(0)+'°',xpk+6,ypk-3);
+    ctx.fillText(fmtLocalTime(dtpk,SITE.tz).slice(0,5)+' '+p.el_peak.toFixed(0)+'°',xpk+6,ypk-3);
     ctx.fillStyle=col;ctx.font='bold 8px IBM Plex Mono';ctx.textAlign='center';ctx.fillText('#'+(k+1),xpk,ypk+14);
   });
   ctx.fillStyle='rgba(255,170,0,0.6)';ctx.beginPath();ctx.arc(cx,cy,3,0,2*Math.PI);ctx.fill();
@@ -1196,10 +1317,10 @@ function updateMeta(tle,passes,now){
   if(nextPass){
     let riseAbs=new Date(now.getTime()+nextPass.t_rise*1000);
     let setAbs=new Date(now.getTime()+nextPass.t_set*1000);
-    document.getElementById('m-rise').textContent=fmtUTCShort(riseAbs);
-    document.getElementById('m-rise-local').textContent=fmtLocalTime(riseAbs,SITE.tz).slice(0,8);
-    document.getElementById('m-set').textContent=fmtUTCShort(setAbs);
-    document.getElementById('m-set-local').textContent=fmtLocalTime(setAbs,SITE.tz).slice(0,8);
+    document.getElementById('m-rise').textContent=fmtLocalTime(riseAbs,SITE.tz).slice(0,8);
+    document.getElementById('m-rise-local').textContent=fmtUTCShort(riseAbs);
+    document.getElementById('m-set').textContent=fmtLocalTime(setAbs,SITE.tz).slice(0,8);
+    document.getElementById('m-set-local').textContent=fmtUTCShort(setAbs);
     document.getElementById('m-ttr').textContent=fmtHMS(nextPass.t_rise);
     let elv=nextPass.el_peak;
     document.getElementById('m-elev').textContent=elv.toFixed(1)+'°';
@@ -1213,15 +1334,15 @@ function updateMeta(tle,passes,now){
   lastPasses=passes;
   let tbody=document.getElementById('pass-table-body');
   let wrap=document.getElementById('pass-table-wrap');
-  tbody.innerHTML='<div class="pass-row hdr"><span>RISE UTC</span><span>SET UTC</span><span>EL</span><span>DUR</span><span>AZ rise</span></div>';
+  tbody.innerHTML='<div class="pass-row hdr"><span>RISE LOCAL</span><span>SET LOCAL</span><span>EL</span><span>DUR</span><span>AZ rise</span></div>';
   if(passes.length>0) wrap.style.display='block';
   passes.slice(0,10).forEach(p=>{
     let r=new Date(now.getTime()+p.t_rise*1000);
     let s=new Date(now.getTime()+p.t_set*1000);
     let dur=Math.max(0,p.t_set-p.t_rise);
     let row=document.createElement('div');row.className='pass-row';
-    row.innerHTML=`<span class="pr-rise">${padZ(r.getUTCHours())}:${padZ(r.getUTCMinutes())}</span>`+
-      `<span class="pr-set">${padZ(s.getUTCHours())}:${padZ(s.getUTCMinutes())}</span>`+
+    row.innerHTML=`<span class="pr-rise">${fmtLocalShort(r,SITE.tz)}</span>`+
+      `<span class="pr-set">${fmtLocalShort(s,SITE.tz)}</span>`+
       `<span class="pr-el">${p.el_peak.toFixed(0)}°</span>`+
       `<span class="pr-dur">${Math.floor(dur/60)}m${padZ(Math.floor(dur%60))}s</span>`+
       `<span class="pr-az">${p.az_rise.toFixed(0)}°</span>`;
@@ -1233,13 +1354,14 @@ function updateMeta(tle,passes,now){
 function exportCSV(){
   if(!currentTLE||!lastPasses.length) return;
   let now=new Date();
-  let rows=['RISE_UTC,SET_UTC,RISE_LOCAL,DURATION_s,PEAK_EL_deg,AZ_RISE_deg,AZ_SET_deg,AZ_PEAK_deg'];
+  let rows=['RISE_LOCAL,SET_LOCAL,RISE_UTC,SET_UTC,DURATION_s,PEAK_EL_deg,AZ_RISE_deg,AZ_SET_deg,AZ_PEAK_deg'];
   lastPasses.forEach(p=>{
     let r=new Date(now.getTime()+p.t_rise*1000);
     let s=new Date(now.getTime()+p.t_set*1000);
     let dur=Math.max(0,p.t_set-p.t_rise);
-    let localStr=fmtLocalTime(r,SITE.tz);
-    rows.push([r.toISOString(),s.toISOString(),localStr,dur.toFixed(1),p.el_peak.toFixed(2),p.az_rise.toFixed(2),p.az_set.toFixed(2),p.az_peak.toFixed(2)].join(','));
+    let rLocal=fmtLocalTime(r,SITE.tz).slice(0,8);
+    let sLocal=fmtLocalTime(s,SITE.tz).slice(0,8);
+    rows.push([rLocal,sLocal,r.toISOString(),s.toISOString(),dur.toFixed(1),p.el_peak.toFixed(2),p.az_rise.toFixed(2),p.az_set.toFixed(2),p.az_peak.toFixed(2)].join(','));
   });
   let blob=new Blob([rows.join('\n')],{type:'text/csv'});
   let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=currentTLE.name.replace(/\s+/g,'_')+'_passes.csv';a.click();
@@ -1251,6 +1373,12 @@ function resizeCanvas(c){let r=c.getBoundingClientRect();let w=Math.max(1,Math.r
 /* ════ RENDER EVERYTHING (full reprop) ════ */
 function renderAll(tle){
   if(!tle) return;
+  // Update propagator label
+  let propLabel=tle.satrec?'SGP4/SDP4':'TWO-BODY';
+  let es=document.getElementById('eci-prop-status');
+  let ef=document.getElementById('ecef-prop-status');
+  if(es) es.textContent=propLabel+' · J2000 · DRAG/SCROLL';
+  if(ef) ef.textContent=propLabel+' · WGS-84 · DRAG/SCROLL';
   currentData=propagate(tle);
   propagationTime=currentData.now;
   propagationGMST0=currentData.GMST0;  // exact GMST used in ECEF computation
@@ -1288,6 +1416,7 @@ function renderAll(tle){
 
   drawSkyPlot(skyC,passes,azF,elF,tF,now);
   updateMeta(tle,passes,now);
+  overlayPasses();
 }
 
 /* ════ TIERED REFRESH ════
@@ -1332,32 +1461,51 @@ function selectSat(tle,itemEl){
 
 /* ════ PASS QUALITY COLOR FOR LIST ════ */
 function getPassQuality(tle){
-  // Quick check: propagate 1 rev to see if there's a good pass soon
   try{
     let now=new Date();
-    let dt_ep=(now.getTime()-tle.epoch.getTime())/1000;
-    let M_now=((tle.M*Math.PI/180+tle.n_rad*dt_ep)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
-    let e=tle.ecc,a=tle.a,inc_r=tle.inc*Math.PI/180;
-    let RAAN=tle.raan*Math.PI/180,argp=tle.argp*Math.PI/180;
-    let nu=trueFromMean(M_now,e);let p_=a*(1-e*e),r_=p_/(1+e*Math.cos(nu));
-    let C=dcmPQW2ECI(RAAN,inc_r,argp);let sqp=Math.sqrt(MU_E/p_);
-    let rECI=mv3(C,[r_*Math.cos(nu),r_*Math.sin(nu),0]);
-    let vECI=mv3(C,[-sqp*Math.sin(nu),sqp*(e+Math.cos(nu)),0]);
-    let x=[rECI[0],rECI[1],rECI[2],vECI[0],vECI[1],vECI[2]];
-    let GMST0=gmst_from_jd(julianDate(now));
     let siteECEF=geo2ecef(SITE.lat_deg,SITE.lon_deg,SITE.h_m);
     let Re2enu=topoRotm(SITE.lat_deg,SITE.lon_deg);
-    // Check 60 points over 1 rev
-    let T=Math.min(tle.T_s,7200);let step=T/60;
+    let T=Math.min(tle.T_s,7200);
+    let step=T/60;
     let maxEl=-90;
-    for(let k=0;k<=60;k++){
-      let t=k*step,th=GMST0+WE*t,ct=Math.cos(th),st=Math.sin(th);
-      let fx=ct*x[0]+st*x[1],fy=-st*x[0]+ct*x[1],fz=x[2];
-      let rho=[fx-siteECEF[0],fy-siteECEF[1],fz-siteECEF[2]];
-      let enu=mv3(Re2enu,rho);let U_=enu[2],rng=Math.sqrt(enu[0]*enu[0]+enu[1]*enu[1]+enu[2]*enu[2]);
-      let el=Math.asin(Math.max(-1,Math.min(1,U_/rng)))*180/Math.PI;
-      if(el>maxEl) maxEl=el;
-      if(k<60) x=rk4(x,step);
+
+    if(tle.satrec){
+      // SGP4 path — direct evaluation, no integration
+      for(let k=0;k<=60;k++){
+        let d=new Date(now.getTime()+k*step*1000);
+        let pv=sgp4ECI(tle.satrec,d);
+        if(!pv) continue;
+        let[rx,ry,rz]=pv.r;
+        let GMST=gmst_from_jd(julianDate(d));
+        let ct=Math.cos(GMST),st=Math.sin(GMST);
+        let fx=ct*rx+st*ry,fy=-st*rx+ct*ry,fz=rz;
+        let rho=[fx-siteECEF[0],fy-siteECEF[1],fz-siteECEF[2]];
+        let enu=mv3(Re2enu,rho);
+        let U_=enu[2],rng=Math.sqrt(enu[0]**2+enu[1]**2+enu[2]**2);
+        let el=Math.asin(Math.max(-1,Math.min(1,U_/rng)))*180/Math.PI;
+        if(el>maxEl) maxEl=el;
+      }
+    } else {
+      // Two-body fallback
+      let dt_ep=(now.getTime()-tle.epoch.getTime())/1000;
+      let M_now=((tle.M*Math.PI/180+tle.n_rad*dt_ep)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+      let e=tle.ecc,a=tle.a,inc_r=tle.inc*Math.PI/180;
+      let RAAN=tle.raan*Math.PI/180,argp=tle.argp*Math.PI/180;
+      let nu=trueFromMean(M_now,e);let p_=a*(1-e*e),r_=p_/(1+e*Math.cos(nu));
+      let C=dcmPQW2ECI(RAAN,inc_r,argp);let sqp=Math.sqrt(MU_E/p_);
+      let rECI=mv3(C,[r_*Math.cos(nu),r_*Math.sin(nu),0]);
+      let vECI=mv3(C,[-sqp*Math.sin(nu),sqp*(e+Math.cos(nu)),0]);
+      let x=[rECI[0],rECI[1],rECI[2],vECI[0],vECI[1],vECI[2]];
+      let GMST0=gmst_from_jd(julianDate(now));
+      for(let k=0;k<=60;k++){
+        let t=k*step,th=GMST0+WE*t,ct=Math.cos(th),st=Math.sin(th);
+        let fx=ct*x[0]+st*x[1],fy=-st*x[0]+ct*x[1],fz=x[2];
+        let rho=[fx-siteECEF[0],fy-siteECEF[1],fz-siteECEF[2]];
+        let enu=mv3(Re2enu,rho);let U_=enu[2],rng=Math.sqrt(enu[0]**2+enu[1]**2+enu[2]**2);
+        let el=Math.asin(Math.max(-1,Math.min(1,U_/rng)))*180/Math.PI;
+        if(el>maxEl) maxEl=el;
+        if(k<60) x=rk4(x,step);
+      }
     }
     if(maxEl>30) return 'soon';
     if(maxEl>0) return 'later';
@@ -1422,6 +1570,7 @@ async function applySite(){
   document.getElementById('site-label-gt').textContent='⬟ '+lat.toFixed(2)+'°N '+Math.abs(lon).toFixed(2)+'°'+(lon>=0?'E':'W');
   updateLocalTZLabel();
   if(currentTLE){currentData=null;renderAll(currentTLE);}
+  setTimeout(fetchConditions,400);
 }
 
 async function geolocateMe(){
@@ -1458,8 +1607,9 @@ function parseCatalog(raw){
   for(let i=0;i<n;i++){
     let name=lines[3*i];
     if(/^[12] /.test(name)) continue;
-    let t=parseTLE(name,lines[3*i+1],lines[3*i+2]);
-    if(t) sats.push(t);
+    let l1=lines[3*i+1],l2=lines[3*i+2];
+    let t=parseTLE(name,l1,l2);
+    if(t){t.rawL1=l1;t.rawL2=l2;sats.push(t);}
   }
   return sats;
 }
@@ -1524,6 +1674,384 @@ function setupResizers(){
   });
 }
 
+/* ════ TLE DOWNLOAD ════ */
+function downloadTLE(){
+  if(!currentTLE) return;
+  // Reconstruct 3-line TLE from parsed fields
+  // We need the original raw lines — store them at parse time via rawL1/rawL2
+  if(!currentTLE.rawL1||!currentTLE.rawL2){
+    alert('Raw TLE lines not available for this satellite. Re-select it from the list.');
+    return;
+  }
+  let content=[currentTLE.name, currentTLE.rawL1, currentTLE.rawL2].join('\n');
+  let blob=new Blob([content],{type:'text/plain'});
+  let a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=(currentTLE.name.replace(/[^a-zA-Z0-9_\-]/g,'_')||'satellite')+'.tle';
+  a.click();
+}
+
+/* ════ OBSERVING CONDITIONS ════
+   Sources:
+   - 7Timer ASTRO API  → cloud, seeing, transparency, wind
+   - SunCalc math      → darkness / limiting magnitude (client-side)
+   - AirNow API        → smoke / AQI
+================================================================ */
+
+/* --- Sun/Moon math (no external lib needed) --- */
+const DEG=Math.PI/180;
+function jd(d){return d.getTime()/86400000+2440587.5;}
+
+function sunPos(d){
+  let T=(jd(d)-2451545)/36525;
+  let L=(280.46646+36000.76983*T)%360;
+  let M=(357.52911+35999.05029*T-0.0001537*T*T)*DEG;
+  let C=(1.914602-0.004817*T-0.000014*T*T)*Math.sin(M)+(0.019993-0.000101*T)*Math.sin(2*M)+0.000289*Math.sin(3*M);
+  let lon=(L+C)*DEG;
+  let e=23.439291*DEG;
+  let ra=Math.atan2(Math.cos(e)*Math.sin(lon),Math.cos(lon));
+  let dec=Math.asin(Math.sin(e)*Math.sin(lon));
+  return{ra,dec};
+}
+
+function moonPos(d){
+  let T=(jd(d)-2451545)/36525;
+  let L=(218.3164477+481267.88123421*T)*DEG;
+  let M=(357.5291092+35999.0502909*T)*DEG;
+  let Mm=(134.9634114+477198.8676313*T)*DEG;
+  let D=(297.8502042+445267.1115168*T)*DEG;
+  let F=(93.2720993+483202.0175273*T)*DEG;
+  let lon=L+6.289*DEG*Math.sin(Mm)-1.274*DEG*Math.sin(2*D-Mm)+0.658*DEG*Math.sin(2*D)
+          -0.214*DEG*Math.sin(2*Mm)-0.114*DEG*Math.sin(2*F)+1.274*DEG*Math.sin(2*D-M-Mm)+0.658*DEG*Math.sin(2*D-M);
+  let lat=5.128*DEG*Math.sin(F)+0.281*DEG*Math.sin(Mm+F)-0.278*DEG*Math.sin(Mm-F)-0.173*DEG*Math.sin(2*D-F);
+  let ra=Math.atan2(Math.cos(23.44*DEG)*Math.sin(lon),Math.cos(lon));
+  let dec=Math.asin(Math.sin(23.44*DEG)*Math.sin(lon)*Math.cos(lat)+Math.sin(lat)*Math.cos(23.44*DEG));
+  let phase=0.5*(1-Math.cos(D*2)); // 0=new,1=full
+  return{ra,dec,phase};
+}
+
+function altAz(raDec,d,lat,lon){
+  // Hour angle
+  let T=(jd(d)-2451545)/36525;
+  let gmst=((280.46061837+360.98564736629*(jd(d)-2451545))%360+360)%360;
+  let lst=(gmst+lon)*DEG;
+  let ha=lst-raDec.ra;
+  let sinAlt=Math.sin(raDec.dec)*Math.sin(lat*DEG)+Math.cos(raDec.dec)*Math.cos(lat*DEG)*Math.cos(ha);
+  let alt=Math.asin(Math.max(-1,Math.min(1,sinAlt)))/DEG;
+  return{alt};
+}
+
+function limitingMag(d,lat,lon){
+  let sun=sunPos(d);let moon=moonPos(d);
+  let sunAlt=altAz(sun,d,lat,lon).alt;
+  let moonAlt=altAz(moon,d,lat,lon).alt;
+
+  // Daytime/twilight
+  if(sunAlt>0) return{lm:null,label:'DAY',dark:0};
+  if(sunAlt>-6) return{lm:null,label:'CIVIL',dark:1};
+  if(sunAlt>-12) return{lm:3.5,label:'NAUT',dark:2};
+  if(sunAlt>-18) return{lm:5.0,label:'ASTRO',dark:3};
+
+  // Night — moon contribution (simplified Krisciunas-Schaefer)
+  let base=6.8; // limiting mag at zenith, dark sky, no moon
+  if(moonAlt>0){
+    let moonFrac=moon.phase; // 0=new,1=full
+    let moonPenalty=moonFrac*moonFrac*2.5; // up to ~2.5 mag loss at full moon
+    let altBonus=Math.max(0,(moonAlt/90)*0.5);
+    base=Math.max(3.5,base-moonPenalty+altBonus);
+  }
+  return{lm:parseFloat(base.toFixed(1)),label:'NIGHT',dark:4+(moonAlt>0?0:1)};
+}
+
+/* Darkness color: dark=0 day, 1 civil, 2 naut, 3 astro, 4 night+moon, 5 night dark */
+function darkColor(darkLevel){
+  return['#fffde0','#ffe090','#b8e0ff','#5588cc','#1a2a4a','#040810'][Math.min(5,darkLevel)];
+}
+
+/* --- 7Timer fetch --- */
+/* --- Open-Meteo fetch (CORS-safe, no key needed) --- */
+async function fetchWeather(lat,lon){
+  // Use observer's IANA timezone so Open-Meteo returns times in local time
+  let tz=encodeURIComponent(SITE.tz||'UTC');
+  let url=`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}`
+    +`&hourly=cloud_cover,wind_speed_10m,precipitation_probability,cape,lifted_index,dewpoint_2m,temperature_2m`
+    +`&forecast_days=2&timezone=${tz}`;
+  try{
+    let r=await fetch(url,{signal:AbortSignal.timeout(8000)});
+    if(r.ok){
+      let j=await r.json();
+      if(j&&j.hourly) return j.hourly;
+    }
+  }catch(e){}
+  return null;
+}
+
+/* --- AirNow fetch --- */
+async function fetchAQI(lat,lon){
+  let omUrl=`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=us_aqi,pm2_5`;
+  try{
+    let r=await fetch(omUrl,{signal:AbortSignal.timeout(6000)});
+    if(r.ok){
+      let j=await r.json();
+      if(j&&j.current) return{aqi:j.current.us_aqi,pm25:j.current.pm2_5};
+    }
+  }catch(e){}
+  return null;
+}
+
+/* --- Derive seeing (1-5) from CAPE + lifted index --- */
+function deriveSee(cape,li){
+  // Lifted index: positive=stable(good seeing), negative=unstable(bad seeing)
+  // CAPE: 0=stable, >500=convective
+  if(li===null||li===undefined) return 3;
+  if(li>4&&(cape||0)<100) return 5;   // excellent
+  if(li>2&&(cape||0)<300) return 4;   // good
+  if(li>0) return 3;                   // average
+  if(li>-2) return 2;                  // poor
+  return 1;                            // bad
+}
+
+/* --- Derive transparency (1-8) from dewpoint depression --- */
+function deriveTrans(temp,dew,cloud){
+  if(cloud>75) return 1; // too cloudy
+  let dep=temp-dew; // dewpoint depression — higher=drier=more transparent
+  if(dep>20) return 8;
+  if(dep>15) return 7;
+  if(dep>12) return 6;
+  if(dep>9)  return 5;
+  if(dep>6)  return 4;
+  if(dep>3)  return 3;
+  return 2;
+}
+
+/* --- Color helpers --- */
+function cloudColor(v){ // 0-100% cloud cover
+  if(v<=10) return'#032a1a';
+  if(v<=25) return'#054a28';
+  if(v<=40) return'#3aaa60';
+  if(v<=55) return'#bbbb66';
+  if(v<=70) return'#ccaa33';
+  if(v<=85) return'#cc5500';
+  return'#aa1100';
+}
+function seeingColor(v){ // 1=bad..5=excellent
+  const c=['#aa1100','#cc5500','#bbaa00','#44aa44','#0088ff'];
+  return c[Math.min(4,Math.max(0,v-1))];
+}
+function transpColor(v){ // 1=poor..8=excellent
+  const c=['#aa1100','#882200','#aa5500','#999900','#448844','#0066cc','#0044ff','#0022dd'];
+  return c[Math.min(7,Math.max(0,v-1))];
+}
+function windColor(v){ // m/s
+  if(v<3) return '#0044cc';
+  if(v<6) return '#008844';
+  if(v<10) return '#888800';
+  if(v<15) return '#cc5500';
+  return '#cc1100';
+}
+function smokeColor(aqi){
+  if(aqi===null||aqi===undefined) return'#1a1a2a';
+  if(aqi<=50) return'#032a1a';
+  if(aqi<=100) return'#887700';
+  if(aqi<=150) return'#cc5500';
+  if(aqi<=200) return'#aa1100';
+  return'#660000';
+}
+
+/* --- Tooltip text --- */
+const wxTip={
+  cloud:v=>'Cloud cover: '+v+'%',
+  seeing:v=>{const l=['Bad 1/5','Poor 2/5','Average 3/5','Good 4/5','Excellent 5/5'];return'Seeing: '+l[Math.min(4,v-1)];},
+  transp:v=>{const l=['Poor','Below Avg','Below Avg','Average','Above Avg','Transparent','Transparent','Transparent'];return'Transparency: '+l[Math.min(7,v-1)];},
+  wind:v=>v.toFixed(1)+' m/s · '+(v*1.944).toFixed(0)+' kt',
+  dark:(d,lm)=>d.label+(lm!==null?' · LimMag '+lm:''),
+  smoke:aqi=>aqi===null?'AQI: No data':'AQI '+aqi+(aqi<=50?' · Good':aqi<=100?' · Moderate':aqi<=150?' · Unhealthy (sensitive)':' · Unhealthy')
+};
+
+/* --- Main fetch & render --- */
+let wxData=null;
+
+async function fetchConditions(){
+  let lat=SITE.lat_deg,lon=SITE.lon_deg;
+  document.getElementById('wx-status').textContent='FETCHING…';
+  document.getElementById('wx-site-label').textContent=lat.toFixed(2)+'°N '+Math.abs(lon).toFixed(2)+'°'+(lon>=0?'E':'W');
+
+  let [hourly, aqiData] = await Promise.all([fetchWeather(lat,lon), fetchAQI(lat,lon)]);
+
+  if(!hourly){document.getElementById('wx-status').textContent='WEATHER UNAVAILABLE';return;}
+
+  wxData={hourly,aqiData,lat,lon,fetchedAt:Date.now()};
+  renderConditions();
+  overlayPasses();
+  document.getElementById('wx-status').textContent='UPDATED '+fmtLocalTime(new Date(),SITE.tz).slice(0,5)+' LOCAL';
+}
+
+function renderConditions(){
+  if(!wxData) return;
+  const {hourly,aqiData,lat,lon}=wxData;
+  const now=new Date();
+
+  // Find the index of the current hour in the hourly array
+  // Open-Meteo now returns times in observer local time e.g. "2026-05-16T10:00"
+  const times=hourly.time;
+  const nowLocal=fmtLocalTime(now,SITE.tz); // "HH:MM:SS"
+  const nowLocalHour=fmtLocalTime(now,SITE.tz).slice(0,13); // unused — match by index instead
+  // Build a local date string to match against Open-Meteo's local time strings
+  const nowLocalStr=(()=>{
+    try{
+      return new Intl.DateTimeFormat('sv-SE',{timeZone:SITE.tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hour12:false}).format(now).slice(0,13);
+    }catch(e){return now.toISOString().slice(0,13);}
+  })();
+  let startIdx=times.findIndex(t=>t.slice(0,13)===nowLocalStr);
+  if(startIdx<0) startIdx=0;
+
+  // Show next 24 hours, one cell per hour
+  const numSlots=24;
+  const slots=[];
+  for(let i=0;i<numSlots;i++){
+    let idx=startIdx+i;
+    if(idx>=times.length) break;
+    // times[idx] is local time string e.g. "2026-05-16T22:00"
+    // Convert to real UTC using the site's known offset (tzOffsetMin)
+    let localHour=parseInt(times[idx].slice(11,13));
+    // Parse local string as if UTC, then subtract the local offset to get true UTC
+    let localMs=Date.parse(times[idx]+':00Z'); // treat as UTC first
+    let slotUTC=new Date(localMs - SITE.tzOffsetMin*60000); // shift back to real UTC
+    slots.push({
+      localHour,
+      slotUTC,
+      cloud: hourly.cloud_cover[idx]??50,
+      wind:  hourly.wind_speed_10m[idx]??0,
+      cape:  hourly.cape[idx]??0,
+      li:    hourly.lifted_index[idx]??0,
+      temp:  hourly.temperature_2m[idx]??10,
+      dew:   hourly.dewpoint_2m[idx]??5,
+    });
+  }
+
+  // Clear all cells
+  ['wx-hours','wx-cloud','wx-seeing','wx-transp','wx-dark','wx-wind','wx-smoke'].forEach(id=>{
+    document.getElementById(id).innerHTML='';
+  });
+
+  const tooltip=document.getElementById('tooltip');
+
+  slots.forEach((s,i)=>{
+    let hh=padZ(s.localHour);
+    let dark=limitingMag(s.slotUTC,lat,lon);
+    let see=deriveSee(s.cape,s.li);
+    let trans=deriveTrans(s.temp,s.dew,s.cloud);
+
+    let defs=[
+      {id:'wx-hours', label:hh,  bg:'transparent', color:'var(--muted)', tip:null},
+      {id:'wx-cloud', bg:cloudColor(s.cloud),  tip:wxTip.cloud(Math.round(s.cloud))},
+      {id:'wx-seeing',bg:seeingColor(see),     tip:wxTip.seeing(see)},
+      {id:'wx-transp',bg:transpColor(trans),   tip:wxTip.transp(trans)},
+      {id:'wx-dark',  bg:darkColor(dark.dark), tip:wxTip.dark(dark,dark.lm)},
+      {id:'wx-wind',  bg:windColor(s.wind),    tip:wxTip.wind(s.wind)},
+      {id:'wx-smoke', bg:smokeColor(aqiData?.aqi), tip:wxTip.smoke(aqiData?.aqi)},
+    ];
+
+    defs.forEach(d=>{
+      let cell=document.createElement('div');
+      cell.className='wx-cell';
+      cell.style.background=d.bg;
+      if(d.label){
+        cell.style.display='flex';cell.style.alignItems='center';cell.style.justifyContent='center';
+        cell.style.fontSize='6px';cell.style.color=d.color||'var(--muted)';
+        cell.style.fontFamily='var(--font-hud)';cell.textContent=d.label;
+        cell.style.background='transparent';cell.style.height='10px';
+      }
+      if(d.tip){
+        cell.addEventListener('mouseenter',e=>{
+          tooltip.textContent=d.tip;tooltip.style.display='block';
+          tooltip.style.left=(e.clientX+12)+'px';tooltip.style.top=(e.clientY-24)+'px';
+        });
+        cell.addEventListener('mousemove',e=>{
+          tooltip.style.left=(e.clientX+12)+'px';tooltip.style.top=(e.clientY-24)+'px';
+        });
+        cell.addEventListener('mouseleave',()=>{tooltip.style.display='none';});
+      }
+      document.getElementById(d.id).appendChild(cell);
+    });
+  });
+}
+
+/* ════ PASS OVERLAY ON CONDITIONS STRIP ════
+   After conditions render, mark hours that fall within a predicted pass.
+   Called after renderConditions() and after selectSat().             */
+function overlayPasses(){
+  if(!wxData||!currentPasses||!currentTLE||!propagationTime) return;
+  const cloudCells=document.getElementById('wx-cloud').children;
+  if(!cloudCells.length) return;
+
+  const numCells=cloudCells.length;
+  // Each cell i corresponds to slotUTC[i] — rebuild times from wxData
+  const {hourly}=wxData;
+  const times=hourly.time;
+  const startIdx=(()=>{
+    const nowLocalStr=(()=>{
+      try{return new Intl.DateTimeFormat('sv-SE',{timeZone:SITE.tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hour12:false}).format(new Date()).slice(0,13);}
+      catch(e){return new Date().toISOString().slice(0,13);}
+    })();
+    let idx=times.findIndex(t=>t.slice(0,13)===nowLocalStr);
+    return idx<0?0:idx;
+  })();
+
+  // Remove any existing pass overlays
+  document.querySelectorAll('.wx-pass-overlay').forEach(el=>el.remove());
+
+  // For each pass, find which hour cells it overlaps
+  const rows=['wx-cloud','wx-seeing','wx-transp','wx-dark','wx-wind','wx-smoke'];
+
+  currentPasses.forEach((p,pi)=>{
+    // p.t_rise / p.t_set are seconds from propagationTime
+    let riseUTC=new Date(propagationTime.getTime()+p.t_rise*1000);
+    let setUTC =new Date(propagationTime.getTime()+p.t_set*1000);
+    let elPk=p.el_peak;
+    let col=elPk>30?'rgba(0,255,136,0.55)':elPk>10?'rgba(255,170,0,0.45)':'rgba(100,150,255,0.35)';
+    let border=elPk>30?'#00ff88':elPk>10?'#ffaa00':'#6699ff';
+
+    for(let i=0;i<numCells;i++){
+      let idx=startIdx+i;
+      if(idx>=times.length) break;
+      // Get UTC instant for this cell
+      let localMs=Date.parse(times[idx]+':00Z');
+      let cellUTC=new Date(localMs-SITE.tzOffsetMin*60000);
+      let cellEnd=new Date(cellUTC.getTime()+3600000);
+      // Check overlap: pass overlaps cell if rise<cellEnd && set>cellStart
+      if(riseUTC<cellEnd && setUTC>cellUTC){
+        rows.forEach(rowId=>{
+          let cells=document.getElementById(rowId).children;
+          if(i<cells.length){
+            let overlay=document.createElement('div');
+            overlay.className='wx-pass-overlay';
+            overlay.style.cssText=`position:absolute;inset:0;background:${col};border-top:2px solid ${border};border-bottom:2px solid ${border};pointer-events:none;z-index:3;`;
+            // First cell of pass: left border
+            let localRiseMs=Date.parse(times[idx]+':00Z')-SITE.tzOffsetMin*60000;
+            if(riseUTC>=cellUTC) overlay.style.borderLeft=`2px solid ${border}`;
+            if(setUTC<=cellEnd)  overlay.style.borderRight=`2px solid ${border}`;
+            cells[i].style.position='relative';
+            cells[i].appendChild(overlay);
+          }
+        });
+        // Also add tooltip enhancement to hour cell
+        let hCells=document.getElementById('wx-hours').children;
+        if(i<hCells.length){
+          let tip=document.getElementById('tooltip');
+          let passLabel=`${currentTLE.name} · ${fmtLocalShort(riseUTC,SITE.tz)}–${fmtLocalShort(setUTC,SITE.tz)} · peak ${elPk.toFixed(0)}°`;
+          hCells[i].style.color=border;
+          hCells[i].style.fontWeight='bold';
+          // Attach tooltip
+          hCells[i].addEventListener('mouseenter',e=>{tip.textContent=passLabel;tip.style.display='block';tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-24)+'px';});
+          hCells[i].addEventListener('mousemove',e=>{tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-24)+'px';});
+          hCells[i].addEventListener('mouseleave',()=>{tip.style.display='none';});
+        }
+      }
+    }
+  });
+}
+
 window.addEventListener('load',async()=>{
   // Seed tzOffsetMin immediately so local clock shows correct time from first tick
   SITE.tzOffsetMin=computeTZOffsetMin(SITE.tz);
@@ -1540,6 +2068,9 @@ window.addEventListener('load',async()=>{
   let fi=document.getElementById('sat-list').firstElementChild;
   if(fi&&allSats.length>0) selectSat(allSats[0],fi);
   document.getElementById('loading-overlay').style.display='none';
+
+  // Fetch observing conditions after main data is loaded
+  setTimeout(fetchConditions, 1500);
 });
 </script>
 </body>
