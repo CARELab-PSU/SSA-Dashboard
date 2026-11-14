@@ -4,17 +4,19 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>CARE Lab · SSA Mission Console</title>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=IBM+Plex+Mono:wght@300;400;600&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.min.js"></script>
 <style>
 :root{
-  --bg:#030608;--panel:#070d12;--border:#0f2535;
-  --accent:#00d4ff;--amber:#ffaa00;--green:#00ff88;--red:#ff4444;--purple:#cc88ff;
-  --dim:#1a3040;--text:#c8dde8;--muted:#4a6070;
-  --font-mono:'IBM Plex Mono',monospace;
-  --font-hud:'Share Tech Mono',monospace;
-  --font-head:'Orbitron',sans-serif;
+  --bg:#000;--panel:#000;--border:#1f1f1f;
+  --accent:#e6e6e6;--amber:#bdbdbd;--green:#7fbf98;--red:#d66e6e;--purple:#a8a8a8;
+  --dim:#2a2a2a;--text:#e6e6e6;--muted:#707070;
+  --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-num:'IBM Plex Mono',ui-monospace,monospace;
+  --font-mono:var(--font-ui);
+  --font-hud:var(--font-num);
+  --font-head:var(--font-ui);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:var(--font-mono);overflow:hidden;}
@@ -22,11 +24,11 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 
 /* ── HEADER ── */
 #header{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 18px;
-  background:linear-gradient(90deg,#000a10,#030f1a);border-bottom:1px solid var(--border);position:relative;}
+  background:linear-gradient(90deg,#050505,#070707);border-bottom:1px solid var(--border);position:relative;}
 #header::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,var(--accent),transparent);}
 .logo{font-family:var(--font-head);font-size:14px;font-weight:900;color:var(--accent);
-  letter-spacing:3px;text-shadow:0 0 18px rgba(0,212,255,.45);}
+  letter-spacing:3px;text-shadow:0 0 18px rgba(190,190,190,.45);}
 .logo span{color:var(--amber);}
 .header-sub{font-size:9px;color:var(--muted);letter-spacing:2px;font-family:var(--font-hud);}
 .sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;animation:pulse 2s ease-in-out infinite;}
@@ -48,16 +50,16 @@ html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-fam
 .sb-title{font-family:var(--font-head);font-size:9px;letter-spacing:3px;color:var(--accent);}
 #sat-count{font-size:9px;color:var(--muted);font-family:var(--font-hud);margin-left:auto;}
 .fl{font-size:7px;color:var(--muted);letter-spacing:2px;font-family:var(--font-hud);margin-bottom:1px;}
-select.hud-sel{width:100%;background:#000d16;border:1px solid var(--dim);color:var(--accent);
+select.hud-sel{width:100%;background:#060606;border:1px solid var(--dim);color:var(--accent);
   font-family:var(--font-hud);font-size:10px;padding:5px 22px 5px 7px;outline:none;border-radius:2px;cursor:pointer;
-  appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2300d4ff'/%3E%3C/svg%3E");
+  appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23bebebe'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 7px center;}
-select.hud-sel option,select.hud-sel optgroup{background:#000d16;color:var(--text);}
+select.hud-sel option,select.hud-sel optgroup{background:#060606;color:var(--text);}
 select.hud-sel:focus{border-color:var(--accent);}
 
 /* Search */
 #search-wrap{padding:6px 12px;border-bottom:1px solid var(--border);position:relative;}
-#search-wrap input{width:100%;background:#000d16;border:1px solid var(--dim);color:var(--text);
+#search-wrap input{width:100%;background:#060606;border:1px solid var(--dim);color:var(--text);
   font-family:var(--font-mono);font-size:10px;padding:5px 8px 5px 24px;outline:none;border-radius:2px;transition:border-color .2s;}
 #search-wrap input:focus{border-color:var(--accent);}
 #search-wrap::before{content:'⌕';position:absolute;left:20px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:12px;pointer-events:none;}
@@ -68,18 +70,18 @@ select.hud-sel:focus{border-color:var(--accent);}
 #sat-list::-webkit-scrollbar-thumb{background:var(--dim);}
 .sat-item{padding:7px 12px;cursor:pointer;border-left:2px solid transparent;
   transition:all .1s;display:flex;flex-direction:column;gap:2px;}
-.sat-item:hover{background:#0a1820;border-left-color:var(--accent);}
-.sat-item.active{background:#071520;border-left-color:var(--amber);}
+.sat-item:hover{background:#151515;border-left-color:var(--accent);}
+.sat-item.active{background:#0a0a0a;border-left-color:var(--amber);}
 .sat-name{font-size:10px;color:var(--text);font-family:var(--font-hud);}
 .sat-meta-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .sat-meta{font-size:8px;color:var(--muted);}
 .sat-inc{font-size:8px;color:var(--accent);}
 .orbit-badge{font-size:7px;padding:1px 4px;border-radius:2px;font-family:var(--font-hud);font-weight:bold;}
-.badge-LEO{background:rgba(0,212,255,.18);color:var(--accent);}
-.badge-MEO{background:rgba(0,255,136,.18);color:var(--green);}
-.badge-GEO{background:rgba(255,170,0,.18);color:var(--amber);}
-.badge-HEO{background:rgba(204,136,255,.18);color:var(--purple);}
-.badge-MOLNIYA{background:rgba(204,136,255,.25);color:var(--purple);}
+.badge-LEO{background:rgba(190,190,190,.18);color:var(--accent);}
+.badge-MEO{background:rgba(127,191,152,.18);color:var(--green);}
+.badge-GEO{background:rgba(197,197,197,.18);color:var(--amber);}
+.badge-HEO{background:rgba(178,178,178,.18);color:var(--purple);}
+.badge-MOLNIYA{background:rgba(178,178,178,.25);color:var(--purple);}
 .pass-indicator{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-left:auto;}
 .pi-soon{background:var(--green);box-shadow:0 0 5px var(--green);}
 .pi-later{background:var(--amber);}
@@ -90,7 +92,7 @@ select.hud-sel:focus{border-color:var(--accent);}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* ── ORBITAL ELEMENTS PANEL (sidebar bottom) ── */
-#oe-block{border-top:1px solid var(--border);padding:10px 12px;background:#040c12;}
+#oe-block{border-top:1px solid var(--border);padding:10px 12px;background:#060606;}
 .oe-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;cursor:pointer;}
 .oe-title{font-family:var(--font-head);font-size:8px;letter-spacing:2px;color:var(--accent);}
 .oe-toggle{font-size:9px;color:var(--muted);}
@@ -100,14 +102,14 @@ select.hud-sel:focus{border-color:var(--accent);}
 .oe-val{font-size:9px;color:var(--accent);font-family:var(--font-hud);}
 
 /* ── SITE SETTINGS PANEL ── */
-#site-panel{border-top:1px solid var(--border);padding:8px 12px;background:#040c12;}
+#site-panel{border-top:1px solid var(--border);padding:8px 12px;background:#060606;}
 .site-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;cursor:pointer;}
 .site-title{font-family:var(--font-head);font-size:8px;letter-spacing:2px;color:var(--amber);}
 .site-toggle{font-size:9px;color:var(--muted);}
 #site-form{display:flex;flex-direction:column;gap:5px;}
 .site-row{display:flex;gap:5px;align-items:center;}
 .site-lbl{font-size:8px;color:var(--muted);font-family:var(--font-hud);width:28px;flex-shrink:0;}
-.site-input{flex:1;background:#000d16;border:1px solid var(--dim);color:var(--text);
+.site-input{flex:1;background:#060606;border:1px solid var(--dim);color:var(--text);
   font-family:var(--font-hud);font-size:10px;padding:4px 6px;outline:none;border-radius:2px;}
 .site-input:focus{border-color:var(--amber);}
 .site-btn-row{display:flex;gap:5px;margin-top:2px;}
@@ -121,7 +123,7 @@ select.hud-sel:focus{border-color:var(--accent);}
 
 /* Meta strip */
 #meta-strip{padding:7px 14px;border-bottom:1px solid var(--border);
-  display:flex;flex-wrap:nowrap;gap:11px;align-items:center;background:#040c12;overflow-x:auto;}
+  display:flex;flex-wrap:nowrap;gap:11px;align-items:center;background:#060606;overflow-x:auto;}
 #meta-strip::-webkit-scrollbar{height:2px;}
 #meta-strip::-webkit-scrollbar-thumb{background:var(--dim);}
 .mi{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
@@ -130,14 +132,14 @@ select.hud-sel:focus{border-color:var(--accent);}
 .mv.green{color:var(--green);}.mv.red{color:var(--red);}.mv.amber{color:var(--amber);}.mv.purple{color:var(--purple);}
 .msep{width:1px;height:26px;background:var(--border);flex-shrink:0;}
 #sat-title-area{flex-shrink:0;}
-#selected-sat-name{font-family:var(--font-head);font-size:11px;color:#fff;letter-spacing:2px;}
+#selected-sat-name{font-family:var(--font-head);font-size:11px;color:#ffffff;letter-spacing:2px;}
 #norad-id{font-size:8px;color:var(--muted);font-family:var(--font-hud);}
 
 /* Plot grid */
 #plots-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;background:var(--border);overflow:hidden;}
 .plot-panel{background:var(--panel);position:relative;overflow:hidden;display:flex;flex-direction:column;}
 .plot-label{position:absolute;top:7px;left:11px;z-index:10;font-family:var(--font-head);font-size:8px;
-  letter-spacing:2px;color:var(--accent);text-shadow:0 0 10px rgba(0,212,255,.5);pointer-events:none;}
+  letter-spacing:2px;color:var(--accent);text-shadow:0 0 10px rgba(190,190,190,.5);pointer-events:none;}
 .plot-status{position:absolute;top:7px;right:11px;z-index:10;font-family:var(--font-hud);font-size:7px;color:var(--muted);pointer-events:none;}
 canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 #eci-container,#ecef-container{flex:1;position:relative;}
@@ -152,7 +154,7 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 .pt-title{font-family:var(--font-head);font-size:7px;color:var(--amber);letter-spacing:2px;}
 .pt-export{font-size:8px;color:var(--muted);cursor:pointer;font-family:var(--font-hud);background:none;border:none;padding:0;}
 .pt-export:hover{color:var(--accent);}
-.pass-row{display:grid;grid-template-columns:56px 56px 24px 44px 42px;padding:2px 8px;border-bottom:1px solid #0a1820;gap:2px;}
+.pass-row{display:grid;grid-template-columns:56px 56px 24px 44px 42px;padding:2px 8px;border-bottom:1px solid #151515;gap:2px;}
 .pass-row.hdr{color:var(--muted);font-size:7px;}
 .pr-rise{color:var(--green);font-size:8px;}.pr-set{color:var(--red);font-size:8px;}
 .pr-el{color:var(--amber);font-size:8px;}.pr-dur{color:var(--muted);font-size:8px;}.pr-az{color:var(--muted);font-size:8px;}
@@ -174,7 +176,7 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
   font-family:var(--font-hud);font-size:9px;color:var(--accent);pointer-events:none;z-index:200;
   border-radius:2px;display:none;white-space:nowrap;}
 /* ── OBSERVING CONDITIONS STRIP ── */
-#wx-strip{padding:5px 14px 4px;border-bottom:1px solid var(--border);background:#040c12;flex-shrink:0;}
+#wx-strip{padding:5px 14px 4px;border-bottom:1px solid var(--border);background:#060606;flex-shrink:0;}
 .wx-header{display:flex;align-items:center;gap:10px;margin-bottom:4px;}
 .wx-title{font-family:var(--font-head);font-size:8px;letter-spacing:2px;color:var(--purple);flex-shrink:0;}
 .wx-site{font-size:8px;color:var(--muted);font-family:var(--font-hud);}
@@ -189,7 +191,7 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 .wx-now-marker{position:absolute;top:0;bottom:0;width:1px;background:var(--amber);opacity:.8;pointer-events:none;z-index:5;}
 
 /* Update main grid to fit the strip */
-#main{display:grid;grid-template-rows:auto auto 1fr;overflow:hidden;}
+#main{display:grid;grid-template-rows:auto auto auto auto 1fr;overflow:hidden;}
 
 /* Refresh interval slider */
 .refresh-interval-wrap{display:flex;align-items:center;gap:6px;padding:2px 0 0;}
@@ -213,15 +215,15 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
   font-family:var(--font-head);font-size:9px;letter-spacing:2.5px;padding:0 16px;cursor:pointer;
   transition:color .15s,border-color .15s,text-shadow .15s;}
 .tab-btn:hover{color:var(--text);}
-.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);text-shadow:0 0 12px rgba(0,212,255,.6);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);text-shadow:0 0 12px rgba(190,190,190,.6);}
 .tab-btn .tb-sub{display:block;font-size:6px;letter-spacing:1px;color:var(--muted);font-family:var(--font-hud);margin-top:2px;}
 
 /* pass table now has a VIS column */
 .pass-row{grid-template-columns:48px 48px 24px 40px 34px 30px;}
 .vis-chip{font-size:7px;padding:0 3px;border-radius:2px;font-family:var(--font-hud);font-weight:bold;text-align:center;}
-.vc-vis{background:rgba(0,255,136,.22);color:var(--green);box-shadow:0 0 6px rgba(0,255,136,.35);}
-.vc-ecl{background:rgba(120,120,160,.18);color:#8899bb;}
-.vc-day{background:rgba(255,170,0,.14);color:#bb8833;}
+.vc-vis{background:rgba(127,191,152,.22);color:var(--green);box-shadow:0 0 6px rgba(127,191,152,.35);}
+.vc-ecl{background:rgba(138,138,138,.18);color:#aaaaaa;}
+.vc-day{background:rgba(197,197,197,.14);color:#9e9e9e;}
 .pi-vis{background:var(--green);box-shadow:0 0 7px var(--green);}
 .pi-soon{background:var(--accent);box-shadow:0 0 5px var(--accent);}
 
@@ -233,33 +235,33 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 
 /* ═══════════════ CATALOG 3D VIEW ═══════════════ */
 #cat-toolbar{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:6px 14px;
-  background:#040c12;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  background:#060606;border-bottom:1px solid var(--border);flex-wrap:wrap;}
 .ct-group{display:flex;align-items:center;gap:6px;}
 .ct-lbl{font-size:7px;color:var(--muted);letter-spacing:2px;font-family:var(--font-hud);}
 #cat-group-sel{width:170px;}
 .tw-btn{background:transparent;border:1px solid var(--dim);color:var(--muted);font-family:var(--font-hud);
   font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;transition:all .12s;min-width:30px;}
 .tw-btn:hover{border-color:var(--accent);color:var(--accent);}
-.tw-btn.on{border-color:var(--amber);color:var(--amber);background:rgba(255,170,0,.08);box-shadow:0 0 8px rgba(255,170,0,.25);}
+.tw-btn.on{border-color:var(--amber);color:var(--amber);background:rgba(197,197,197,.08);box-shadow:0 0 8px rgba(197,197,197,.25);}
 #cat-simclock{font-family:var(--font-hud);font-size:11px;color:var(--green);letter-spacing:1px;}
 #cat-simoffset{font-size:8px;color:var(--amber);font-family:var(--font-hud);}
 #cat-counts{margin-left:auto;font-size:8px;color:var(--muted);font-family:var(--font-hud);}
-#cat-stage{flex:1;position:relative;min-height:0;background:#010509;}
+#cat-stage{flex:1;position:relative;min-height:0;background:#020202;}
 #cat-canvas-wrap{position:absolute;inset:0;}
 #cat-canvas-wrap canvas{position:absolute;inset:0;}
 #cat-legend{position:absolute;bottom:10px;left:12px;z-index:10;display:flex;gap:12px;
-  font-size:8px;font-family:var(--font-hud);color:var(--muted);background:rgba(0,8,14,.55);
+  font-size:8px;font-family:var(--font-hud);color:var(--muted);background:rgba(4,4,4,.55);
   padding:5px 9px;border:1px solid var(--border);border-radius:2px;pointer-events:none;}
 .cl-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:-1px;}
 #cat-hover{position:absolute;display:none;z-index:30;background:#000d16f0;border:1px solid var(--accent);
   padding:7px 10px;border-radius:2px;pointer-events:none;font-family:var(--font-hud);min-width:150px;}
-#cat-hover .ch-name{font-size:10px;color:#fff;letter-spacing:1px;margin-bottom:3px;}
+#cat-hover .ch-name{font-size:10px;color:#ffffff;letter-spacing:1px;margin-bottom:3px;}
 #cat-hover .ch-row{font-size:8px;color:var(--accent);display:flex;justify-content:space-between;gap:12px;}
 #cat-hover .ch-row span:first-child{color:var(--muted);}
 #cat-card{position:absolute;top:12px;right:12px;width:252px;z-index:25;background:#000d16ee;
   border:1px solid var(--border);border-radius:2px;display:none;backdrop-filter:blur(3px);}
 .cc-head{display:flex;align-items:center;gap:7px;padding:8px 10px;border-bottom:1px solid var(--border);}
-.cc-name{font-family:var(--font-head);font-size:10px;color:#fff;letter-spacing:1px;flex:1;line-height:1.3;}
+.cc-name{font-family:var(--font-head);font-size:10px;color:#ffffff;letter-spacing:1px;flex:1;line-height:1.3;}
 .cc-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;}
 .cc-close:hover{color:var(--red);}
 .cc-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;padding:8px 10px;}
@@ -271,14 +273,14 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
   padding:7px 12px;border-radius:2px;font-family:var(--font-hud);font-size:9px;color:var(--accent);display:none;}
 #cat-help{position:absolute;bottom:10px;right:12px;z-index:10;font-size:7px;font-family:var(--font-hud);color:var(--muted);text-align:right;pointer-events:none;}
 #cat-filter-bar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:20;
-  display:flex;gap:6px;background:rgba(2,10,18,.78);backdrop-filter:blur(3px);
+  display:flex;gap:6px;background:rgba(5,5,5,.78);backdrop-filter:blur(3px);
   border:1px solid var(--border);border-radius:3px;padding:5px 6px;}
 .cfb-btn{background:transparent;border:1px solid transparent;color:var(--muted);
   font-family:var(--font-hud);font-size:9px;letter-spacing:1.5px;padding:5px 11px;cursor:pointer;
   border-radius:2px;transition:color .15s,border-color .15s,background .15s;}
 .cfb-btn:hover{color:var(--text);}
-.cfb-btn.on{color:var(--accent);border-color:var(--accent);background:rgba(0,212,255,.08);
-  text-shadow:0 0 10px rgba(0,212,255,.5);}
+.cfb-btn.on{color:var(--accent);border-color:var(--accent);background:rgba(190,190,190,.08);
+  text-shadow:0 0 10px rgba(190,190,190,.5);}
 
 /* ═══════════════ EPHEMERIS VIEW ═══════════════ */
 #eph-side{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
@@ -290,38 +292,38 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 .eph-cat input{accent-color:var(--accent);width:10px;height:10px;}
 .eph-cat-lbl{font-family:var(--font-head);font-size:8px;letter-spacing:2px;color:var(--purple);}
 .eph-item{padding:6px 12px 6px 26px;cursor:pointer;border-left:2px solid transparent;display:flex;align-items:center;gap:7px;transition:all .1s;}
-.eph-item:hover{background:#0a1820;border-left-color:var(--accent);}
-.eph-item.active{background:#071520;border-left-color:var(--amber);}
+.eph-item:hover{background:#151515;border-left-color:var(--accent);}
+.eph-item.active{background:#0a0a0a;border-left-color:var(--amber);}
 .eph-item .ei-name{font-size:10px;color:var(--text);font-family:var(--font-hud);flex:1;}
 .eph-item .ei-glyph{font-size:11px;width:14px;text-align:center;color:var(--accent);}
 .eph-item .ei-stat{font-size:7px;font-family:var(--font-hud);}
 #eph-custom{padding:9px 12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;}
-#eph-custom input{background:#000d16;border:1px solid var(--dim);color:var(--text);font-family:var(--font-mono);
+#eph-custom input{background:#060606;border:1px solid var(--dim);color:var(--text);font-family:var(--font-mono);
   font-size:10px;padding:5px 8px;outline:none;border-radius:2px;}
 #eph-custom input:focus{border-color:var(--purple);}
 #eph-main{display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;min-height:0;}
 #eph-main::-webkit-scrollbar{width:4px;}
 #eph-main::-webkit-scrollbar-thumb{background:var(--dim);}
-#eph-head{display:flex;align-items:center;gap:14px;padding:9px 16px;border-bottom:1px solid var(--border);background:#040c12;flex-wrap:wrap;}
-#eph-target-name{font-family:var(--font-head);font-size:14px;color:#fff;letter-spacing:2px;}
+#eph-head{display:flex;align-items:center;gap:14px;padding:9px 16px;border-bottom:1px solid var(--border);background:#060606;flex-wrap:wrap;}
+#eph-target-name{font-family:var(--font-head);font-size:14px;color:#ffffff;letter-spacing:2px;}
 #eph-target-sub{font-size:8px;color:var(--muted);font-family:var(--font-hud);}
 .verdict{font-family:var(--font-hud);font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:2px;border:1px solid;}
-.verdict.v-vis{color:var(--green);border-color:var(--green);background:rgba(0,255,136,.08);box-shadow:0 0 12px rgba(0,255,136,.25);animation:pulse 3s infinite;}
-.verdict.v-bright{color:var(--amber);border-color:var(--amber);background:rgba(255,170,0,.07);}
+.verdict.v-vis{color:var(--green);border-color:var(--green);background:rgba(127,191,152,.08);box-shadow:0 0 12px rgba(127,191,152,.25);animation:pulse 3s infinite;}
+.verdict.v-bright{color:var(--amber);border-color:var(--amber);background:rgba(197,197,197,.07);}
 .verdict.v-down{color:var(--muted);border-color:var(--dim);}
 #eph-minel-wrap{display:flex;align-items:center;gap:7px;margin-left:auto;}
 #eph-minel{width:90px;-webkit-appearance:none;appearance:none;height:2px;background:var(--dim);border-radius:2px;cursor:pointer;}
 #eph-minel::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:var(--purple);cursor:pointer;}
-#eph-now-grid{display:flex;flex-wrap:wrap;gap:11px;padding:8px 16px;border-bottom:1px solid var(--border);background:#030a10;}
+#eph-now-grid{display:flex;flex-wrap:wrap;gap:11px;padding:8px 16px;border-bottom:1px solid var(--border);background:#050505;}
 #eph-chart-panel{position:relative;padding:10px 16px 4px;}
 #eph-chart{width:100%;height:250px;display:block;cursor:crosshair;}
 .eph-section-title{font-family:var(--font-head);font-size:8px;letter-spacing:2px;color:var(--accent);padding:10px 16px 4px;}
 #eph-windows{padding:0 16px 8px;}
 .ew-row{display:grid;grid-template-columns:1.3fr 1.3fr 56px 60px 52px 44px;gap:6px;padding:4px 8px;
-  border-bottom:1px solid #0a1820;font-family:var(--font-hud);font-size:9px;align-items:center;}
+  border-bottom:1px solid #151515;font-family:var(--font-hud);font-size:9px;align-items:center;}
 .ew-row.hdr{color:var(--muted);font-size:7px;letter-spacing:1px;}
-.ew-row:not(.hdr):hover{background:#0a1820;}
-#eph-log{margin:6px 16px 14px;padding:8px 10px;background:#000d16;border:1px solid var(--dim);border-radius:2px;
+.ew-row:not(.hdr):hover{background:#151515;}
+#eph-log{margin:6px 16px 14px;padding:8px 10px;background:#060606;border:1px solid var(--dim);border-radius:2px;
   font-size:8px;color:var(--muted);font-family:var(--font-hud);white-space:pre-wrap;max-height:130px;overflow-y:auto;display:none;}
 #eph-empty{padding:60px 30px;text-align:center;color:var(--muted);font-size:10px;font-family:var(--font-hud);line-height:2.2;}
 #eph-tip{position:fixed;display:none;z-index:300;background:#000d16f0;border:1px solid var(--purple);
@@ -343,13 +345,13 @@ canvas.plot-canvas{flex:1;display:block;width:100%;height:100%;}
 /* ═══════════════════ V3 · VISUAL OVERHAUL ═══════════════════ */
 /* brighter, readable palette — fixes muted-gray-on-black legibility */
 :root{
-  --bg:#020509;--panel:#08111a;--border:#16344b;
-  --accent:#00e5ff;--amber:#ffd24a;--green:#00ff9d;--red:#ff5566;--purple:#b48bff;--magenta:#ff4fd8;
-  --dim:#22455e;--text:#e6f3fb;--muted:#8aa3b5;
+  --bg:#030303;--panel:#090909;--border:#2d2d2d;
+  --accent:#cccccc;--amber:#e0e0e0;--green:#7fbf98;--red:#d66e6e;--purple:#afafaf;--magenta:#8d8d8d;
+  --dim:#3c3c3c;--text:#e0e0e0;--muted:#b2b2b2;
 }
 html,body{background:
-  radial-gradient(1100px 500px at 78% -8%, rgba(0,90,140,.13), transparent 60%),
-  radial-gradient(900px 600px at -10% 110%, rgba(90,40,160,.10), transparent 55%),
+  radial-gradient(1100px 500px at 78% -8%, rgba(71,71,71,.13), transparent 60%),
+  radial-gradient(900px 600px at -10% 110%, rgba(56,56,56,.10), transparent 55%),
   var(--bg);}
 
 /* subtle scanline film over the whole console */
@@ -357,35 +359,35 @@ html,body{background:
   background:repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 1px,transparent 1px 3px);}
 
 /* ── header ── */
-#header{background:linear-gradient(180deg,#0a151f,#060d14);border-bottom:1px solid var(--border);
-  box-shadow:0 1px 18px rgba(0,229,255,.07);}
-.logo{text-shadow:0 0 14px rgba(0,229,255,.5);}
+#header{background:linear-gradient(180deg,#0b0b0b,#070707);border-bottom:1px solid var(--border);
+  box-shadow:0 1px 18px rgba(204,204,204,.07);}
+.logo{text-shadow:0 0 14px rgba(204,204,204,.5);}
 .header-sub{color:var(--muted);}
-#utc-clock,#local-clock{color:var(--text);text-shadow:0 0 8px rgba(0,229,255,.35);}
+#utc-clock,#local-clock{color:var(--text);text-shadow:0 0 8px rgba(204,204,204,.35);}
 .tab-btn{font-size:10px;position:relative;}
 .tab-btn.active::after{content:'';position:absolute;left:12px;right:12px;bottom:-1px;height:2px;
   background:linear-gradient(90deg,transparent,var(--accent),transparent);box-shadow:0 0 10px var(--accent);}
 
 /* ── panels: corner-bracket futuristic frames ── */
-.plot-panel{background:linear-gradient(180deg,#091420,#070f17);border:1px solid var(--border);
+.plot-panel{background:linear-gradient(180deg,#0a0a0a,#080808);border:1px solid var(--border);
   position:relative;border-radius:3px;}
 .plot-panel::before,.plot-panel::after{content:'';position:absolute;width:14px;height:14px;
-  border:1px solid rgba(0,229,255,.55);pointer-events:none;z-index:5;}
+  border:1px solid rgba(204,204,204,.55);pointer-events:none;z-index:5;}
 .plot-panel::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
 .plot-panel::after{bottom:-1px;right:-1px;border-left:none;border-top:none;}
-.plot-label{color:var(--accent);font-size:9px;letter-spacing:3px;text-shadow:0 0 9px rgba(0,229,255,.4);}
+.plot-label{color:var(--accent);font-size:9px;letter-spacing:3px;text-shadow:0 0 9px rgba(204,204,204,.4);}
 .plot-status{color:var(--muted);}
 
 /* ── meta strip: airier, brighter, grouped ── */
-#meta-strip{background:linear-gradient(180deg,#081320,#060d15);border-bottom:1px solid var(--border);
+#meta-strip{background:linear-gradient(180deg,#0a0a0a,#070707);border-bottom:1px solid var(--border);
   gap:16px;padding:9px 16px;align-items:center;}
-#selected-sat-name{font-size:15px;text-shadow:0 0 12px rgba(0,229,255,.45);letter-spacing:2px;}
+#selected-sat-name{font-size:15px;text-shadow:0 0 12px rgba(204,204,204,.45);letter-spacing:2px;}
 #norad-id{color:var(--muted);font-size:9px;}
 .mi{padding:0 4px;}
 .ml{font-size:7px;color:var(--muted);letter-spacing:1.6px;margin-bottom:3px;}
 .mv{font-size:12px;color:var(--text);}
-.mv.green{color:var(--green);text-shadow:0 0 8px rgba(0,255,157,.4);}
-.mv.amber{color:var(--amber);text-shadow:0 0 8px rgba(255,210,74,.35);}
+.mv.green{color:var(--green);text-shadow:0 0 8px rgba(127,191,152,.4);}
+.mv.amber{color:var(--amber);text-shadow:0 0 8px rgba(224,224,224,.35);}
 .mv.red{color:var(--red);}
 .mv.purple{color:var(--purple);}
 
@@ -393,8 +395,8 @@ html,body{background:
 .sat-name{font-size:11px;color:var(--text);}
 .sat-meta{color:var(--muted);}
 .sat-item{border-left:2px solid transparent;transition:background .12s,border-color .12s;}
-.sat-item:hover{background:#0c1a28;border-left-color:var(--accent);}
-.sat-item.active{background:#0a1d2e;border-left-color:var(--amber);box-shadow:inset 0 0 22px rgba(0,229,255,.05);}
+.sat-item:hover{background:#171717;border-left-color:var(--accent);}
+.sat-item.active{background:#191919;border-left-color:var(--amber);box-shadow:inset 0 0 22px rgba(204,204,204,.05);}
 .oe-key{color:var(--muted);}
 .oe-val{color:var(--text);}
 .loading-list{color:var(--muted);}
@@ -404,64 +406,64 @@ html,body{background:
 #wx-strip.open #wx-timeline{display:block;}
 .wx-toggle{margin-left:auto;font-size:8px;color:var(--accent);cursor:pointer;font-family:var(--font-hud);
   letter-spacing:1.5px;padding:2px 8px;border:1px solid var(--dim);border-radius:2px;transition:all .12s;}
-.wx-toggle:hover{border-color:var(--accent);box-shadow:0 0 8px rgba(0,229,255,.3);}
+.wx-toggle:hover{border-color:var(--accent);box-shadow:0 0 8px rgba(204,204,204,.3);}
 .wx-row-label{color:var(--muted);}
 
 /* ── pass table / chips ── */
 .pass-row{font-size:9px;}
 .pass-row.hdr span{color:var(--muted);}
-.pass-row.is-vis{background:rgba(0,255,157,.05);}
-.pass-row:not(.hdr):hover{background:#0c1a28;}
+.pass-row.is-vis{background:rgba(127,191,152,.05);}
+.pass-row:not(.hdr):hover{background:#171717;}
 .vis-chip{font-size:7px;}
 
 /* ── buttons ── */
 .hud-btn{border-color:var(--dim);color:var(--text);transition:all .13s;}
-.hud-btn:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 0 10px rgba(0,229,255,.3);}
+.hud-btn:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 0 10px rgba(204,204,204,.3);}
 .hud-btn.sm{flex:none;padding:3px 8px;font-size:9px;}
-.hud-sel{background:#06101a;border:1px solid var(--dim);color:var(--text);}
+.hud-sel{background:#080808;border:1px solid var(--dim);color:var(--text);}
 .tw-btn{color:var(--muted);}
-.tw-btn:hover{box-shadow:0 0 8px rgba(0,229,255,.25);}
-.tw-btn.on{box-shadow:0 0 10px rgba(255,210,74,.35);}
+.tw-btn:hover{box-shadow:0 0 8px rgba(204,204,204,.25);}
+.tw-btn.on{box-shadow:0 0 10px rgba(224,224,224,.35);}
 
 /* ── catalog ── */
-#cat-toolbar{background:linear-gradient(180deg,#081320,#060d15);}
-#cat-simclock{text-shadow:0 0 9px rgba(0,255,157,.4);}
-#cat-legend{background:rgba(2,10,18,.7);backdrop-filter:blur(2px);color:var(--text);}
+#cat-toolbar{background:linear-gradient(180deg,#0a0a0a,#070707);}
+#cat-simclock{text-shadow:0 0 9px rgba(127,191,152,.4);}
+#cat-legend{background:rgba(5,5,5,.7);backdrop-filter:blur(2px);color:var(--text);}
 #cat-help{color:var(--muted);}
-#cat-hover{border-color:var(--accent);box-shadow:0 0 18px rgba(0,229,255,.22);}
-#cat-card{box-shadow:0 0 24px rgba(0,229,255,.14);border-color:var(--border);}
+#cat-hover{border-color:var(--accent);box-shadow:0 0 18px rgba(204,204,204,.22);}
+#cat-card{box-shadow:0 0 24px rgba(204,204,204,.14);border-color:var(--border);}
 
 /* ═══ EPHEMERIS V3 ═══ */
 #eph-fetch-state{font-size:8px;color:var(--muted);font-family:var(--font-hud);margin-left:auto;}
 .eph-head-sub{font-size:7px;color:var(--muted);font-family:var(--font-hud);margin-top:4px;letter-spacing:1px;}
 #eph-clockrow{display:flex;gap:12px;margin-top:6px;font-family:var(--font-hud);font-size:10px;}
-#eph-clockrow #eph-utc{color:var(--accent);text-shadow:0 0 8px rgba(0,229,255,.4);}
-#eph-clockrow #eph-local{color:var(--green);text-shadow:0 0 8px rgba(0,255,157,.35);}
+#eph-clockrow #eph-utc{color:var(--accent);text-shadow:0 0 8px rgba(204,204,204,.4);}
+#eph-clockrow #eph-local{color:var(--green);text-shadow:0 0 8px rgba(127,191,152,.35);}
 .ei-name{color:var(--text);}
-.eph-item:hover{background:#0c1a28;}
+.eph-item:hover{background:#171717;}
 
 #eph-head{row-gap:8px;}
 #eph-obs-chip{display:flex;align-items:center;gap:7px;font-family:var(--font-hud);font-size:9px;
-  border:1px solid var(--dim);border-radius:2px;padding:4px 9px;background:#06101a;}
+  border:1px solid var(--dim);border-radius:2px;padding:4px 9px;background:#080808;}
 #eph-site-txt{color:var(--text);}
 #eph-site-sel{width:96px;font-size:8px;}
-#eph-site-form{display:none;align-items:center;gap:7px;padding:7px 16px;background:#06101a;
+#eph-site-form{display:none;align-items:center;gap:7px;padding:7px 16px;background:#080808;
   border-bottom:1px solid var(--border);flex-wrap:wrap;}
 #eph-site-form .site-input{width:84px;}
 #eph-minel-val{font-size:9px;color:var(--purple);font-family:var(--font-hud);}
 
 /* solar-system panel */
 #ss-panel{margin:10px 16px 4px;border:1px solid var(--border);border-radius:3px;position:relative;
-  background:linear-gradient(180deg,#070f18,#04090f);}
+  background:linear-gradient(180deg,#080808,#050505);}
 #ss-panel::before,#ss-panel::after{content:'';position:absolute;width:14px;height:14px;
-  border:1px solid rgba(180,139,255,.6);pointer-events:none;z-index:5;}
+  border:1px solid rgba(175,175,175,.6);pointer-events:none;z-index:5;}
 #ss-panel::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
 #ss-panel::after{bottom:-1px;right:-1px;border-left:none;border-top:none;}
 #ss-toolbar{display:flex;align-items:center;gap:6px;padding:6px 10px;border-bottom:1px solid var(--border);
-  flex-wrap:wrap;background:rgba(4,10,18,.8);}
+  flex-wrap:wrap;background:rgba(5,5,5,.8);}
 .ss-title{font-family:var(--font-head);font-size:8px;letter-spacing:2px;color:var(--purple);
-  text-shadow:0 0 9px rgba(180,139,255,.45);margin-right:4px;}
-#ss-date{font-family:var(--font-hud);font-size:10px;color:var(--green);text-shadow:0 0 8px rgba(0,255,157,.35);}
+  text-shadow:0 0 9px rgba(175,175,175,.45);margin-right:4px;}
+#ss-date{font-family:var(--font-hud);font-size:10px;color:var(--green);text-shadow:0 0 8px rgba(127,191,152,.35);}
 #ss-offset{font-family:var(--font-hud);font-size:8px;color:var(--amber);}
 .ss-sep{width:1px;height:14px;background:var(--dim);margin:0 3px;}
 #ss-wrap{height:340px;position:relative;}
@@ -494,7 +496,7 @@ html,body{background:
 .ew-row.hdr{color:var(--muted);}
 .eph-att{color:var(--muted);}
 #eph-empty{color:var(--muted);font-size:11px;}
-.verdict.v-vis{text-shadow:0 0 8px rgba(0,255,157,.5);}
+.verdict.v-vis{text-shadow:0 0 8px rgba(127,191,152,.5);}
 
 /* global text-contrast lift on remaining legacy grays */
 .ck-label,.fl,.site-label,.oe-toggle,.site-toggle{color:var(--muted);}
@@ -504,23 +506,23 @@ html,body{background:
 #app{padding-bottom:34px;}
 #epoch-bar{position:fixed;left:0;right:0;bottom:0;height:34px;z-index:60;
   display:flex;align-items:center;gap:10px;padding:0 14px;
-  background:linear-gradient(180deg,rgba(4,12,20,.92),rgba(2,7,12,.97));
-  border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(0,229,255,.07);
+  background:linear-gradient(180deg,rgba(6,6,6,.92),rgba(3,3,3,.97));
+  border-top:1px solid var(--line);box-shadow:0 -4px 18px rgba(204,204,204,.07);
   font-family:'IBM Plex Mono',monospace;font-size:10px;backdrop-filter:blur(4px);}
-.ep-dot{width:8px;height:8px;border-radius:50%;background:#ffb347;box-shadow:0 0 8px #ffb347;}
-.ep-dot.live{background:#00ff9d;box-shadow:0 0 8px #00ff9d;animation:eppulse 2s infinite;}
+.ep-dot{width:8px;height:8px;border-radius:50%;background:#d2d2d2;box-shadow:0 0 8px #d2d2d2;}
+.ep-dot.live{background:#7fbf98;box-shadow:0 0 8px #7fbf98;animation:eppulse 2s infinite;}
 @keyframes eppulse{0%,100%{opacity:1}50%{opacity:.45}}
 #ep-clock{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:1px;color:var(--text);}
 #ep-local{color:var(--muted);}
-#ep-offset.live{color:#00ff9d;}
-#ep-offset.off{color:#ffd24a;}
+#ep-offset.live{color:#7fbf98;}
+#ep-offset.off{color:#e0e0e0;}
 #ep-scrub{flex:1;max-width:420px;accent-color:var(--accent);height:3px;cursor:pointer;}
 .ep-lbl{color:var(--muted);font-size:8px;letter-spacing:1px;}
 #epoch-bar .tw-btn{padding:2px 8px;}
 
 /* ════ V4 · OBSERVER — selection chips · horizon cluster · vis toggle ════ */
 #sel-chips{display:flex;flex-wrap:wrap;gap:6px;padding:4px 12px 6px;align-items:center;
-  border-bottom:1px solid var(--line);background:rgba(3,10,17,.5);min-height:0;}
+  border-bottom:1px solid var(--line);background:rgba(5,5,5,.5);min-height:0;}
 #sel-chips:empty{display:none;}
 .sel-chip{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;cursor:pointer;
   font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.5px;color:var(--c);
@@ -528,44 +530,44 @@ html,body{background:
   box-shadow:0 0 7px color-mix(in srgb,var(--c) 30%,transparent),inset 0 0 8px rgba(0,0,0,.4);}
 .sel-chip.prim{background:color-mix(in srgb,var(--c) 14%,transparent);}
 .sel-chip i{font-style:normal;opacity:.7;cursor:pointer;}
-.sel-chip i:hover{opacity:1;color:#ff5566;}
+.sel-chip i:hover{opacity:1;color:#d66e6e;}
 .sel-hint{color:var(--muted);font-size:8px;letter-spacing:1px;}
 .hz-row{display:flex;gap:4px;margin-top:2px;}
 .hz-btn{font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:.5px;padding:2px 7px;
   background:rgba(0,0,0,.35);border:1px solid var(--line);color:var(--muted);cursor:pointer;border-radius:2px;}
 .hz-btn:hover{color:var(--text);border-color:var(--accent);}
-.hz-btn.on{color:var(--accent);border-color:var(--accent);box-shadow:0 0 7px rgba(0,229,255,.35);}
+.hz-btn.on{color:var(--accent);border-color:var(--accent);box-shadow:0 0 7px rgba(204,204,204,.35);}
 #sky-vis-btn{position:absolute;top:6px;right:8px;z-index:5;}
-#sky-vis-btn.on{color:#00ff9d;border-color:#00ff9d;box-shadow:0 0 8px rgba(0,255,157,.4);}
+#sky-vis-btn.on{color:#7fbf98;border-color:#7fbf98;box-shadow:0 0 8px rgba(127,191,152,.4);}
 #sat-list .sat-item.co-sel{border-left:3px solid var(--selc);background:rgba(255,255,255,.025);}
-#sat-list .sat-item.active{border-left:3px solid var(--selc,#00e5ff);}
+#sat-list .sat-item.active{border-left:3px solid var(--selc,#cccccc);}
 
 /* ════ V4 · CATALOG — multi-select bucket dropdown ════ */
 #cat-groups-menu{display:none;position:absolute;top:26px;left:0;z-index:40;min-width:240px;
-  max-height:340px;overflow-y:auto;background:rgba(4,12,20,.97);border:1px solid var(--accent);
-  box-shadow:0 0 22px rgba(0,229,255,.25);padding:4px 0;}
+  max-height:340px;overflow-y:auto;background:rgba(6,6,6,.97);border:1px solid var(--accent);
+  box-shadow:0 0 22px rgba(204,204,204,.25);padding:4px 0;}
 #cat-groups-menu.open{display:block;}
 .cg-item{display:flex;align-items:center;gap:8px;padding:4px 10px;cursor:pointer;
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.5px;color:var(--text);}
-.cg-item:hover{background:rgba(0,229,255,.08);}
+.cg-item:hover{background:rgba(204,204,204,.08);}
 .cg-item input{accent-color:var(--accent);}
 
 /* ════ V4 · EPHEMERIS — SBDB results · big telemetry overlay ════ */
-#eph-sbdb-results{margin:4px 0;border:1px solid var(--line);background:rgba(2,8,14,.9);max-height:180px;overflow-y:auto;}
-.sbdb-row{padding:5px 8px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.4px;border-bottom:1px solid rgba(20,42,60,.5);}
+#eph-sbdb-results{margin:4px 0;border:1px solid var(--line);background:rgba(4,4,4,.9);max-height:180px;overflow-y:auto;}
+.sbdb-row{padding:5px 8px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.4px;border-bottom:1px solid rgba(37,37,37,.5);}
 .sbdb-row:last-child{border-bottom:none;}
 .sbdb-row.hit{color:var(--text);cursor:pointer;}
-.sbdb-row.hit:hover{background:rgba(0,229,255,.1);color:var(--accent);}
+.sbdb-row.hit:hover{background:rgba(204,204,204,.1);color:var(--accent);}
 .sbdb-row.dim{color:var(--muted);}
-.sbdb-row.nores{color:#ff5566;text-shadow:0 0 8px rgba(255,85,102,.5);border-left:3px solid #ff5566;animation:noresflash .5s;}
-@keyframes noresflash{0%{background:rgba(255,85,102,.25)}100%{background:transparent}}
+.sbdb-row.nores{color:#d66e6e;text-shadow:0 0 8px rgba(214,110,110,.5);border-left:3px solid #d66e6e;animation:noresflash .5s;}
+@keyframes noresflash{0%{background:rgba(214,110,110,.25)}100%{background:transparent}}
 .sbdb-sub{display:block;font-size:8px;color:var(--muted);margin-top:1px;}
 #ss-wrap{position:relative;}
 #ss-info{position:absolute;top:10px;right:10px;z-index:8;width:265px;
-  background:rgba(3,10,18,.93);border:1px solid var(--accent);
-  box-shadow:0 0 24px rgba(0,229,255,.2),inset 0 0 30px rgba(0,229,255,.04);
+  background:rgba(5,5,5,.93);border:1px solid var(--accent);
+  box-shadow:0 0 24px rgba(204,204,204,.2),inset 0 0 30px rgba(204,204,204,.04);
   padding:10px 12px;font-family:'IBM Plex Mono',monospace;backdrop-filter:blur(3px);}
-.ssi-name{font-family:'Orbitron',monospace;font-size:14px;letter-spacing:2px;color:var(--accent);text-shadow:0 0 10px rgba(0,229,255,.6);}
+.ssi-name{font-family:'Orbitron',monospace;font-size:14px;letter-spacing:2px;color:var(--accent);text-shadow:0 0 10px rgba(204,204,204,.6);}
 .ssi-src{font-size:7.5px;color:var(--muted);letter-spacing:1px;margin:2px 0 8px;}
 .ssi-grid{display:grid;grid-template-columns:84px 1fr;gap:4px 8px;}
 .ssi-k{font-size:8px;color:var(--muted);letter-spacing:.8px;padding-top:1px;}
@@ -573,45 +575,45 @@ html,body{background:
 .ssi-v.mono{font-size:9.5px;line-height:1.35;}
 .ssi-sub{display:block;font-size:7.5px;color:var(--muted);margin-top:1px;}
 .ssi-foot{margin-top:9px;text-align:center;font-size:8.5px;letter-spacing:1px;color:var(--amber);
-  border:1px solid rgba(255,210,74,.4);padding:3px;cursor:pointer;}
-.ssi-foot:hover{background:rgba(255,210,74,.1);}
+  border:1px solid rgba(224,224,224,.4);padding:3px;cursor:pointer;}
+.ssi-foot:hover{background:rgba(224,224,224,.1);}
 
 /* ════ V4 · DISCOVERY & ENGAGEMENT CENTER ════ */
 #view-disc{overflow-y:auto;padding:14px;position:relative;}
 #disc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px;max-width:1700px;margin:0 auto;}
-.d-panel{position:relative;border:1px solid var(--line);background:linear-gradient(160deg,rgba(6,16,26,.85),rgba(3,9,15,.92));
-  padding:12px 14px;box-shadow:inset 0 0 40px rgba(0,229,255,.025);}
+.d-panel{position:relative;border:1px solid var(--line);background:linear-gradient(160deg,rgba(8,8,8,.85),rgba(4,4,4,.92));
+  padding:12px 14px;box-shadow:inset 0 0 40px rgba(204,204,204,.025);}
 .d-panel::before{content:'';position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);}
 .d-panel::after{content:'';position:absolute;bottom:-1px;right:-1px;width:14px;height:14px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent);}
 .d-title{font-family:'Orbitron',monospace;font-size:12px;letter-spacing:2px;color:var(--text);margin-bottom:10px;}
 .d-sub{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);letter-spacing:1px;margin-left:8px;}
 .d-dim{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.5px;}
 #d-pass-panel{grid-row:span 2;}
-#d-next-wrap{text-align:center;margin:14px 0;padding:14px 8px;border:1px solid rgba(0,255,157,.3);background:rgba(0,255,157,.04);}
+#d-next-wrap{text-align:center;margin:14px 0;padding:14px 8px;border:1px solid rgba(127,191,152,.3);background:rgba(127,191,152,.04);}
 .d-cd-label{font-size:8px;letter-spacing:2px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
-#d-next-name{font-family:'Orbitron',monospace;font-size:16px;letter-spacing:2px;color:#00ff9d;text-shadow:0 0 12px rgba(0,255,157,.6);margin:5px 0;}
-#d-countdown{font-family:'Orbitron',monospace;font-size:30px;letter-spacing:4px;color:var(--text);text-shadow:0 0 16px rgba(0,229,255,.5);}
+#d-next-name{font-family:'Orbitron',monospace;font-size:16px;letter-spacing:2px;color:#7fbf98;text-shadow:0 0 12px rgba(127,191,152,.6);margin:5px 0;}
+#d-countdown{font-family:'Orbitron',monospace;font-size:30px;letter-spacing:4px;color:var(--text);text-shadow:0 0 16px rgba(204,204,204,.5);}
 #d-next-sub{margin-top:6px;}
-.dp-row{display:flex;gap:10px;align-items:baseline;padding:5px 4px;border-bottom:1px solid rgba(20,42,60,.5);
+.dp-row{display:flex;gap:10px;align-items:baseline;padding:5px 4px;border-bottom:1px solid rgba(37,37,37,.5);
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;}
-.dp-row.first .dp-name{color:#00ff9d;}
+.dp-row.first .dp-name{color:#7fbf98;}
 .dp-name{flex:1;color:var(--text);letter-spacing:.5px;}
 .dp-mag{color:var(--amber);}
 .dp-time{color:var(--muted);}
 #d-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .d-card{border:1px solid var(--line);padding:8px 10px;background:rgba(0,0,0,.25);}
 .dc-k{font-size:8px;letter-spacing:1.5px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
-.dc-v{font-family:'Orbitron',monospace;font-size:17px;color:var(--accent);text-shadow:0 0 10px rgba(0,229,255,.45);margin:3px 0;}
+.dc-v{font-family:'Orbitron',monospace;font-size:17px;color:var(--accent);text-shadow:0 0 10px rgba(204,204,204,.45);margin:3px 0;}
 .dc-sub{font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--text);opacity:.85;line-height:1.45;}
 .d-hist{grid-column:1/-1;font-family:'IBM Plex Mono',monospace;font-size:9.5px;line-height:1.6;color:var(--text);
-  border-left:3px solid var(--purple);padding:7px 10px;background:rgba(180,139,255,.05);}
-#d-sb-canvas{height:240px;border:1px solid var(--line);background:#020810;position:relative;}
+  border-left:3px solid var(--purple);padding:7px 10px;background:rgba(175,175,175,.05);}
+#d-sb-canvas{height:240px;border:1px solid var(--line);background:#040404;position:relative;}
 #d-sb-controls{margin-top:10px;}
 .d-slider{margin-bottom:8px;}
 .d-slider label{display:block;font-family:'IBM Plex Mono',monospace;font-size:8px;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
 .d-slider input{width:100%;accent-color:var(--accent);height:3px;}
 .d-sb-presets{display:flex;gap:6px;margin:8px 0;}
-.d-sb-preset.on{color:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(0,229,255,.35);}
+.d-sb-preset.on{color:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(204,204,204,.35);}
 #d-sb-read{display:flex;flex-wrap:wrap;gap:5px 16px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-top:6px;}
 #d-sb-read b{color:var(--text);}
 .d-regime{color:var(--amber);letter-spacing:.5px;}
@@ -621,29 +623,29 @@ html,body{background:
 .dw-v{font-family:'Orbitron',monospace;font-size:18px;color:var(--text);margin:4px 0;}
 .dw-tag{font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:var(--muted);letter-spacing:.5px;}
 .d-kp-track{height:5px;background:rgba(255,255,255,.07);margin:4px 0;}
-#d-kp-bar{height:100%;width:0;background:#00ff9d;transition:width .6s,background .6s;box-shadow:0 0 8px currentColor;}
+#d-kp-bar{height:100%;width:0;background:#7fbf98;transition:width .6s,background .6s;box-shadow:0 0 8px currentColor;}
 .d-wx-item[data-tip]:hover::after{content:attr(data-tip);position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:260px;
-  background:rgba(4,12,20,.98);border:1px solid var(--amber);padding:9px 11px;
+  background:rgba(6,6,6,.98);border:1px solid var(--amber);padding:9px 11px;
   font-family:'IBM Plex Mono',monospace;font-size:9px;line-height:1.55;color:var(--text);letter-spacing:.3px;
-  box-shadow:0 0 18px rgba(255,210,74,.25);white-space:normal;}
-.dl-row{display:flex;gap:10px;align-items:baseline;padding:6px 4px;border-bottom:1px solid rgba(20,42,60,.5);
+  box-shadow:0 0 18px rgba(224,224,224,.25);white-space:normal;}
+.dl-row{display:flex;gap:10px;align-items:baseline;padding:6px 4px;border-bottom:1px solid rgba(37,37,37,.5);
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;}
 .dl-t{min-width:96px;color:var(--accent);font-family:'Orbitron',monospace;font-size:10.5px;letter-spacing:1px;}
-.dl-t.hot{color:#ff5566;text-shadow:0 0 8px rgba(255,85,102,.6);animation:eppulse 1s infinite;}
+.dl-t.hot{color:#d66e6e;text-shadow:0 0 8px rgba(214,110,110,.6);animation:eppulse 1s infinite;}
 .dl-name{flex:1;color:var(--text);}
 .dl-pad{color:var(--muted);max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dl-st{color:var(--amber);min-width:30px;}
 .dl-link{color:var(--purple);text-decoration:none;letter-spacing:.5px;}
-.dl-link:hover{color:var(--accent);text-shadow:0 0 8px rgba(0,229,255,.6);}
+.dl-link:hover{color:var(--accent);text-shadow:0 0 8px rgba(204,204,204,.6);}
 #d-alert{position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:80;
   display:flex;align-items:center;gap:14px;padding:12px 26px;
-  background:rgba(4,16,10,.95);border:2px solid #00ff9d;
-  box-shadow:0 0 34px rgba(0,255,157,.55),inset 0 0 28px rgba(0,255,157,.1);
+  background:rgba(7,7,7,.95);border:2px solid #7fbf98;
+  box-shadow:0 0 34px rgba(127,191,152,.55),inset 0 0 28px rgba(127,191,152,.1);
   animation:alertglow 1.1s infinite;}
-@keyframes alertglow{0%,100%{box-shadow:0 0 34px rgba(0,255,157,.55)}50%{box-shadow:0 0 60px rgba(0,255,157,.95)}}
+@keyframes alertglow{0%,100%{box-shadow:0 0 34px rgba(127,191,152,.55)}50%{box-shadow:0 0 60px rgba(127,191,152,.95)}}
 .d-alert-pulse{font-size:28px;animation:bob 1.2s infinite;}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-#d-alert-name{font-family:'Orbitron',monospace;font-size:16px;letter-spacing:2px;color:#00ff9d;text-shadow:0 0 12px rgba(0,255,157,.7);}
+#d-alert-name{font-family:'Orbitron',monospace;font-size:16px;letter-spacing:2px;color:#7fbf98;text-shadow:0 0 12px rgba(127,191,152,.7);}
 #d-alert-sub{font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--text);letter-spacing:1px;margin-top:2px;}
 
 /* ════ V5 · OBSERVER — pass table moves beside the sky plot (nothing obstructed) ════ */
@@ -651,7 +653,7 @@ html,body{background:
 #sky-split{display:flex;gap:8px;flex:1;min-height:0;align-items:stretch;margin-top:24px;}
 #sky-split #pass-table-wrap{position:static !important;width:255px;min-width:230px;max-height:none;
   height:auto;flex:0 0 auto;overflow-y:auto;border-right:1px solid var(--line);
-  background:rgba(2,8,14,.55);}
+  background:rgba(4,4,4,.55);}
 #sky-right{flex:1;min-width:0;position:relative;display:flex;}
 #sky-right .plot-canvas{flex:1;width:100%;height:100%;}
 
@@ -667,31 +669,31 @@ html,body{background:
 /* ════ V5 · CONJUNCTION WATCH ════ */
 #view-ca{display:none;grid-template-columns:330px 1fr;height:100%;}
 #view-ca.active{display:grid;}
-#ca-side{display:flex;flex-direction:column;border-right:1px solid var(--line);background:rgba(3,9,15,.6);min-height:0;}
+#ca-side{display:flex;flex-direction:column;border-right:1px solid var(--line);background:rgba(4,4,4,.6);min-height:0;}
 #ca-side-head{border-bottom:1px solid var(--line);}
-.sdot.red{background:#ff5566;box-shadow:0 0 8px #ff5566;}
+.sdot.red{background:#d66e6e;box-shadow:0 0 8px #d66e6e;}
 #ca-list{flex:1;overflow-y:auto;min-height:0;}
-.ca-row{padding:8px 10px;border-bottom:1px solid rgba(20,42,60,.5);cursor:pointer;}
-.ca-row:hover{background:rgba(255,85,102,.06);}
-.ca-row.sel{background:rgba(255,85,102,.12);border-left:3px solid #ff5566;}
+.ca-row{padding:8px 10px;border-bottom:1px solid rgba(37,37,37,.5);cursor:pointer;}
+.ca-row:hover{background:rgba(214,110,110,.06);}
+.ca-row.sel{background:rgba(214,110,110,.12);border-left:3px solid #d66e6e;}
 .car-top{display:flex;justify-content:space-between;gap:8px;font-family:'IBM Plex Mono',monospace;}
 .car-pair{font-size:9.5px;color:var(--text);letter-spacing:.3px;}
-.car-rng{font-family:'Orbitron',monospace;font-size:11px;color:#ff5566;text-shadow:0 0 8px rgba(255,85,102,.5);white-space:nowrap;}
+.car-rng{font-family:'Orbitron',monospace;font-size:11px;color:#d66e6e;text-shadow:0 0 8px rgba(214,110,110,.5);white-space:nowrap;}
 .car-sub{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);margin-top:3px;letter-spacing:.4px;}
 #ca-main{display:flex;flex-direction:column;min-height:0;}
 #ca-head{padding:8px 14px;border-bottom:1px solid var(--line);}
 #ca-pair-title{font-family:'Orbitron',monospace;font-size:14px;letter-spacing:2px;color:var(--text);}
 #ca-stage{flex:1;position:relative;min-height:0;}
 #ca-canvas-wrap{position:absolute;inset:0;}
-#ca-info{position:absolute;top:10px;right:10px;width:285px;background:rgba(3,10,18,.93);
-  border:1px solid #ff5566;box-shadow:0 0 24px rgba(255,85,102,.2);padding:10px 12px;
+#ca-info{position:absolute;top:10px;right:10px;width:285px;background:rgba(5,5,5,.93);
+  border:1px solid #d66e6e;box-shadow:0 0 24px rgba(214,110,110,.2);padding:10px 12px;
   font-family:'IBM Plex Mono',monospace;backdrop-filter:blur(3px);}
 #ca-info:empty{display:none;}
-#ca-info .ssi-name{color:#ff8896;text-shadow:0 0 10px rgba(255,85,102,.6);}
+#ca-info .ssi-name{color:#d66e6e;text-shadow:0 0 10px rgba(214,110,110,.6);}
 #ca-legend{position:absolute;left:10px;bottom:8px;display:flex;flex-wrap:wrap;gap:5px 14px;
-  font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text);background:rgba(2,8,14,.7);
+  font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--text);background:rgba(4,4,4,.7);
   padding:5px 9px;border:1px solid var(--line);}
-#ca-sma-panel{height:150px;border-top:1px solid var(--line);padding:6px 10px;background:rgba(2,8,14,.5);}
+#ca-sma-panel{height:150px;border-top:1px solid var(--line);padding:6px 10px;background:rgba(4,4,4,.5);}
 #ca-sma{width:100%;height:100%;display:block;}
 
 /* ════ V5 · DISCOVERY expansion ════ */
@@ -704,12 +706,12 @@ html,body{background:
 
 /* ── REENTRY WATCH panel ── */
 .d-re-tabs{display:flex;gap:6px;margin:6px 0 2px;}
-.d-re-tab.on{color:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(0,229,255,.35);}
+.d-re-tab.on{color:var(--accent);border-color:var(--accent);box-shadow:0 0 8px rgba(204,204,204,.35);}
 #d-re-list{display:flex;flex-direction:column;gap:5px;max-height:300px;overflow:auto;}
 .dre-row{display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;
-  border-left:3px solid var(--amber);padding:5px 8px;background:rgba(255,170,0,.04);}
+  border-left:3px solid var(--amber);padding:5px 8px;background:rgba(197,197,197,.04);}
 .dre-row.decay{border-left-color:var(--muted);background:rgba(255,255,255,.02);}
-.dre-row.hot{border-left-color:var(--red);background:rgba(255,68,68,.06);}
+.dre-row.hot{border-left-color:var(--red);background:rgba(214,110,110,.06);}
 .dre-name{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text);letter-spacing:.4px;}
 .dre-eta{font-family:'Orbitron',monospace;font-size:12px;color:var(--amber);text-align:right;white-space:nowrap;}
 .dre-eta.decay{color:var(--muted);}
@@ -719,12 +721,12 @@ html,body{background:
 
 /* ── CATALOG STATISTICS panel ── */
 .dst-total{font-family:'Orbitron',monospace;font-size:30px;color:var(--accent);
-  text-shadow:0 0 18px rgba(0,212,255,.4);line-height:1.05;margin:2px 0;}
+  text-shadow:0 0 18px rgba(190,190,190,.4);line-height:1.05;margin:2px 0;}
 .dst-total small{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1.5px;display:block;}
 .dst-bars{display:flex;flex-direction:column;gap:6px;margin:8px 0;}
 .dst-bar-row{display:grid;grid-template-columns:74px 1fr 52px;align-items:center;gap:8px;
   font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);}
-.dst-bar-row b{color:var(--text);text-align:right;font-family:'Share Tech Mono',monospace;}
+.dst-bar-row b{color:var(--text);text-align:right;font-family:'IBM Plex Mono',monospace;}
 .dst-track{height:9px;background:rgba(255,255,255,.06);position:relative;overflow:hidden;}
 .dst-fill{height:100%;width:0;transition:width .7s ease;box-shadow:0 0 8px currentColor;}
 .dst-trend{margin:6px 0;}
@@ -737,22 +739,22 @@ html,body{background:
 .dst-metric .m-k{font-family:'IBM Plex Mono',monospace;font-size:6.5px;letter-spacing:.6px;color:var(--muted);margin-top:2px;}
 .d-scale{display:inline-block;margin-left:6px;padding:1px 7px;font-family:'Orbitron',monospace;font-size:10px;
   border:1px solid var(--line);color:var(--muted);cursor:help;}
-.d-scale.s0{color:#00ff9d;border-color:rgba(0,255,157,.5);}
-.d-scale.s1,.d-scale.s2{color:#ffd24a;border-color:rgba(255,210,74,.6);}
-.d-scale.s3,.d-scale.s4,.d-scale.s5{color:#ff5566;border-color:#ff5566;text-shadow:0 0 8px rgba(255,85,102,.7);}
+.d-scale.s0{color:#7fbf98;border-color:rgba(127,191,152,.5);}
+.d-scale.s1,.d-scale.s2{color:#e0e0e0;border-color:rgba(224,224,224,.6);}
+.d-scale.s3,.d-scale.s4,.d-scale.s5{color:#d66e6e;border-color:#d66e6e;text-shadow:0 0 8px rgba(214,110,110,.7);}
 #d-wx-panel .d-wx-grid{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
-#d-aurora{width:100%;display:block;border:1px solid var(--line);background:#04101c;}
-#d-sdo-img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line);background:#000;display:block;}
-.dn-row{display:flex;gap:10px;align-items:baseline;padding:6px 4px;border-bottom:1px solid rgba(20,42,60,.5);
+#d-aurora{width:100%;display:block;border:1px solid var(--line);background:#080808;}
+#d-sdo-img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line);background:#000000;display:block;}
+.dn-row{display:flex;gap:10px;align-items:baseline;padding:6px 4px;border-bottom:1px solid rgba(37,37,37,.5);
   font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-decoration:none;}
-.dn-row:hover{background:rgba(0,229,255,.06);}
+.dn-row:hover{background:rgba(204,204,204,.06);}
 .dn-t{min-width:34px;color:var(--amber);}
 .dn-title{flex:1;color:var(--text);line-height:1.4;}
 .dn-title:hover{color:var(--accent);}
 .dn-src{color:var(--muted);white-space:nowrap;}
 .dl-row{cursor:pointer;}
-.dl-row.sel{background:rgba(0,229,255,.08);border-left:3px solid var(--accent);}
-#d-tfr-map{width:100%;display:block;border:1px solid rgba(255,85,102,.45);background:#06101a;}
+.dl-row.sel{background:rgba(204,204,204,.08);border-left:3px solid var(--accent);}
+#d-tfr-map{width:100%;display:block;border:1px solid rgba(214,110,110,.45);background:#080808;}
 
 /* ════ V6 · DISCOVERY layout — explicit grid, no empty cells ════ */
 @media(min-width:1200px){
@@ -767,23 +769,97 @@ html,body{background:
   #d-hist-panel{grid-column:3;grid-row:4;}
   #d-launch-panel{grid-row:5;}
 }
-#d-aurora-globe{height:300px;border:1px solid var(--line);background:#020810;position:relative;}
+#d-aurora-globe{height:300px;border:1px solid var(--line);background:#040404;position:relative;}
 .dp-row{cursor:pointer;}
-.dp-row:hover{background:rgba(0,229,255,.06);}
-.dp-row.sel{background:rgba(0,229,255,.1);border-left:3px solid var(--accent);}
+.dp-row:hover{background:rgba(204,204,204,.06);}
+.dp-row.sel{background:rgba(204,204,204,.1);border-left:3px solid var(--accent);}
 .dp-row.sel .dp-name{color:var(--accent);}
-.dh-row{display:flex;gap:12px;padding:8px 4px;border-bottom:1px solid rgba(20,42,60,.5);}
+.dh-row{display:flex;gap:12px;padding:8px 4px;border-bottom:1px solid rgba(37,37,37,.5);}
 .dh-when{min-width:58px;font-family:'Orbitron',monospace;font-size:10px;color:var(--amber);letter-spacing:1px;text-align:center;line-height:1.5;}
 .dh-when b{font-size:13px;color:var(--text);}
 .dh-txt{flex:1;font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.55;color:var(--text);}
 .dh-ago{display:block;font-size:8.5px;color:var(--muted);margin-top:2px;letter-spacing:.5px;}
 #d-fact-wrap{margin-top:12px;border:1px solid var(--purple);border-left:3px solid var(--purple);
-  padding:9px 11px;background:rgba(180,139,255,.05);}
+  padding:9px 11px;background:rgba(175,175,175,.05);}
 #d-fact{font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.6;color:var(--text);
   margin-top:4px;opacity:0;transition:opacity .35s;}
 #d-fact.show{opacity:1;}
+#traj-panel{border-bottom:1px solid var(--border);}
+#traj-toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);font-size:10px;color:var(--muted);}
+#traj-wrap{position:relative;height:360px;}
+#traj-info{position:absolute;left:10px;bottom:10px;font-size:11px;line-height:1.5;color:var(--text);pointer-events:none;max-width:70%;}
+#traj-info .dim{color:var(--muted);}
+.eph-search-hint{font-size:10px;color:var(--muted);line-height:1.4;margin-top:4px;}
+#pass-board{border-bottom:1px solid var(--border);padding:8px 14px 10px;max-height:190px;overflow-y:auto;}
+.pb-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;}
+.pb-title{font-size:12px;color:var(--text);}
+.pb-sub{font-size:10px;color:var(--muted);flex:1;}
+#pb-table{width:100%;border-collapse:collapse;font-size:11px;}
+#pb-table th{text-align:left;font-weight:400;color:var(--muted);font-size:10px;padding:3px 8px 4px 0;border-bottom:1px solid var(--border);}
+#pb-table td{padding:4px 8px 4px 0;border-bottom:1px solid #090909;color:#d4d4d4;font-family:var(--font-num);white-space:nowrap;}
+#pb-table td:first-child{font-family:var(--font-ui);color:var(--text);}
+#pb-table tr{cursor:pointer;}
+#pb-table tbody tr:hover td{background:#060606;}
+#pb-table tr.up .pb-status{color:var(--green);}
+#pb-table tr.prim td:first-child{font-weight:500;}
+.pb-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:8px;vertical-align:middle;}
+.pb-id{color:var(--muted);margin-left:8px;font-family:var(--font-num);font-size:10px;}
+.pb-az{color:var(--muted);font-size:10px;}
+.pb-stale{color:var(--red);}
+.pb-empty{color:var(--muted);font-family:var(--font-ui)!important;}
+.legacy-meta{display:none;}
+#sky-btns{position:absolute;top:6px;right:8px;z-index:5;display:flex;gap:6px;}
+#sky-all-btn.on,#sky-vis-btn.on{color:var(--text)!important;border-color:var(--text)!important;}
+#sky-split #pass-table-wrap{display:none!important;}
+#sky-split{margin-top:30px;}
+#sky-legend i{display:inline-block;width:16px;height:0;margin-right:6px;vertical-align:middle;border-top:1px solid #acacac;}
+#sky-legend i.lg-vis{border-top:3px solid #e0e0e0;}
+#sky-legend i.lg-day{border-top:1px solid #9b9b9b;}
+#sky-legend i.lg-ecl{border-top:1px dashed #777777;}
+.search-more{display:flex;flex-direction:column;gap:6px;padding:10px 12px;}
+.search-more .hud-btn{text-align:left;}
+.sm-note{font-size:10px;color:var(--muted);}
+.sat-age{font-size:9px;color:var(--muted);}
+.sat-age.stale{color:var(--red);}
+/* ═══ Monochrome layer (applied last) ═══ */
+*{text-shadow:none!important;box-shadow:none!important;}
+html,body{background:#000;font-family:var(--font-ui);-webkit-font-smoothing:antialiased;}
+#header,#sidebar,#main,#meta-strip,#wx-strip,.plot-panel,#oe-block,#site-panel,#cat-toolbar,#eph-side,#eph-main,
+#ca-side,#ca-main,#epoch-bar,.d-panel,#cat-card,#cat-hover,#ss-info,#loading-overlay,#tooltip,#eph-tip{background:#000!important;background-image:none!important;}
+#header::after{display:none;}
+.plot-panel{border:0!important;}
+#plots-grid{background:#1a1a1a;}
+.sdot{animation:none!important;}
+.logo{font-family:var(--font-ui);font-weight:500;font-size:14px;letter-spacing:.02em;color:var(--text);}
+.logo span{color:var(--muted);}
+.header-sub,.ck-label,.fl,.ml,.oe-key,.site-lbl,.plot-label,.plot-status,.ct-lbl,.sb-title,.oe-title,.site-title,.wx-title,.eph-head-sub,.d-sub,.d-dim{letter-spacing:.04em!important;}
+.ml,.fl,.oe-key,.site-lbl,.ct-lbl,.plot-status{font-size:9px!important;color:var(--muted)!important;}
+.mv,.oe-val,#utc-clock,#local-clock,.sat-meta,.sat-inc,#ep-clock,#ep-local,#cat-simclock{font-family:var(--font-num)!important;}
+.mv{font-size:12px!important;color:var(--text)!important;}
+.mv.green{color:var(--green)!important;}.mv.red{color:var(--red)!important;}
+.sat-name,#selected-sat-name,.plot-label,.sb-title,.oe-title,.site-title,.d-title,.ss-title{font-family:var(--font-ui)!important;}
+.sat-name{font-size:12px!important;}
+#selected-sat-name{font-size:13px!important;letter-spacing:0!important;color:var(--text)!important;font-weight:500;}
+.plot-label{font-size:11px!important;color:#bdbdbd!important;letter-spacing:.02em!important;}
+.tab-btn{font-family:var(--font-ui)!important;letter-spacing:.04em!important;font-size:11px!important;background:transparent!important;border:0!important;border-bottom:1px solid transparent!important;color:var(--muted)!important;border-radius:0!important;}
+.tab-btn.active,.tab-btn:hover{color:var(--text)!important;border-bottom-color:var(--text)!important;}
+.hud-btn,.tw-btn,.cfb-btn,.hz-btn,.pt-export{font-family:var(--font-ui)!important;letter-spacing:.02em!important;background:transparent!important;border:1px solid #2a2a2a!important;color:#9a9a9a!important;border-radius:3px!important;}
+.hud-btn:hover,.tw-btn:hover,.cfb-btn:hover,.hz-btn:hover,.pt-export:hover{color:var(--text)!important;border-color:#555!important;}
+.tw-btn.on,.cfb-btn.on,.hz-btn.on,.hud-btn.on{color:#000!important;background:#e6e6e6!important;border-color:#e6e6e6!important;}
+select.hud-sel,.site-input,#search-wrap input,#eph-custom-inp{background:#000!important;border:1px solid #2a2a2a!important;color:var(--text)!important;font-family:var(--font-ui)!important;border-radius:3px!important;}
+select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:focus{border-color:#666!important;outline:none;}
+.sat-item:hover{background:#0b0b0b!important;}
+.sat-item.active{background:#111!important;border-left-color:var(--text)!important;}
+.orbit-badge{background:transparent!important;border:1px solid #333;color:#9a9a9a!important;font-weight:400!important;}
+.pi-soon{background:var(--green)!important;}.pi-later{background:#777!important;}.pi-none{background:#2a2a2a!important;}.pi-vis{background:var(--green)!important;}
+::-webkit-scrollbar{width:6px;height:6px;}::-webkit-scrollbar-thumb{background:#222;}
+#eph-custom{order:-1;}
+#eph-custom-inp{width:100%;padding:7px 9px;font-size:12px;}
+.sbdb-row{font-family:var(--font-ui)!important;font-size:12px!important;}
+.sbdb-sub{display:block;color:var(--muted);font-size:10px;margin-top:2px;}
+.verdict{font-family:var(--font-ui)!important;background:transparent!important;border:1px solid #333!important;color:#bdbdbd!important;}
+.verdict.v-vis{color:var(--green)!important;border-color:var(--green)!important;}
 </style></head><body data-view="tracker">
-<body>
 
 <div id="loading-overlay">
   <div class="spinner"></div>
@@ -936,7 +1012,7 @@ html,body{background:
       </div>
       <div class="site-row">
         <span class="site-lbl">ALT m</span>
-        <input class="site-input" id="inp-alt" value="1114" placeholder="1114"/>
+        <input class="site-input" id="inp-alt" value="354" placeholder="354"/>
       </div>
       <div class="site-btn-row">
         <button class="hud-btn amber" onclick="geolocateMe()">📍 LOCATE ME</button>
@@ -956,14 +1032,10 @@ html,body{background:
       <div id="norad-id">NORAD: —</div>
     </div>
     <div class="msep"></div>
-    <div class="mi"><div class="ml">NEXT RISE (LOCAL)</div><div class="mv green" id="m-rise">—</div></div>
-    <div class="mi"><div class="ml">NEXT RISE (UTC)</div><div class="mv amber" id="m-rise-local">—</div></div>
-    <div class="mi"><div class="ml">NEXT SET (LOCAL)</div><div class="mv red" id="m-set">—</div></div>
-    <div class="mi"><div class="ml">NEXT SET (UTC)</div><div class="mv red" id="m-set-local" style="opacity:.7">—</div></div>
-    <div class="mi"><div class="ml">TIME TO RISE</div><div class="mv amber" id="m-ttr">—</div></div>
-    <div class="mi"><div class="ml">PEAK EL (°)</div><div class="mv" id="m-elev">—</div></div>
-    <div class="mi"><div class="ml">NEXT VISIBLE PASS</div><div class="mv green" id="m-nextvis">—</div></div>
-    <div class="msep"></div>
+    <div class="legacy-meta">
+      <span id="m-rise"></span><span id="m-rise-local"></span><span id="m-set"></span><span id="m-set-local"></span>
+      <span id="m-ttr"></span><span id="m-elev"></span><span id="m-nextvis"></span>
+    </div>
     <div class="mi"><div class="ml">ALT (km)</div><div class="mv" id="m-alt">—</div></div>
     <div class="mi"><div class="ml">PERIOD</div><div class="mv" id="m-period">—</div></div>
     <div class="mi"><div class="ml">INC (°)</div><div class="mv" id="m-inc">—</div></div>
@@ -982,6 +1054,19 @@ html,body{background:
     </div>
   </div>
   <div id="sel-chips"></div>
+
+  <!-- PASS BOARD: one row per tracked object -->
+  <div id="pass-board">
+    <div class="pb-head">
+      <span class="pb-title">Passes over the observer site</span>
+      <span class="pb-sub" id="pb-sub">Elevation above 0°. Naked-eye visible means the object is sunlit, above 5°, and the Sun is below −6° at the site.</span>
+      <button class="pt-export" onclick="exportCSV()" title="Export the primary object's passes as CSV">Export CSV</button>
+    </div>
+    <table id="pb-table">
+      <thead><tr><th>Object</th><th>Status</th><th>Rise (AOS)</th><th>Set (LOS)</th><th>Max el</th><th>Next naked-eye pass</th><th>TLE age</th></tr></thead>
+      <tbody id="pb-body"><tr><td colspan="7" class="pb-empty">Select an object from the list.</td></tr></tbody>
+    </table>
+  </div>
 
   <!-- OBSERVING CONDITIONS STRIP -->
   <div id="wx-strip">
@@ -1006,7 +1091,7 @@ html,body{background:
   <div id="plots-grid">
     <div class="plot-panel">
       <div class="plot-label">ECI TRAJECTORY</div>
-      <div class="plot-status" id="eci-prop-status">SGP4 · J2000 · DRAG/SCROLL</div>
+      <div class="plot-status" id="eci-prop-status">SGP4 · TEME · DRAG/SCROLL</div>
       <div id="eci-container"></div>
     </div>
     <div class="plot-panel">
@@ -1027,7 +1112,10 @@ html,body{background:
     <div class="plot-panel">
       <div class="plot-label">VISIBILITY PASSES · SKY PLOT</div>
       <div class="plot-status" id="sky-site-label">AZ/EL · PENN STATE</div>
-      <button id="sky-vis-btn" class="hud-btn sm" onclick="toggleSkyVis(this)" title="Plot only passes that clear the night-time visibility screen (sunlit object · dark site)">● VIS ONLY</button>
+      <div id="sky-btns">
+        <button id="sky-all-btn" class="hud-btn sm" onclick="toggleSkyAll(this)" title="Show every pass in the forecast horizon instead of only the next one">All passes</button>
+        <button id="sky-vis-btn" class="hud-btn sm" onclick="toggleSkyVis(this)" title="Plot only passes that are naked-eye visible">Visible only</button>
+      </div>
       <div id="sky-split">
         <div id="pass-table-wrap" style="display:none;">
           <div class="pt-header">
@@ -1041,9 +1129,9 @@ html,body{background:
         </div>
       </div>
       <div id="sky-legend">
-        <span class="skl"><i style="background:#00ff88;box-shadow:0 0 5px #00ff88;"></i>VISIBLE (SUNLIT · DARK SITE)</span>
-        <span class="skl"><i style="background:#557;"></i>IN SHADOW</span>
-        <span class="skl"><i style="background:#aa8833;"></i>SKY TOO BRIGHT</span>
+        <span class="skl"><i class="lg-vis"></i>Naked-eye visible</span>
+        <span class="skl"><i class="lg-day"></i>Sunlit, sky too bright</span>
+        <span class="skl"><i class="lg-ecl"></i>In Earth's shadow</span>
       </div>
       <div id="sky-sunmoon">SUN — · MOON —</div>
     </div>
@@ -1083,11 +1171,14 @@ html,body{background:
     <div id="cat-canvas-wrap"></div>
     <div id="cat-progress"><span class="spinner-sm"></span> <span id="cat-progress-txt">Loading…</span></div>
     <div id="cat-legend">
-      <span><i class="cl-dot" style="background:#ffd24a;box-shadow:0 0 6px #ffd24a;"></i>LEO</span>
-      <span><i class="cl-dot" style="background:#00ffb3;box-shadow:0 0 6px #00ffb3;"></i>MEO</span>
-      <span><i class="cl-dot" style="background:#ff4fd8;box-shadow:0 0 6px #ff4fd8;"></i>GEO</span>
-      <span><i class="cl-dot" style="background:#b48bff;box-shadow:0 0 6px #b48bff;"></i>HEO / MOLNIYA</span>
-      <span style="color:#3a5060;">ECI INERTIAL FRAME · SGP4 + 2-BODY BRIDGE</span>
+      <span><i class="cl-dot" style="background:#dbdbdb"></i>LEO</span>
+      <span><i class="cl-dot" style="background:#80a8d9"></i>MEO</span>
+      <span><i class="cl-dot" style="background:#d6b26e"></i>GEO</span>
+      <span><i class="cl-dot" style="background:#c48fb5"></i>HEO / Molniya</span>
+      <span><i class="cl-dot" style="background:#737373"></i>Debris</span>
+      <span><i class="cl-dot" style="background:#c9a08a"></i>Rocket body</span>
+      <span><i class="cl-dot" style="background:#333"></i>Stale TLE</span>
+      <span style="color:#494949;">ECI INERTIAL FRAME · SGP4 + 2-BODY BRIDGE</span>
     </div>
     <div id="cat-help">HOVER — DETAILS · CLICK — ORBIT · DRAG — ROTATE<br/>SCROLL — ZOOM · DBL-CLICK — RESET VIEW</div>
     <div id="cat-filter-bar">
@@ -1123,13 +1214,13 @@ html,body{background:
       <div class="eph-head-sub">TOPOCENTRIC EPHEMERIS · NEXT 72 H · 30-MIN STEP</div>
       <div id="eph-clockrow"><span id="eph-utc">--:--:-- UTC</span><span id="eph-local">--:--:-- LOC</span></div>
     </div>
-    <div id="eph-targets"></div>
     <div id="eph-custom">
-      <div class="fl">CUSTOM TARGET (HORIZONS DESIGNATION)</div>
-      <input id="eph-custom-inp" placeholder="fuzzy: apophis · halley · 433 · bennu…" oninput="EPH.sbdbType()" onkeydown="if(event.key==='Enter')EPH.customLookup()"/>
+      <div class="fl">SEARCH JPL HORIZONS</div>
+      <input id="eph-custom-inp" placeholder="CAPSTONE, Artemis II, Kathleenhowell, 433, Halley…" oninput="EPH.sbdbType()" onkeydown="if(event.key==='Enter')EPH.customLookup()"/>
       <div id="eph-sbdb-results" style="display:none;"></div>
-      <button class="hud-btn amber" onclick="EPH.customLookup()">⌕ RESOLVE VIA SBDB</button>
+      <div class="eph-search-hint">Spacecraft, planets, moons, asteroids and comets. Named asteroids are written as one word (Johnjunkins).</div>
     </div>
+    <div id="eph-targets"></div>
   </div>
   <div id="eph-main">
     <div id="eph-head">
@@ -1159,6 +1250,15 @@ html,body{background:
     </div>
 
     <!-- ── 3-D HELIOCENTRIC ORBIT MAP ── -->
+    <div id="traj-panel" style="display:none;">
+      <div id="traj-toolbar">
+        <span class="ss-title" id="traj-title">TRAJECTORY · GEOCENTRIC ICRF</span>
+        <span id="traj-window"></span>
+        <span class="ss-sep"></span>
+        <button class="tw-btn" onclick="TRAJ.resetView()" title="Reset camera">RESET VIEW</button>
+      </div>
+      <div id="traj-wrap"><div id="traj-info"></div></div>
+    </div>
     <div id="ss-panel">
       <div id="ss-toolbar">
         <span class="ss-title">◈ SOLAR SYSTEM · ECLIPTIC J2000</span>
@@ -1188,12 +1288,12 @@ html,body{background:
     <div id="eph-chart-panel" style="display:none;">
       <canvas id="eph-chart"></canvas>
       <div id="eph-chart-legend">
-        <span class="ecl-i"><i style="background:#00ff9d;box-shadow:0 0 6px #00ff9d;"></i>TRUE VISIBILITY (ACTIVE TARGET)</span>
-        <span class="ecl-i"><i style="background:rgba(120,170,255,.55);"></i>DAYLIGHT</span>
-        <span class="ecl-i"><i style="background:rgba(110,140,235,.42);"></i>CIVIL</span>
-        <span class="ecl-i"><i style="background:rgba(100,110,210,.34);"></i>NAUTICAL</span>
-        <span class="ecl-i"><i style="background:rgba(85,85,170,.3);"></i>ASTRONOMICAL</span>
-        <span class="ecl-i"><i style="background:#05080f;border:1px solid #28455e;"></i>NIGHT</span>
+        <span class="ecl-i"><i style="background:#7fbf98;box-shadow:0 0 6px #7fbf98;"></i>TRUE VISIBILITY (ACTIVE TARGET)</span>
+        <span class="ecl-i"><i style="background:rgba(185,185,185,.55);"></i>DAYLIGHT</span>
+        <span class="ecl-i"><i style="background:rgba(157,157,157,.42);"></i>CIVIL</span>
+        <span class="ecl-i"><i style="background:rgba(129,129,129,.34);"></i>NAUTICAL</span>
+        <span class="ecl-i"><i style="background:rgba(87,87,87,.3);"></i>ASTRONOMICAL</span>
+        <span class="ecl-i"><i style="background:#040404;border:1px solid #3d3d3d;"></i>NIGHT</span>
       </div>
     </div>
     <div class="eph-section-title" id="eph-win-title" style="display:none;">VISIBILITY WINDOWS · LOCAL TIME</div>
@@ -1205,7 +1305,7 @@ html,body{background:
       JPL Horizons for your observer site, screened against twilight for true visibility windows. Plot up to six
       targets together; small bodies get their heliocentric orbit drawn in the 3-D map from live osculating elements.</span>
     </div>
-    <div class="eph-att" id="eph-att" style="display:none;">SOURCE: JPL HORIZONS API · APPARENT (AIRLESS) TOPOCENTRIC · TWILIGHT FROM HORIZONS SOLAR-PRESENCE FLAGS · PLANET MAP: JPL/STANDISH MEAN ELEMENTS (1800–2050)</div>
+    <div class="eph-att" id="eph-att" style="display:none;">SOURCE: JPL HORIZONS API · ASTROMETRIC RA/DEC (ICRF) · AIRLESS APPARENT AZ/EL · TWILIGHT FROM HORIZONS SOLAR-PRESENCE FLAGS · PLANET MAP: JPL/STANDISH MEAN ELEMENTS (1800–2050)</div>
   </div>
 </div>
 
@@ -1216,7 +1316,7 @@ html,body{background:
     <div id="ca-side-head">
       <div class="sb-top">
         <div class="sdot red"></div>
-        <div class="sb-title" style="color:#ff5566;">CONJUNCTION WATCH</div>
+        <div class="sb-title" style="color:#d66e6e;">CONJUNCTION WATCH</div>
       </div>
       <div class="eph-head-sub" id="ca-feed-state">BOOTING…</div>
       <div class="d-sb-presets" style="padding:6px 10px 2px;">
@@ -1240,10 +1340,10 @@ html,body{background:
       <div id="ca-canvas-wrap"></div>
       <div id="ca-info"></div>
       <div id="ca-legend">
-        <span class="skl"><i style="background:#00e5ff;"></i>OBJECT 1 ORBIT</span>
-        <span class="skl"><i style="background:#ffd24a;"></i>OBJECT 2 ORBIT</span>
-        <span class="skl"><i style="background:#ff5566;"></i>TCA GEOMETRY · MISS VECTOR</span>
-        <span class="skl"><i style="background:#ff5fd2;"></i>CONJUNCTION SUB-POINT</span>
+        <span class="skl"><i style="background:#cccccc;"></i>OBJECT 1 ORBIT</span>
+        <span class="skl"><i style="background:#e0e0e0;"></i>OBJECT 2 ORBIT</span>
+        <span class="skl"><i style="background:#d66e6e;"></i>TCA GEOMETRY · MISS VECTOR</span>
+        <span class="skl"><i style="background:#9a9a9a;"></i>CONJUNCTION SUB-POINT</span>
         <span class="skl" style="color:var(--muted);">MARKERS MOVE AT THE GLOBAL EPOCH · ORBITS SAMPLED ± ½ PERIOD AROUND TCA</span>
       </div>
     </div>
@@ -1414,18 +1514,18 @@ html,body{background:
         box=document.createElement('div');
         box.id='err-trap';
         box.style.cssText='position:fixed;left:10px;bottom:44px;z-index:9999;max-width:560px;max-height:180px;overflow:auto;'+
-          'background:rgba(40,4,10,.95);border:1px solid #ff5566;box-shadow:0 0 22px rgba(255,85,102,.4);'+
-          'font:10px "IBM Plex Mono",monospace;color:#ffb0ba;padding:8px 10px;white-space:pre-wrap;';
+          'background:rgba(7,7,7,.95);border:1px solid #d66e6e;box-shadow:0 0 22px rgba(214,110,110,.4);'+
+          'font:10px "IBM Plex Mono",monospace;color:#d66e6e;padding:8px 10px;white-space:pre-wrap;';
         const x=document.createElement('div');
         x.textContent='✕ DISMISS';
-        x.style.cssText='cursor:pointer;color:#ff5566;font-weight:bold;margin-bottom:4px;letter-spacing:1px;';
+        x.style.cssText='cursor:pointer;color:#d66e6e;font-weight:bold;margin-bottom:4px;letter-spacing:1px;';
         x.onclick=()=>{box.remove();box=null;n=0;};
         box.appendChild(x);
         document.body.appendChild(box);
       }
       if(++n>6) return;
       const d=document.createElement('div');
-      d.style.cssText='border-top:1px solid rgba(255,85,102,.3);padding:3px 0;';
+      d.style.cssText='border-top:1px solid rgba(214,110,110,.3);padding:3px 0;';
       d.textContent='⚠ '+msg;
       box.appendChild(d);
     }catch(e){}
@@ -1456,7 +1556,7 @@ html,body{background:
 const MU_E=398600.4418,WE=7.2921150e-5,RE_KM=6378.137;
 const F_WGS=1/298.257223563,E2_WGS=F_WGS*(2-F_WGS);
 
-let SITE={lat_deg:40.7945,lon_deg:-77.8616,h_m:1114,tz:'America/New_York',tzOffsetMin:-240};
+let SITE={lat_deg:40.7945,lon_deg:-77.8616,h_m:354,tz:'America/New_York',tzOffsetMin:-240};
 const NUM_REVS=5;
 let currentTLE=null,currentPasses=null,currentData=null;
 let propagationTime=null;       // Date when last full propagation ran
@@ -1629,6 +1729,12 @@ function parseTLE(name,l1,l2){
   }catch(e){return null;}
 }
 
+/* TLE age in days relative to the sim epoch. Element sets older than
+   TLE_STALE_D are shown dimmed and counted separately: SGP4 error grows
+   quickly with age, and very old sets are usually decayed or lost objects. */
+const TLE_STALE_D=30;
+function tleAgeDays(t){return t&&t.epoch?(EPOCH.ms()-t.epoch.getTime())/86400000:0;}
+
 /* ════ ORBITAL MECHANICS ════ */
 function trueFromMean(M,e){
   M=((M%(2*Math.PI))+2*Math.PI)%(2*Math.PI);
@@ -1700,6 +1806,12 @@ function sgp4ECI(satrec, date){
    ╚══════════════════════════════════════════════════════════════════╝ */
 /* robust fetch timeout: AbortSignal.timeout() is unavailable on older lab
    browsers — every network failure traced back to this. Polyfill-safe helper. */
+/* Direct fetch first. The free public CORS proxies this used to fall back on
+   (corsproxy.io, allorigins) no longer serve production sites, so they only
+   added timeouts. CelesTrak, JPL and OrbitSmith all send CORS headers. If a
+   lab network ever needs a proxy, set CORS_PROXY to its URL prefix. */
+const CORS_PROXY='';
+function urlChain(u){return CORS_PROXY?[u,CORS_PROXY+encodeURIComponent(u)]:[u];}
 function fetchTimeoutSignal(ms){
   try{if(typeof AbortSignal!=='undefined'&&AbortSignal.timeout) return AbortSignal.timeout(ms);}catch(e){}
   try{const c=new AbortController();setTimeout(()=>c.abort(),ms);return c.signal;}catch(e){return undefined;}
@@ -1714,8 +1826,7 @@ async function fetchFullCatalog(onProgress){
      try it FIRST, fall back to the active GP group */
   bases.reverse();
   for(const base of bases){
-    const urls=[base,'https://corsproxy.io/?'+encodeURIComponent(base),
-                'https://api.allorigins.win/raw?url='+encodeURIComponent(base)];
+    const urls=urlChain(base);
     for(const u of urls){
       try{
         const r=await fetch(u,{cache:'no-store',signal:fetchTimeoutSignal(60000)});
@@ -1749,12 +1860,11 @@ async function fetchFullCatalog(onProgress){
    ╚══════════════════════════════════════════════════════════════════╝ */
 const OS={
   BASE:'https://orbitsmith.net/data/orbitsmith',
-  _proxies:['','https://corsproxy.io/?','https://api.allorigins.win/raw?url='],
+
   attribution:'OrbitSmith · Space-Track/18 SDS · CelesTrak',
   /* direct fetch first (CORS-open static host), then public proxies */
   async _json(url,ms){
-    for(let i=0;i<this._proxies.length;i++){
-      const u=i===0?url:this._proxies[i]+encodeURIComponent(url);
+    for(const u of urlChain(url)){
       try{
         const r=await fetch(u,{cache:'no-store',signal:fetchTimeoutSignal(ms||15000)});
         if(!r.ok) continue;
@@ -1971,7 +2081,7 @@ function propagate(tle,durS,anchor){
     if(tle.satrec){
       let pv=sgp4ECI(tle.satrec,sd);
       if(pv){rx=pv.r[0];ry=pv.r[1];rz=pv.r[2];}
-      else{rx=0;ry=0;rz=RE_KM+500;}
+      else{rx=NaN;ry=NaN;rz=NaN;}   /* SGP4 failure (decay etc.): leave a gap, never a fake point */
     } else {
       rx=x_tb[0];ry=x_tb[1];rz=x_tb[2];
       if(k<N){let dt=times[k+1]-times[k];x_tb=rk4(x_tb,dt);}
@@ -2040,7 +2150,7 @@ function findPasses(az,el,t,sunlit,sunAlt){
 /* ════ V2 · DEEP SEARCH — first truly visible window in the next 48 h ════ */
 function findNextVisible(tle,hours=48){
   if(!tle.satrec) return null;
-  let now=new Date();
+  let now=EPOCH.now();
   let siteECEF=geo2ecef(SITE.lat_deg,SITE.lon_deg,SITE.h_m);
   let Re2enu=topoRotm(SITE.lat_deg,SITE.lon_deg);
   let step=tle.T_s>20000?120:45;
@@ -2105,14 +2215,14 @@ function loadEarthDay(cb){
     const cv=document.createElement('canvas');cv.width=2048;cv.height=1024;
     const cx=cv.getContext('2d');
     const g=cx.createLinearGradient(0,0,0,1024);
-    g.addColorStop(0,'#0a2236');g.addColorStop(.5,'#0e2c46');g.addColorStop(1,'#0a2236');
+    g.addColorStop(0,'#1d1d1d');g.addColorStop(.5,'#262626');g.addColorStop(1,'#1d1d1d');
     cx.fillStyle=g;cx.fillRect(0,0,2048,1024);
-    cx.fillStyle='#2c5a2e';
+    cx.fillStyle='#494949';
     [[400,320,160,200,-.3],[480,640,100,160,.2],[1020,280,80,100,0],[1020,560,120,180,0],[1360,320,280,180,.1],[1560,680,100,70,0],[260,180,90,60,.4]].forEach(([x,y,rx,ry,r])=>{
       cx.save();cx.translate(x,y);cx.rotate(r);cx.beginPath();cx.ellipse(0,0,rx,ry,0,0,2*Math.PI);cx.fill();cx.restore();
     });
-    cx.fillStyle='#e8f2f8';cx.fillRect(0,0,2048,52);cx.fillRect(0,972,2048,52);
-    cx.strokeStyle='rgba(120,200,255,0.10)';cx.lineWidth=1;
+    cx.fillStyle='#e0e0e0';cx.fillRect(0,0,2048,52);cx.fillRect(0,972,2048,52);
+    cx.strokeStyle='rgba(209,209,209,0.10)';cx.lineWidth=1;
     for(let x=0;x<=2048;x+=170){cx.beginPath();cx.moveTo(x,0);cx.lineTo(x,1024);cx.stroke();}
     for(let y=0;y<=1024;y+=170){cx.beginPath();cx.moveTo(0,y);cx.lineTo(2048,y);cx.stroke();}
     earthTexC=new THREE.CanvasTexture(cv);cb(earthTexC);
@@ -2199,14 +2309,14 @@ function initThree3D(cid,opts={}){
   const W=container.clientWidth||400,H=container.clientHeight||300;
   const renderer=new THREE.WebGLRenderer({antialias:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  renderer.setSize(W,H);renderer.setClearColor(0x000204,1);
+  renderer.setSize(W,H);renderer.setClearColor(0x010101,1);
   container.appendChild(renderer.domElement);
 
   const scene=new THREE.Scene();
   /* lighting: one true Sun + dim space ambient (Earthshine/starlight) */
-  const sunLight=new THREE.DirectionalLight(0xfff3e0,1.75);
+  const sunLight=new THREE.DirectionalLight(0xe0e0e0,1.75);
   sunLight.position.set(1.5e5,0,0);scene.add(sunLight);
-  scene.add(new THREE.AmbientLight(0x36465a,0.85));
+  scene.add(new THREE.AmbientLight(0x414141,0.85));
 
   /* Milky-Way sky sphere; procedural points as fallback */
   let starPts=null;
@@ -2215,7 +2325,7 @@ function initThree3D(cid,opts={}){
     for(let i=0;i<1800;i++){const th=Math.random()*2*Math.PI,ph=Math.acos(2*Math.random()-1),r=RE_KM*58;
       sv.push(r*Math.sin(ph)*Math.cos(th),r*Math.cos(ph),r*Math.sin(ph)*Math.sin(th));}
     const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sv,3));
-    starPts=new THREE.Points(sg,new THREE.PointsMaterial({color:0xcfe2ff,size:22,transparent:true,opacity:.45,sizeAttenuation:true}));
+    starPts=new THREE.Points(sg,new THREE.PointsMaterial({color:0xe0e0e0,size:22,transparent:true,opacity:.45,sizeAttenuation:true}));
     scene.add(starPts);
   }
   loadSkyTex(tex=>{
@@ -2227,10 +2337,10 @@ function initThree3D(cid,opts={}){
   },()=>{});
 
   const atmo=new THREE.Mesh(new THREE.SphereGeometry(RE_KM*1.015,48,48),
-    new THREE.MeshPhongMaterial({color:0x3a86c8,transparent:true,opacity:.07,side:THREE.BackSide,depthWrite:false}));
+    new THREE.MeshPhongMaterial({color:0x898989,transparent:true,opacity:.07,side:THREE.BackSide,depthWrite:false}));
   scene.add(atmo);
 
-  const earthMat=new THREE.MeshPhongMaterial({color:0x224158,specular:new THREE.Color(0x101a22),shininess:9});
+  const earthMat=new THREE.MeshPhongMaterial({color:0x393939,specular:new THREE.Color(0x171717),shininess:9});
   /* Axis mapping (RH): X_three=x_orb, Y_three=z_orb (north up), Z_three=-y_orb.
      SphereGeometry UV puts Greenwich at -Z_three at rotation.y=0.
      ECI: rotation.y=+GMST rotates Greenwich eastward (correct sense). */
@@ -2239,7 +2349,7 @@ function initThree3D(cid,opts={}){
   loadEarthDay(tex=>{earthMat.map=tex;earthMat.color.set(0xffffff);earthMat.needsUpdate=true;});
 
   if(opts.axes!==false){
-    [[0xff5566,[2.2*RE_KM,0,0]],[0x66ff88,[0,2.2*RE_KM,0]],[0x6688ff,[0,0,-2.2*RE_KM]]].forEach(([c,to])=>{
+    [[0xd66e6e,[2.2*RE_KM,0,0]],[0x7fbf98,[0,2.2*RE_KM,0]],[0x9a9a9a,[0,0,-2.2*RE_KM]]].forEach(([c,to])=>{
       const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),new THREE.Vector3(...to)]);
       scene.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:c,transparent:true,opacity:.16})));
     });
@@ -2266,7 +2376,7 @@ function clearOrbit3D(scene,tag){
   ['orbit','orbitDots','satMarker','satRing'].forEach(n=>{const o=scene.getObjectByName(n+(tag||''));if(o)scene.remove(o);});
 }
 function drawOrbit3D(scene,pts,color,tag,mkColor){
-  tag=tag||'';mkColor=mkColor??0xffd24a;
+  tag=tag||'';mkColor=mkColor??0xe0e0e0;
   clearOrbit3D(scene,tag);
   if(pts.length<2) return;
   const v3pts=pts.map(p=>new THREE.Vector3(p[0],p[2],-p[1]));
@@ -2289,7 +2399,7 @@ function drawTerminator(ctx,W,H,d){
   const sp=sunPos(d);
   const gm=gmstDegAt(d);
   const tanDec=Math.tan(sp.dec);
-  ctx.fillStyle='rgba(1,4,14,0.45)';
+  ctx.fillStyle='rgba(2,2,2,0.45)';
   ctx.beginPath();
   let first=true;
   for(let x=0;x<=W;x+=3){
@@ -2308,17 +2418,17 @@ function drawTerminator(ctx,W,H,d){
   const toXY=(la,lo)=>({x:((lo+180)/360)*W,y:((90-la)/180)*H});
   const sLon=((sp.ra*R2D-gm+540)%360)-180, sLat=sp.dec*R2D;
   const s=toXY(sLat,sLon);
-  ctx.strokeStyle='rgba(255,210,80,.9)';ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(224,224,224,.9)';ctx.lineWidth=1;
   for(let i=0;i<8;i++){const a=i*Math.PI/4;
     ctx.beginPath();ctx.moveTo(s.x+Math.cos(a)*5,s.y+Math.sin(a)*5);ctx.lineTo(s.x+Math.cos(a)*9,s.y+Math.sin(a)*9);ctx.stroke();}
-  ctx.fillStyle='#ffd24a';ctx.beginPath();ctx.arc(s.x,s.y,4,0,2*Math.PI);ctx.fill();
-  ctx.fillStyle='rgba(255,210,80,.85)';ctx.font='bold 10px IBM Plex Mono';ctx.fillText('SUN',s.x+11,s.y+3);
+  ctx.fillStyle='#e0e0e0';ctx.beginPath();ctx.arc(s.x,s.y,4,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='rgba(224,224,224,.85)';ctx.font='bold 10px IBM Plex Mono';ctx.fillText('SUN',s.x+11,s.y+3);
   const mp=moonPos(d);
   const mLon=((mp.ra*R2D-gm+540)%360)-180, mLat=mp.dec*R2D;
   const m=toXY(mLat,mLon);
-  ctx.fillStyle='#dde6f0';ctx.beginPath();ctx.arc(m.x,m.y,3.5,0,2*Math.PI);ctx.fill();
-  ctx.fillStyle='rgba(2,8,16,.85)';ctx.beginPath();ctx.arc(m.x-2.4*(1-mp.phase),m.y,3.1,0,2*Math.PI);ctx.fill();
-  ctx.fillStyle='rgba(221,230,240,.85)';ctx.font='bold 10px IBM Plex Mono';ctx.fillText('MOON',m.x+8,m.y+3);
+  ctx.fillStyle='#e0e0e0';ctx.beginPath();ctx.arc(m.x,m.y,3.5,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='rgba(4,4,4,.85)';ctx.beginPath();ctx.arc(m.x-2.4*(1-mp.phase),m.y,3.1,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='rgba(224,224,224,.85)';ctx.font='bold 10px IBM Plex Mono';ctx.fillText('MOON',m.x+8,m.y+3);
 }
 
 /* ════ LIVE LAYERS — 60 fps markers, throttled canvas repaints ════ */
@@ -2373,6 +2483,7 @@ function updateNowMarker(nowP){
   if(nowP-_skyLast>220){_skyLast=nowP;repaintSkyLive();}
   if(nowP-_metaLast>500){
     _metaLast=nowP;
+    renderPassBoard();
     const p0=(window._liveSel||[]).find(s=>s.si===0);
     if(p0) updateLiveMeta(p0.eci[0],p0.eci[1],p0.eci[2],p0.el,p0.elapsed);
   }
@@ -2410,36 +2521,31 @@ function repaintSkyLive(){
   if(c._bg.width!==c.width||c._bg.height!==c.height){c._bg=null;return;}
   const ctx=c.getContext('2d'),W=c.width,H=c.height;
   ctx.drawImage(c._bg,0,0);
-  const cx=W/2,cy=H/2,R=Math.min(W,H)*.41;
+  const cx=W/2,cy=H/2+4,R=Math.min(W,H)*.40;
   const d=EPOCH.now();
   const sp=sunPos(d),sAA=eqToAltAz(sp.ra,sp.dec,d,SITE.lat_deg,SITE.lon_deg);
   const mp=moonPos(d),mAA=eqToAltAz(mp.ra,mp.dec,d,SITE.lat_deg,SITE.lon_deg);
   const toXY=(azD,elD)=>{const r_=(90-elD)/90*R,ar=azD*D2R;return{x:cx-r_*Math.sin(ar),y:cy-r_*Math.cos(ar)};};
+  ctx.font='10px "IBM Plex Mono",monospace';ctx.textAlign='left';
   if(sAA.alt>0){
     const p=toXY(sAA.az,sAA.alt);
-    ctx.strokeStyle='rgba(255,210,80,.85)';ctx.lineWidth=1;
-    for(let i=0;i<8;i++){const a=i*Math.PI/4;
-      ctx.beginPath();ctx.moveTo(p.x+Math.cos(a)*6,p.y+Math.sin(a)*6);ctx.lineTo(p.x+Math.cos(a)*10,p.y+Math.sin(a)*10);ctx.stroke();}
-    ctx.fillStyle='#ffd24a';ctx.beginPath();ctx.arc(p.x,p.y,5,0,2*Math.PI);ctx.fill();
-    ctx.fillStyle='rgba(255,210,80,.85)';ctx.font='bold 11px IBM Plex Mono';ctx.fillText('☉',p.x+12,p.y+3);
+    ctx.strokeStyle='#d4d4d4';ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,5,0,2*Math.PI);ctx.stroke();
+    ctx.fillStyle='#d4d4d4';ctx.beginPath();ctx.arc(p.x,p.y,1.5,0,2*Math.PI);ctx.fill();
+    ctx.fillText('Sun',p.x+9,p.y+3);
   }
   if(mAA.alt>0){
     const p=toXY(mAA.az,mAA.alt);
-    ctx.fillStyle='#dde6f0';ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,2*Math.PI);ctx.fill();
-    ctx.fillStyle='rgba(2,8,16,.85)';ctx.beginPath();ctx.arc(p.x-3*(1-mp.phase),p.y,4,0,2*Math.PI);ctx.fill();
-    ctx.fillStyle='rgba(221,230,240,.85)';ctx.font='bold 11px IBM Plex Mono';ctx.fillText('☾',p.x+10,p.y+3);
+    ctx.fillStyle='#acacac';ctx.beginPath();ctx.arc(p.x,p.y,4,0,2*Math.PI);ctx.fill();
+    ctx.fillText('Moon',p.x+9,p.y+3);
   }
   (window._liveSel||[]).forEach(s=>{
     if(s.el<=0) return;
     const p=toXY(s.az,s.el);
-    ctx.strokeStyle=s.color+'99';ctx.lineWidth=1.2;
-    ctx.beginPath();ctx.arc(p.x,p.y,s.si===0?9:7,0,2*Math.PI);ctx.stroke();
-    ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(p.x,p.y,s.si===0?4:3,0,2*Math.PI);ctx.fill();
-    ctx.fillStyle=s.color;ctx.font='bold 10px IBM Plex Mono';
-    ctx.fillText((s.si===0?'SAT ':'')+s.el.toFixed(0)+'°',p.x+10,p.y+3);
+    ctx.fillStyle=s.color;ctx.beginPath();ctx.arc(p.x,p.y,s.si===0?4.5:3.5,0,2*Math.PI);ctx.fill();
+    ctx.strokeStyle='#000000';ctx.lineWidth=1.5;ctx.stroke();
   });
   const smEl=document.getElementById('sky-sunmoon');
-  if(smEl) smEl.textContent='SUN '+(sAA.alt>=0?'+':'')+sAA.alt.toFixed(1)+'° · MOON '+(mAA.alt>=0?'+':'')+mAA.alt.toFixed(1)+'° ('+Math.round(mp.phase*100)+'% LIT)';
+  if(smEl) smEl.textContent='Sun '+(sAA.alt>=0?'+':'')+sAA.alt.toFixed(1)+'° · Moon '+(mAA.alt>=0?'+':'')+mAA.alt.toFixed(1)+'°, '+Math.round(mp.phase*100)+'% lit';
 }
 
 function updateLiveMeta(ex,ey,ez,curEl,elapsed){
@@ -2532,6 +2638,7 @@ function _masterFrame(){
     CAT.frame(nowP,dt);
   } else if(view==='eph'&&typeof SS!=='undefined'&&SS.three){
     SS.frame(nowP,dt);
+    if(TRAJ.inited) TRAJ.frame(nowP,dt);
   } else if(view==='ca'&&typeof CA!=='undefined'&&CA.inited&&CA.three){
     CA.frame(nowP,dt);
   } else if(view==='disc'&&typeof DISC!=='undefined'&&DISC.inited){
@@ -2569,12 +2676,12 @@ function drawGroundTrack(canvas,sels){
   let W=canvas.width,H=canvas.height;
   const xy=(la,lo)=>({x:((lo+180)/360)*W,y:((90-la)/180)*H});
   ctx.clearRect(0,0,W,H);
-  if(worldMapImg){ctx.drawImage(worldMapImg,0,0,W,H);ctx.fillStyle='rgba(2,8,14,0.50)';ctx.fillRect(0,0,W,H);}
-  else{ctx.fillStyle='#060f1a';ctx.fillRect(0,0,W,H);}
-  ctx.strokeStyle='rgba(15,37,53,0.55)';ctx.lineWidth=.4;
+  if(worldMapImg){ctx.drawImage(worldMapImg,0,0,W,H);ctx.fillStyle='rgba(4,4,4,0.50)';ctx.fillRect(0,0,W,H);}
+  else{ctx.fillStyle='#080808';ctx.fillRect(0,0,W,H);}
+  ctx.strokeStyle='rgba(32,32,32,0.55)';ctx.lineWidth=.4;
   for(let g=-180;g<=180;g+=30){let{x}=xy(0,g);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let g=-90;g<=90;g+=30){let{y}=xy(g,0);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-  ctx.strokeStyle='rgba(0,212,255,0.18)';ctx.lineWidth=.7;
+  ctx.strokeStyle='rgba(190,190,190,0.18)';ctx.lineWidth=.7;
   ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
 
   sels.forEach((S,si)=>{
@@ -2592,7 +2699,7 @@ function drawGroundTrack(canvas,sels){
     /* pass arcs — visible passes glow */
     passes.forEach(p=>{
       const vis=p.visible;
-      if(vis){ctx.shadowColor='#00ff9d';ctx.shadowBlur=7;ctx.strokeStyle='#00ff9d';}
+      if(vis){ctx.shadowColor='#7fbf98';ctx.shadowBlur=0;ctx.strokeStyle='#7fbf98';}
       else ctx.strokeStyle=S.color;
       ctx.lineWidth=vis?3:(prim?2.4:1.8);
       ctx.beginPath();let ps=false;
@@ -2629,18 +2736,18 @@ function drawGroundTrack(canvas,sels){
   if(sels.length&&sels[0].tle){
     const h=sels[0].tle.alt_km, elm=VIS_EL_MIN*D2R;
     const lam=(Math.acos(RE_KM/(RE_KM+h)*Math.cos(elm))-elm)*R2D;
-    ctx.strokeStyle='rgba(255,85,102,0.5)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+    ctx.strokeStyle='rgba(214,110,110,0.5)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
     footprintCircle(SITE.lat_deg,SITE.lon_deg,0,ctx,W,H,lam);
     ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(255,85,102,0.75)';ctx.font='10px IBM Plex Mono';
+    ctx.fillStyle='rgba(214,110,110,0.75)';ctx.font='10px IBM Plex Mono';
     ctx.fillText('SENSOR LOS · EL>'+VIS_EL_MIN+'°',sx+9,sy+13);
   }
-  ctx.fillStyle='#ff4444';
+  ctx.fillStyle='#d66e6e';
   ctx.beginPath();ctx.moveTo(sx,sy-8);ctx.lineTo(sx+6,sy);ctx.lineTo(sx,sy+8);ctx.lineTo(sx-6,sy);ctx.closePath();ctx.fill();
-  ctx.strokeStyle='rgba(255,68,68,0.35)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(sx,sy,15,0,2*Math.PI);ctx.stroke();
-  ctx.fillStyle='#ff6666';ctx.font='bold 11px IBM Plex Mono';ctx.fillText('OBS',sx+9,sy+3);
+  ctx.strokeStyle='rgba(214,110,110,0.35)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(sx,sy,15,0,2*Math.PI);ctx.stroke();
+  ctx.fillStyle='#d66e6e';ctx.font='bold 11px IBM Plex Mono';ctx.fillText('OBS',sx+9,sy+3);
 
-  ctx.fillStyle='rgba(110,135,155,0.7)';ctx.font='10px IBM Plex Mono';
+  ctx.fillStyle='rgba(147,147,147,0.7)';ctx.font='10px IBM Plex Mono';
   for(let g=-120;g<=120;g+=60){let{x}=xy(0,g);ctx.fillText(g+'°',x+2,H-4);}
   for(let g=-60;g<=60;g+=30){let{y}=xy(g,0);ctx.fillText(g+'°',3,y-2);}
 }
@@ -2650,106 +2757,142 @@ function drawGroundTrack(canvas,sels){
    Dim slate dashes  = object inside Earth's shadow
    Selection color   = geometric pass but sky too bright
    SKY_VIS_ONLY      = plot ONLY passes that clear the night-visibility screen */
-let SKY_VIS_ONLY=false;
+let SKY_VIS_ONLY=false,SKY_ALL=false;
+function toggleSkyAll(btn){
+  SKY_ALL=!SKY_ALL;
+  (btn||document.getElementById('sky-all-btn')).classList.toggle('on',SKY_ALL);
+  if(SEL.length) renderAllSel();
+}
+/* Sky plot. By default only the current or next pass of each tracked object is
+   drawn, so the plot stays readable. Line style carries the visibility state:
+   thick solid = naked-eye visible, thin solid = sunlit but sky too bright,
+   dashed = in Earth's shadow. Rise and set times label the primary only. */
 function drawSkyPlot(canvas,sels){
-  let ctx=canvas.getContext('2d');
-  let W=canvas.width,H=canvas.height;
+  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height;
   ctx.clearRect(0,0,W,H);
-  ctx.fillStyle='#020810';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='rgba(255,255,255,0.28)';
-  for(let i=0;i<160;i++){ctx.beginPath();ctx.arc(Math.random()*W,Math.random()*H,Math.random()*1.2,0,2*Math.PI);ctx.fill();}
-
-  let cx=W/2,cy=H/2,R=Math.min(W,H)*.41;
-  let grd=ctx.createRadialGradient(cx,cy,0,cx,cy,R);
-  grd.addColorStop(0,'rgba(5,15,30,0.5)');grd.addColorStop(1,'rgba(0,5,12,0.82)');
-  ctx.beginPath();ctx.arc(cx,cy,R,0,2*Math.PI);ctx.fillStyle=grd;ctx.fill();
-
+  ctx.fillStyle='#000000';ctx.fillRect(0,0,W,H);
+  const cx=W/2,cy=H/2+4,R=Math.min(W,H)*.40;
+  const UI='"IBM Plex Mono",monospace';
+  /* grid */
+  ctx.lineWidth=1;
   [0,30,60].forEach(e0=>{
-    let r=((90-e0)/90)*R;
-    ctx.strokeStyle=e0===0?'rgba(0,212,255,0.55)':'rgba(0,212,255,0.16)';
-    ctx.lineWidth=e0===0?1.3:.5;
+    const r=((90-e0)/90)*R;
+    ctx.strokeStyle=e0===0?'#373737':'#1c1c1c';
     ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.stroke();
-    ctx.fillStyle='rgba(120,145,165,0.8)';ctx.font='11px IBM Plex Mono';ctx.textAlign='center';
-    ctx.fillText(e0+'°',cx+r+16,cy+3);
+    if(e0>0){ctx.fillStyle='#515151';ctx.font='10px '+UI;ctx.textAlign='left';ctx.fillText(e0+'°',cx+3,cy-r+11);}
   });
-  for(let a0=0;a0<360;a0+=30){
-    let ar=a0*Math.PI/180;
-    let x1=cx-R*Math.sin(ar),y1=cy-R*Math.cos(ar),x2=cx-(R+7)*Math.sin(ar),y2=cy-(R+7)*Math.cos(ar);
-    ctx.strokeStyle='rgba(0,212,255,0.22)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
-    if(a0%90!==0){let x3=cx-(R+18)*Math.sin(ar),y3=cy-(R+18)*Math.cos(ar);ctx.fillStyle='rgba(120,145,165,0.7)';ctx.font='10px IBM Plex Mono';ctx.textAlign='center';ctx.fillText(a0+'°',x3,y3+3);}
-  }
-  ctx.strokeStyle='rgba(0,212,255,0.1)';ctx.lineWidth=.4;
-  ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx,cy+R);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(cx-R,cy);ctx.lineTo(cx+R,cy);ctx.stroke();
-  ctx.fillStyle='rgba(200,221,232,0.88)';ctx.font='bold 13px IBM Plex Mono';ctx.textAlign='center';
-  ctx.fillText('N',cx,cy-R-18);ctx.fillText('S',cx,cy+R+24);
-  ctx.textAlign='right';ctx.fillText('E',cx-R-14,cy+4);ctx.textAlign='left';ctx.fillText('W',cx+R+14,cy+4);ctx.textAlign='start';
+  ctx.strokeStyle='#1c1c1c';
+  ctx.beginPath();ctx.moveTo(cx,cy-R);ctx.lineTo(cx,cy+R);ctx.moveTo(cx-R,cy);ctx.lineTo(cx+R,cy);ctx.stroke();
+  ctx.fillStyle='#9b9b9b';ctx.font='11px '+UI;ctx.textAlign='center';
+  ctx.fillText('N',cx,cy-R-8);ctx.fillText('S',cx,cy+R+16);
+  ctx.textAlign='right';ctx.fillText('E',cx-R-8,cy+4);ctx.textAlign='left';ctx.fillText('W',cx+R+8,cy+4);
 
+  const nowEl=new Date(EPOCH.ms());
   let drewAny=false;
   sels.forEach((S,si)=>{
-    const az=S.azF,el=S.elF,tArr=S.tF,now=S.data.now,sunlit=S.data.sunlit,sunAlt=S.data.sunAlt;
+    const az=S.azF,el=S.elF,now=S.data.now,sunlit=S.data.sunlit,sunAlt=S.data.sunAlt;
     const prim=si===0,col=S.color;
-    const toXY=(j)=>{let r_=(90-el[j])/90*R,ar=az[j]*Math.PI/180;return{x:cx-r_*Math.sin(ar),y:cy-r_*Math.cos(ar)};};
-    const segState=(j)=>{
-      if(!sunlit||!sunAlt) return 0;
-      if(el[j]>VIS_EL_MIN&&sunlit[j]&&sunAlt[j]<VIS_SUN_MAX) return 2;
-      if(!sunlit[j]) return 1;
-      return 0;
-    };
-    S.passes.forEach(p=>{
-      if(SKY_VIS_ONLY&&!p.visible) return;  /* night-time visibility filter */
+    const elapsed=(nowEl.getTime()-now.getTime())/1000;
+    const toXY=j=>{const r_=(90-Math.max(0,el[j]))/90*R,ar=az[j]*D2R;return{x:cx-r_*Math.sin(ar),y:cy-r_*Math.cos(ar)};};
+    const st=j=>(!sunlit||!sunAlt)?0:(el[j]>VIS_EL_MIN&&sunlit[j]&&sunAlt[j]<VIS_SUN_MAX)?2:(!sunlit[j]?1:0);
+    let list=S.passes.filter(p=>p.t_set>=elapsed);
+    if(SKY_VIS_ONLY) list=list.filter(p=>p.visible);
+    if(!SKY_ALL) list=list.slice(0,1);
+    list.forEach(p=>{
       drewAny=true;
       let j=p.i0;
       while(j<p.i1){
-        let st=segState(j),j1=j;
-        while(j1<p.i1&&segState(j1+1)===st) j1++;
-        if(st===2){ctx.strokeStyle='#00ff9d';ctx.lineWidth=prim?2.6:2;ctx.shadowColor='#00ff9d';ctx.shadowBlur=7;ctx.setLineDash([]);}
-        else if(st===1){ctx.strokeStyle='rgba(110,120,160,0.5)';ctx.lineWidth=1.3;ctx.shadowBlur=0;ctx.setLineDash([3,4]);}
-        else {ctx.strokeStyle=col;ctx.lineWidth=prim?2:1.4;ctx.shadowBlur=0;ctx.setLineDash([]);ctx.globalAlpha=prim?1:0.7;}
+        const s0=st(j);let j1=j;
+        while(j1<p.i1&&st(j1+1)===s0) j1++;
+        ctx.strokeStyle=col;
+        ctx.globalAlpha=prim?1:0.75;
+        if(s0===2){ctx.lineWidth=prim?3:2.2;ctx.setLineDash([]);}
+        else if(s0===1){ctx.lineWidth=1.2;ctx.setLineDash([3,4]);ctx.globalAlpha*=0.6;}
+        else{ctx.lineWidth=1.2;ctx.setLineDash([]);ctx.globalAlpha*=0.55;}
         ctx.beginPath();
-        for(let q=j;q<=Math.min(j1+1,p.i1);q++){
-          let{x,y}=toXY(q);
-          if(q===j) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-        }
-        ctx.stroke();ctx.globalAlpha=1;
+        for(let q=j;q<=Math.min(j1+1,p.i1);q++){const{x,y}=toXY(q);if(q===j)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+        ctx.stroke();
         j=j1+1;
       }
-      ctx.shadowBlur=0;ctx.setLineDash([]);
-      let mid=Math.floor((p.i0+p.i1)/2);
+      ctx.setLineDash([]);ctx.globalAlpha=1;
+      /* direction arrow at mid-pass */
+      const mid=Math.floor((p.i0+p.i1)/2);
       if(mid+1<=p.i1){
-        let a=toXY(mid),b=toXY(mid+1);
-        let ang=Math.atan2(b.y-a.y,b.x-a.x);
-        ctx.fillStyle=p.visible?'#00ff9d':col;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(ang);
-        ctx.beginPath();ctx.moveTo(7,0);ctx.lineTo(-4,-3);ctx.lineTo(-4,3);ctx.closePath();ctx.fill();ctx.restore();
+        const a=toXY(mid),b=toXY(mid+1),ang=Math.atan2(b.y-a.y,b.x-a.x);
+        ctx.fillStyle=col;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(ang);
+        ctx.beginPath();ctx.moveTo(6,0);ctx.lineTo(-3,-3);ctx.lineTo(-3,3);ctx.closePath();ctx.fill();ctx.restore();
       }
-      if(prim){
-        const lblAt=(azDeg,t_sec,isRise)=>{
-          let ar=azDeg*Math.PI/180,ro=R*1.04;
-          let px=cx-ro*Math.sin(ar),py=cy-ro*Math.cos(ar);
-          let dt=new Date(now.getTime()+t_sec*1000);
-          let localStr=fmtLocalTime(dt,SITE.tz).slice(0,5);
-          ctx.fillStyle=isRise?'#00ff9d':'#ff6666';ctx.font='bold 10px IBM Plex Mono';ctx.textAlign='center';
-          ctx.beginPath();ctx.arc(px,py,3,0,2*Math.PI);ctx.fill();
-          let lx=cx-(ro+20)*Math.sin(ar),ly=cy-(ro+20)*Math.cos(ar);
-          ctx.fillText(localStr,lx,ly+4);
-        };
-        lblAt(p.az_rise,p.t_rise,true);lblAt(p.az_set,p.t_set,false);
-        let rpk=(90-p.el_peak)/90*R,apk=p.az_peak*Math.PI/180;
-        let xpk=cx-rpk*Math.sin(apk),ypk=cy-rpk*Math.cos(apk);
-        let pkCol=p.visible?'#00ff9d':col;
-        ctx.fillStyle=pkCol;ctx.beginPath();ctx.arc(xpk,ypk,4,0,2*Math.PI);ctx.fill();
-        let dtpk=new Date(now.getTime()+p.t_peak*1000);
-        ctx.fillStyle=pkCol;ctx.font='10px IBM Plex Mono';ctx.textAlign='left';
-        ctx.fillText(fmtLocalTime(dtpk,SITE.tz).slice(0,5)+' '+p.el_peak.toFixed(0)+'°'+(p.visible?' ●VIS':''),xpk+6,ypk-3);
-      }
+      const t=sec=>fmtLocalTime(new Date(now.getTime()+sec*1000),SITE.tz).slice(0,5);
+      const rim=(azD,label)=>{
+        const ar=azD*D2R,x=cx-(R+14)*Math.sin(ar),y=cy-(R+14)*Math.cos(ar);
+        ctx.fillStyle=prim?'#e0e0e0':'#9b9b9b';ctx.font='10px '+UI;ctx.textAlign='center';ctx.fillText(label,x,y+3);
+      };
+      if(prim){rim(p.az_rise,t(p.t_rise));rim(p.az_set,t(p.t_set));}
+      const rp=(90-p.el_peak)/90*R,ap=p.az_peak*D2R;
+      const xp=cx-rp*Math.sin(ap),yp=cy-rp*Math.cos(ap);
+      ctx.fillStyle=col;ctx.beginPath();ctx.arc(xp,yp,prim?3:2.5,0,2*Math.PI);ctx.fill();
+      ctx.font='10px '+UI;ctx.textAlign='left';ctx.fillStyle=prim?'#e0e0e0':'#acacac';
+      ctx.fillText((prim?'':S.tle.name.slice(0,12)+' ')+p.el_peak.toFixed(0)+'°',xp+6,yp-4);
     });
   });
   if(!drewAny){
-    ctx.fillStyle='rgba(120,145,165,0.6)';ctx.font='12px IBM Plex Mono';ctx.textAlign='center';
-    ctx.fillText(SKY_VIS_ONLY?'NO NIGHT-VISIBLE PASSES IN WINDOW':'NO PASSES IN FORECAST WINDOW',cx,cy+R+44);ctx.textAlign='start';
+    ctx.fillStyle='#616161';ctx.font='11px '+UI;ctx.textAlign='center';
+    ctx.fillText(SKY_VIS_ONLY?'No naked-eye passes in the forecast window':'No passes in the forecast window',cx,cy+R+34);
   }
   ctx.textAlign='start';
 }
+
+/* ════ PASS BOARD ════
+   One row per tracked object. Status reads live against the sim epoch:
+   in view → time to loss of signal; otherwise → time to the next rise. */
+const _deepVis={};
+function nextNakedEye(S,elapsed){
+  const p=S.passes.find(q=>q.visible&&q.t_vis1>elapsed);
+  if(p) return{t0:new Date(S.data.now.getTime()+p.t_vis0*1000),pk:p.el_visPeak};
+  const key=S.tle.satnum+'|'+S.data.now.getTime();
+  if(!(key in _deepVis)){
+    _deepVis[key]=undefined;
+    setTimeout(()=>{
+      const w=findNextVisible(S.tle,48);
+      _deepVis[key]=w?{t0:new Date(EPOCH.ms()+w.t0*1000),pk:w.elPk}:null;
+    },30);
+  }
+  const v=_deepVis[key];
+  return v===undefined?'scan':v;
+}
+function renderPassBoard(){
+  const body=document.getElementById('pb-body');if(!body) return;
+  if(!SEL.length){body.innerHTML='<tr><td colspan="7" class="pb-empty">Select an object from the list.</td></tr>';return;}
+  const nowMs=EPOCH.ms(),tz=SITE.tz;
+  const hm=d=>fmtLocalTime(d,tz).slice(0,5);
+  const day=d=>{const a=new Date(d.getTime()+(SITE.tzOffsetMin||0)*60000),b=new Date(nowMs+(SITE.tzOffsetMin||0)*60000);
+    return a.getUTCDate()===b.getUTCDate()?'':['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][a.getUTCDay()]+' ';};
+  body.innerHTML=SEL.map((S,si)=>{
+    if(!S.data||!S.passes) return '';
+    const el0=(nowMs-S.data.now.getTime())/1000;
+    const live=(window._liveSel||[]).find(x=>x.si===si);
+    const cur=S.passes.find(p=>p.t_rise<=el0&&el0<=p.t_set);
+    const nxt=S.passes.find(p=>p.t_rise>el0);
+    const P=cur||nxt;
+    const abs=sec=>new Date(S.data.now.getTime()+sec*1000);
+    let status,cls='';
+    if(cur){status='In view · LOS in '+fmtHMS(cur.t_set-el0)+(live?' · el '+live.el.toFixed(0)+'°':'');cls='up';}
+    else if(nxt) status='Rises in '+fmtHMS(nxt.t_rise-el0);
+    else status='No pass in '+(HORIZON_S/3600)+' h';
+    const nv=nextNakedEye(S,el0);
+    const nvTxt=nv==='scan'?'scanning…':nv?(nv.t0.getTime()<=nowMs?'now':day(nv.t0)+hm(nv.t0))+' · max '+nv.pk.toFixed(0)+'°':'none in 48 h';
+    const age=tleAgeDays(S.tle);
+    return '<tr class="'+cls+(si===0?' prim':'')+'" onclick="makePrimary('+S.tle.satnum+')">'+
+      '<td><i class="pb-dot" style="background:'+S.color+'"></i>'+S.tle.name+'<span class="pb-id">'+S.tle.satnum+'</span></td>'+
+      '<td class="pb-status">'+status+'</td>'+
+      '<td>'+(P?day(abs(P.t_rise))+hm(abs(P.t_rise))+' <span class="pb-az">'+P.az_rise.toFixed(0)+'°</span>':'—')+'</td>'+
+      '<td>'+(P?day(abs(P.t_set))+hm(abs(P.t_set))+' <span class="pb-az">'+P.az_set.toFixed(0)+'°</span>':'—')+'</td>'+
+      '<td>'+(P?P.el_peak.toFixed(0)+'°':'—')+'</td>'+
+      '<td>'+nvTxt+'</td>'+
+      '<td class="'+(age>TLE_STALE_D?'pb-stale':'')+'">'+age.toFixed(1)+' d</td></tr>';
+  }).join('');
+}
+
 function fmtHMS(sec){
   if(sec<=0) return'IN PASS';
   let h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.floor(sec%60);
@@ -2765,7 +2908,7 @@ function resizeCanvas(c){let r=c.getBoundingClientRect();let w=Math.max(1,Math.r
    ║  all orbits/tracks/footprints overlay together, SEL[0] = primary. ║
    ╚══════════════════════════════════════════════════════════════════╝ */
 const SEL=[];                                   /* [{tle,color,data,passes,latF,lonF,azF,elF,tF}] */
-const SEL_COLORS=['#00e5ff','#ffd24a','#ff5fd2','#00ff9d','#b48bff'];
+const SEL_COLORS=['#f0f0f0','#d6b26e','#7fa8d8','#c48fb5','#8fc4a0'];
 const SEL_MAX=5;
 let HORIZON_S=24*3600;                          /* forecast depth (s) — toggle cluster */
 function setHorizon(hours,btn){
@@ -2807,7 +2950,7 @@ function deselectSat(satnum){
   SEL.forEach((s,k)=>s.color=SEL_COLORS[k]);
   syncListHighlight();
   if(SEL.length) renderAllSel();
-  else{renderSelChips();window._liveSel=[];}
+  else{renderSelChips();window._liveSel=[];renderPassBoard();}
   if(typeof STATE!=='undefined') STATE.dirty();
 }
 function syncListHighlight(){
@@ -2839,7 +2982,7 @@ function updateMeta(tle,passes,now){
   document.getElementById('oe-argp').textContent=tle.argp.toFixed(4);
   document.getElementById('oe-M').textContent=tle.M.toFixed(4);
   document.getElementById('oe-b').textContent=tle.bstar.toExponential(3);
-  document.getElementById('oe-ep').textContent=fmtDateUTC(tle.epoch);
+  document.getElementById('oe-ep').textContent=fmtDateUTC(tle.epoch)+' ('+tleAgeDays(tle).toFixed(1)+' d)';
 
   let nextPass=passes.find(p=>p.t_set>0);
   if(nextPass){
@@ -2890,7 +3033,7 @@ function updateMeta(tle,passes,now){
   let tbody=document.getElementById('pass-table-body');
   let wrap=document.getElementById('pass-table-wrap');
   tbody.innerHTML='<div class="pass-row hdr"><span>RISE LOCAL</span><span>SET LOCAL</span><span>EL</span><span>DUR</span><span>AZr</span><span>VIS</span></div>';
-  if(passes.length>0) wrap.style.display='block';
+  /* the old overlay table is retired; the pass board replaces it */
   passes.slice(0,10).forEach(p=>{
     let r=new Date(now.getTime()+p.t_rise*1000);
     let s=new Date(now.getTime()+p.t_set*1000);
@@ -2936,7 +3079,7 @@ function renderAllSel(){
   let propLabel=prim.tle.satrec?'SGP4/SDP4':'TWO-BODY';
   let es=document.getElementById('eci-prop-status');
   let ef=document.getElementById('ecef-prop-status');
-  if(es) es.textContent=propLabel+' · J2000 · '+SEL.length+' OBJ · DRAG/SCROLL';
+  if(es) es.textContent=propLabel+' · TEME · '+SEL.length+' OBJ · DRAG/SCROLL';
   if(ef) ef.textContent=propLabel+' · WGS-84 · '+SEL.length+' OBJ · DRAG/SCROLL';
 
   const anchor=new Date(EPOCH.ms()-300000);   /* shared epoch — all selections in lockstep */
@@ -2988,6 +3131,7 @@ function renderAllSel(){
   _skyLast=0;_metaLast=0;
 
   updateMeta(prim.tle,prim.passes,prim.data.now);
+  renderPassBoard();
   renderSelChips();
   syncListHighlight();
   overlayPasses();
@@ -3106,6 +3250,7 @@ function populateList(sats){
       `<span class="sat-meta">NORAD ${tle.satnum}</span>`+
       `<span class="orbit-badge ${badgeClass}">${tle.orbitType}</span>`+
       `<span class="sat-inc">${tle.inc.toFixed(1)}°</span>`+
+      (tleAgeDays(tle)>7?`<span class="sat-age${tleAgeDays(tle)>TLE_STALE_D?' stale':''}" title="TLE epoch ${fmtDateUTC(tle.epoch)} UTC">${tleAgeDays(tle).toFixed(0)} d old</span>`:'')+
       `<span class="pass-indicator pi-none" id="pi-${tle.satnum}"></span>`+
       `</div>`;
     div.addEventListener('click',()=>selectSat(tle,div));
@@ -3126,7 +3271,49 @@ function populateList(sats){
   checkNext(0);
 }
 
-function filterList(q){q=q.toLowerCase();populateList(allSats.filter(t=>t.name.toLowerCase().includes(q)||String(t.satnum).includes(q)));}
+function filterList(q){
+  const raw=q.trim();q=raw.toLowerCase();
+  const hits=allSats.filter(t=>t.name.toLowerCase().includes(q)||String(t.satnum).includes(q));
+  populateList(hits);
+  if(raw.length>=3){
+    const list=document.getElementById('sat-list');
+    const box=document.createElement('div');box.className='search-more';
+    const safe=raw.replace(/[<>"']/g,'');
+    box.innerHTML=(hits.length?'':'<div class="sm-note">Not in the loaded group.</div>')+
+      '<button class="hud-btn" onclick="searchCelestrak(\''+safe+'\')">Search full CelesTrak catalog for “'+safe+'”</button>'+
+      '<button class="hud-btn" onclick="searchHorizons(\''+safe+'\')">Look up “'+safe+'” in JPL Horizons</button>';
+    if(!hits.length) list.innerHTML='';
+    list.appendChild(box);
+  }
+}
+/* CelesTrak GP query by name (or NORAD id) across the whole public catalog */
+async function searchCelestrak(q){
+  const list=document.getElementById('sat-list');
+  list.innerHTML='<div class="loading-list">Searching CelesTrak for “'+q+'”…</div>';
+  const base=/^\d+$/.test(q)?'https://celestrak.org/NORAD/elements/gp.php?CATNR='+q+'&FORMAT=tle'
+                           :'https://celestrak.org/NORAD/elements/gp.php?NAME='+encodeURIComponent(q)+'&FORMAT=tle';
+  let txt=null;
+  for(const u of urlChain(base)){
+    try{const r=await fetch(u,{signal:fetchTimeoutSignal(15000)});if(r.ok){txt=await r.text();break;}}catch(e){}
+  }
+  const found=txt&&/^1 /m.test(txt)?parseCatalog(txt):[];
+  if(!found.length){
+    list.innerHTML='<div class="loading-list">'+(txt===null?'Could not reach CelesTrak.':'CelesTrak has no TLE matching “'+q+'”.')+
+      '<br>Objects beyond Earth orbit (CAPSTONE, Artemis) have no TLE.</div>';
+    const b=document.createElement('div');b.className='search-more';
+    b.innerHTML='<button class="hud-btn" onclick="searchHorizons(\''+q+'\')">Look up “'+q+'” in JPL Horizons</button>';
+    list.appendChild(b);
+    return;
+  }
+  found.forEach(t=>{if(!allSats.find(x=>x.satnum===t.satnum)) allSats.unshift(t);});
+  populateList(found);
+  document.getElementById('sat-count').textContent=found.length+' found';
+}
+function searchHorizons(q){
+  switchView('eph');
+  const inp=document.getElementById('eph-custom-inp');
+  inp.value=q;EPH.customLookup();inp.focus();
+}
 document.getElementById('search-input').addEventListener('input',e=>filterList(e.target.value));
 let oeExpanded=true,siteExpanded=true;
 function toggleOE(){oeExpanded=!oeExpanded;document.getElementById('oe-grid').style.display=oeExpanded?'grid':'none';document.getElementById('oe-toggle-btn').textContent=oeExpanded?'▾':'▸';}
@@ -3195,10 +3382,8 @@ function parseCatalog(raw){
 }
 async function fetchGroup(group){
   let base=`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`;
-  const proxies=['https://corsproxy.io/?','https://api.allorigins.win/raw?url='];
-  for(let i=0;i<=proxies.length;i++){
-    let url=i===0?base:proxies[i-1]+encodeURIComponent(base);
-    try{let r=await fetch(url,{mode:'cors',signal:fetchTimeoutSignal(30000)});if(r.ok){let t=await r.text();if(/^1 \d{5}/m.test(t)&&/^2 \d{5}/m.test(t)&&!/<html/i.test(t.slice(0,400))) return t;}}catch(e){}
+  for(const url of urlChain(base)){
+    try{let r=await fetch(url,{mode:'cors',signal:fetchTimeoutSignal(15000)});if(r.ok){let t=await r.text();if(/^1 \d{5}/m.test(t)&&/^2 \d{5}/m.test(t)&&!/<html/i.test(t.slice(0,400))) return t;}}catch(e){}
   }
   return null;
 }
@@ -3208,43 +3393,14 @@ async function loadCategory(group){
   document.getElementById('sat-count').textContent='loading…';document.getElementById('search-input').value='';
   let raw=await fetchGroup(group);
   allSats=raw?parseCatalog(raw):getFallbackSats();
-  if(!raw) list.innerHTML=`<div class="loading-list" style="color:var(--amber)">⚠ CORS blocked.<br>Showing embedded samples.<br><span style="font-size:8px;color:var(--muted)">Use a web server or CORS extension.</span></div>`;
   populateList(allSats);
+  if(!raw) list.innerHTML='<div class="loading-list">Could not reach CelesTrak for this group.<br>Check the network and pick the group again.</div>';
 }
 document.getElementById('cat-select').addEventListener('change',e=>loadCategory(e.target.value));
 
-function getFallbackSats(){
-  return parseCatalog(`ISS (ZARYA)
-1 25544U 98067A   26110.52231242  .00005678  00000+0  10423-3 0  9997
-2 25544  51.6400 225.5007 0006686 329.7855  30.2747 15.48851306490520
-TIANGONG
-1 48274U 21035A   26110.50000000  .00010000  00000+0  13748-3 0  9992
-2 48274  41.4720 200.5210 0004501 280.1234  79.9345 15.61234567210345
-NOAA 18
-1 28654U 05018A   26110.50000000  .00000168  00000+0  14028-3 0  9991
-2 28654  98.8720  50.0000 0014200 325.5000  34.4800 14.10956789210456
-AQUA
-1 27424U 02022A   26110.50000000 +.00000126 +00000+0 +64756-4 0  9997
-2 27424  98.2100 130.0000 0002300 283.5600  76.5100 14.57191234210345
-GOES 16
-1 41866U 16071A   26110.50000000 -.00000224  00000+0  00000+0 0  9991
-2 41866   0.0492  75.0000 0001400 103.5000 187.0000  1.00271234123456
-GPS IIF-1
-1 37753U 11019A   26110.50000000  .00000034  00000+0  00000+0 0  9992
-2 37753  55.3450 235.0000 0006700 270.0000  89.9000  2.00563489210456
-GALILEO-PFM
-1 37846U 11060A   26110.50000000 -.00000088  00000+0  00000+0 0  9990
-2 37846  57.0780 349.5696 0000516  63.3507 296.6791  1.70475807210234
-MOLNIYA 2-9
-1 07276U 74026A   26110.59998507 -.00000039  00000+0  00000+0 0  9993
-2 07276  64.3892  62.7419 6624451 265.7412  22.0504  2.45095096278213
-HUBBLE
-1 20580U 90037B   26110.50000000  .00000877  00000+0  43560-4 0  9994
-2 20580  28.4700 200.0000 0001900 201.0000 159.0000 15.09001234210456
-MMS 1
-1 40482U 15011A   26110.33334491 -.00002111  00000+0  00000+0 0  9990
-2 40482  67.3893 353.1463 8598950 161.5298 122.3054  0.28502570  1374`);
-}
+/* No embedded fallback: the old block carried invented element sets under real
+   satellite names. If CelesTrak is unreachable the UI says so instead. */
+function getFallbackSats(){return [];}
 
 /* ════ INIT ════ */
 function setupResizers(){
@@ -3280,14 +3436,14 @@ function loadWorldMap(cb){
   img.onerror=()=>{
     let cv=document.createElement('canvas');cv.width=1080;cv.height=540;
     let ctx=cv.getContext('2d');
-    let g=ctx.createLinearGradient(0,0,0,540);g.addColorStop(0,'#071828');g.addColorStop(1,'#050f1a');
+    let g=ctx.createLinearGradient(0,0,0,540);g.addColorStop(0,'#141414');g.addColorStop(1,'#080808');
     ctx.fillStyle=g;ctx.fillRect(0,0,1080,540);
-    ctx.fillStyle='#102810';
+    ctx.fillStyle='#202020';
     [[80,80,220,280],[160,290,120,200],[460,80,100,180],[460,180,140,240],[560,70,380,210],[790,310,150,110]].forEach(([x,y,w,h])=>{
       ctx.beginPath();ctx.roundRect(x,y,w,h,18);ctx.fill();
     });
-    ctx.fillStyle='#1a3040';ctx.fillRect(0,505,1080,35);
-    ctx.strokeStyle='rgba(0,180,255,0.07)';ctx.lineWidth=0.5;
+    ctx.fillStyle='#2a2a2a';ctx.fillRect(0,505,1080,35);
+    ctx.strokeStyle='rgba(165,165,165,0.07)';ctx.lineWidth=0.5;
     for(let g2=0;g2<=1080;g2+=90){ctx.beginPath();ctx.moveTo(g2,0);ctx.lineTo(g2,540);ctx.stroke();}
     for(let g2=0;g2<=540;g2+=45){ctx.beginPath();ctx.moveTo(0,g2);ctx.lineTo(1080,g2);ctx.stroke();}
     worldMapImg=cv;cb(cv);
@@ -3368,7 +3524,7 @@ function limitingMag(d,lat,lon){
 
 /* Darkness color: dark=0 day, 1 civil, 2 naut, 3 astro, 4 night+moon, 5 night dark */
 function darkColor(darkLevel){
-  return['#fffde0','#ffe090','#b8e0ff','#5588cc','#1a2a4a','#040810'][Math.min(5,darkLevel)];
+  return['#ffffff','#e0e0e0','#e0e0e0','#929292','#272727','#040404'][Math.min(5,darkLevel)];
 }
 
 /* --- 7Timer fetch --- */
@@ -3429,36 +3585,36 @@ function deriveTrans(temp,dew,cloud){
 
 /* --- Color helpers --- */
 function cloudColor(v){ // 0-100% cloud cover
-  if(v<=10) return'#032a1a';
-  if(v<=25) return'#054a28';
-  if(v<=40) return'#3aaa60';
-  if(v<=55) return'#bbbb66';
-  if(v<=70) return'#ccaa33';
-  if(v<=85) return'#cc5500';
-  return'#aa1100';
+  if(v<=10) return'#1f1f1f';
+  if(v<=25) return'#363636';
+  if(v<=40) return'#9e9e9e';
+  if(v<=55) return'#cbcbcb';
+  if(v<=70) return'#bdbdbd';
+  if(v<=85) return'#757575';
+  return'#2e2e2e';
 }
 function seeingColor(v){ // 1=bad..5=excellent
-  const c=['#aa1100','#cc5500','#bbaa00','#44aa44','#0088ff'];
+  const c=['#2e2e2e','#757575','#b5b5b5','#9e9e9e','#828282'];
   return c[Math.min(4,Math.max(0,v-1))];
 }
 function transpColor(v){ // 1=poor..8=excellent
-  const c=['#aa1100','#882200','#aa5500','#999900','#448844','#0066cc','#0044ff','#0022dd'];
+  const c=['#2e2e2e','#333333','#5c5c5c','#9f9f9f','#838383','#535353','#404040','#262626'];
   return c[Math.min(7,Math.max(0,v-1))];
 }
 function windColor(v){ // m/s
-  if(v<3) return '#0044cc';
-  if(v<6) return '#008844';
-  if(v<10) return '#888800';
-  if(v<15) return '#cc5500';
-  return '#cc1100';
+  if(v<3) return '#3c3c3c';
+  if(v<6) return '#727272';
+  if(v<10) return '#8d8d8d';
+  if(v<15) return '#757575';
+  return '#353535';
 }
 function smokeColor(aqi){
-  if(aqi===null||aqi===undefined) return'#1a1a2a';
-  if(aqi<=50) return'#032a1a';
-  if(aqi<=100) return'#887700';
-  if(aqi<=150) return'#cc5500';
-  if(aqi<=200) return'#aa1100';
-  return'#660000';
+  if(aqi===null||aqi===undefined) return'#1a1a1a';
+  if(aqi<=50) return'#1f1f1f';
+  if(aqi<=100) return'#808080';
+  if(aqi<=150) return'#757575';
+  if(aqi<=200) return'#2e2e2e';
+  return'#151515';
 }
 
 /* --- Tooltip text --- */
@@ -3612,8 +3768,8 @@ function overlayPasses(){
     let riseUTC=new Date(propagationTime.getTime()+p.t_rise*1000);
     let setUTC =new Date(propagationTime.getTime()+p.t_set*1000);
     let elPk=p.el_peak;
-    let col=elPk>30?'rgba(0,255,136,0.55)':elPk>10?'rgba(255,170,0,0.45)':'rgba(100,150,255,0.35)';
-    let border=elPk>30?'#00ff88':elPk>10?'#ffaa00':'#6699ff';
+    let col=elPk>30?'rgba(127,191,152,0.55)':elPk>10?'rgba(197,197,197,0.45)':'rgba(165,165,165,0.35)';
+    let border=elPk>30?'#7fbf98':elPk>10?'#c5c5c5':'#a7a7a7';
 
     for(let i=0;i<numCells;i++){
       let idx=startIdx+i;
@@ -3695,8 +3851,8 @@ const CAT={
   ],
   /* object classes: payloads colored by regime; debris + rocket bodies get
      their own classes so the full junk environment reads at a glance */
-  CLS_COLOR:{LEO:[1,0.82,0.29],MEO:[0,1,0.70],GEO:[1,0.31,0.85],HEO:[0.69,0.55,1],MOLNIYA:[0.69,0.55,1],
-             DEB:[0.62,0.72,0.80],RB:[1,0.48,0.29]},
+  CLS_COLOR:{LEO:[0.86,0.86,0.86],MEO:[0.50,0.66,0.85],GEO:[0.84,0.70,0.43],HEO:[0.77,0.56,0.71],MOLNIYA:[0.77,0.56,0.71],
+             DEB:[0.45,0.45,0.45],RB:[0.79,0.63,0.54],STALE:[0.20,0.20,0.20]},
   classOf(t){
     if(t.objType==='DEBRIS') return 'DEB';
     if(t.objType==='RB') return 'RB';
@@ -3830,7 +3986,7 @@ const CAT={
       }
     }
     let parsed=[...byNorad.values()];
-    if(!gotAny){parsed=getFallbackSats().filter(t=>t.satrec);parsed.forEach(t=>t.objType=this.objTypeOfName(t));this._srcLabel='EMBEDDED SAMPLE';ptxt.textContent='⚠ All sources blocked — embedded sample set';}
+    if(!gotAny){parsed=[];this._srcLabel='NO SOURCE REACHABLE';ptxt.textContent='Could not reach OrbitSmith or CelesTrak. No catalog loaded.';}
     else ptxt.textContent=parsed.length+' unique objects merged — building instanced buffer…';
     document.getElementById('cat-src-stamp').textContent=(this._srcLabel||'CATALOG')+' · FETCHED '+fmtUTCShort(new Date())+'Z · '+parsed.length+' OBJ';
     this._srcLabel=null;
@@ -3841,8 +3997,10 @@ const CAT={
         geometry (icosahedron) — no square points anywhere. Per-frame motion
         writes translation terms straight into the instance matrix buffer. ── */
   buildInstanced(parsed,token,prog,ptxt){
-    this.sats=parsed.map(t=>{const ot=t.objType||this.objTypeOfName(t);return{tle:t,cls:this.classOf(t),objType:ot,vis:this.matchesFilter(ot),r:[0,0,0],v:[0,0,0],ok:false};});
+    this.sats=parsed.map(t=>{const ot=t.objType||this.objTypeOfName(t);const age=tleAgeDays(t);
+      return{tle:t,cls:age>TLE_STALE_D?'STALE':this.classOf(t),objType:ot,age,vis:this.matchesFilter(ot),r:[0,0,0],v:[0,0,0],ok:false};});
     if(this.mesh){this.three.scene.remove(this.mesh);this.mesh.geometry.dispose();this.mesh.material.dispose();this.mesh=null;}
+    if(!this.sats.length){this.updateCounts();return;}
     const n=this.sats.length;
     const geo=new THREE.IcosahedronGeometry(1,1);
     const mat=new THREE.MeshBasicMaterial({transparent:true,opacity:0.95});
@@ -3922,7 +4080,7 @@ const CAT={
     const fl=this.filter&&this.filter!=='ALL'?' · '+this.filter+' ('+shown+' SHOWN)':'';
     document.getElementById('cat-counts').textContent=
       this.sats.length+' OBJ · PAYLOAD '+((by.LEO||0)+(by.MEO||0)+(by.GEO||0)+(by.HEO||0))+
-      ' · DEBRIS '+(by.DEB||0)+' · R/B '+(by.RB||0)+fl+' · 1 DRAW CALL';
+      ' · DEBRIS '+(by.DEB||0)+' · R/B '+(by.RB||0)+(by.STALE?' · STALE TLE >'+TLE_STALE_D+' d '+by.STALE:'')+fl;
   },
 
   /* zoom-adaptive geometric scale: markers shrink toward true point objects as
@@ -4024,6 +4182,7 @@ const CAT={
         '<div class="ch-row"><span>ALT</span><span>'+alt.toFixed(0)+' km</span></div>'+
         '<div class="ch-row"><span>SPEED</span><span>'+spd.toFixed(2)+' km/s</span></div>'+
         '<div class="ch-row"><span>INC / T</span><span>'+t.inc.toFixed(1)+'° · '+(t.T_s/60).toFixed(0)+' min</span></div>'+
+        '<div class="ch-row"><span>TLE AGE</span><span>'+s.age.toFixed(1)+' d'+(s.age>TLE_STALE_D?' (stale)':'')+'</span></div>'+
         '<div class="ch-row" style="color:var(--muted);margin-top:3px;"><span>CLICK</span><span>ORBIT + DETAILS</span></div>';
       const wrap=document.getElementById('cat-stage').getBoundingClientRect();
       let x=this._mouseEv.clientX-wrap.left+14,y=this._mouseEv.clientY-wrap.top+10;
@@ -4048,7 +4207,7 @@ const CAT={
     const T=this.three,s=this.sats[i];
     let mk=T.scene.getObjectByName('catSelMk');
     if(!mk){
-      mk=new THREE.Mesh(new THREE.SphereGeometry(120,14,14),new THREE.MeshBasicMaterial({color:0xffcc00}));
+      mk=new THREE.Mesh(new THREE.SphereGeometry(120,14,14),new THREE.MeshBasicMaterial({color:0xe0e0e0}));
       mk.name='catSelMk';T.scene.add(mk);
     }
     mk.position.set(s.r[0],s.r[2],-s.r[1]);
@@ -4076,7 +4235,7 @@ const CAT={
     }
     if(pts.length<2) return;
     const g=new THREE.BufferGeometry().setFromPoints(pts);
-    const line=new THREE.Line(g,new THREE.LineBasicMaterial({color:0xffcc00,transparent:true,opacity:.85}));
+    const line=new THREE.Line(g,new THREE.LineBasicMaterial({color:0xe0e0e0,transparent:true,opacity:.85}));
     line.name='catSelOrbit';T.scene.add(line);
   },
   updateCard(){
@@ -4098,7 +4257,8 @@ const CAT={
       row('SUBPOINT',lat.toFixed(2)+'°, '+lon.toFixed(2)+'°')+row('ILLUM',sl?'SUNLIT ☀':'IN SHADOW ●')+
       row('APOGEE',apo.toFixed(0)+' km')+row('PERIGEE',per.toFixed(0)+' km')+
       row('INC',t.inc.toFixed(3)+'°')+row('PERIOD',(t.T_s/60).toFixed(2)+' min')+
-      row('ECC',t.ecc.toFixed(6))+row('RAAN',t.raan.toFixed(2)+'°');
+      row('ECC',t.ecc.toFixed(6))+row('RAAN',t.raan.toFixed(2)+'°')+
+      row('TLE EPOCH',fmtDateUTC(t.epoch))+row('TLE AGE',s.age.toFixed(1)+' d');
     function row(k,v){return'<div class="cc-row"><span class="cc-k">'+k+'</span><span class="cc-v">'+v+'</span></div>';}
   },
   deselect(){
@@ -4169,8 +4329,7 @@ const EPHSVC={
   },
 
   async fetchText(url){
-    const urls=[url,'https://corsproxy.io/?'+encodeURIComponent(url),
-      'https://api.allorigins.win/raw?url='+encodeURIComponent(url)];
+    const urls=urlChain(url);
     for(const u of urls){
       try{
         const r=await fetch(u,{signal:fetchTimeoutSignal(20000)});
@@ -4205,26 +4364,104 @@ const EPHSVC={
     return null;
   },
 
-  /* ───── Dynamic fuzzy search ─────
-     pipeline: local major-body table → JPL SBDB Lookup API (small bodies)
-     Returns {ok:true,cmd,name} | {multi:[{cmd,name}…]} | {none:true,q} */
+  /* ───── Universal search ─────
+     1. local major-body table (instant)
+     2. Horizons Lookup API: spacecraft, planets, moons, asteroids, comets,
+        including aliases ("Integrity" → Artemis II). It matches whole words, so
+        a run-together retry is made ("john junkins" → "johnjunkins").
+     3. SBDB as a last resort for provisional designations.
+     Returns {ok:true,cmd,name,kind,orbitClass} | {multi:[…]} | {none:true} | {err:true} */
+  hzItem(r){
+    const type=(r.type||'').toLowerCase(),name=(r.name||r.pdes||'').trim();
+    let cmd,kind;
+    if(type.includes('spacecraft')){cmd=String(r.spkid);kind='sc';}
+    else if(type.includes('comet')){cmd='DES='+r.pdes+';CAP';kind='small';}
+    else if(type.includes('asteroid')){
+      const m=name.match(/^(\d+)\s/);
+      cmd=m?m[1]+';':'DES='+r.pdes+';';kind='small';
+    } else {cmd=String(r.spkid);kind='major';}
+    return{cmd,name,kind,type:r.type||'',alias:(r.alias||[]).filter(a=>/[a-z]/i.test(a)).slice(0,3)};
+  },
+  async hzLookup(q){
+    const txt=await this.fetchText('https://ssd.jpl.nasa.gov/api/horizons_lookup.api?sstr='+encodeURIComponent(q));
+    if(!txt) return null;
+    try{const j=JSON.parse(txt);return Array.isArray(j.result)?j.result:[];}catch(e){return null;}
+  },
   async sbdbLookup(q){
     const mj=this.majorLookup(q);
     if(mj) return mj;
-    const url='https://ssd-api.jpl.nasa.gov/sbdb.api?sstr='+encodeURIComponent(q);
-    const txt=await this.fetchText(url);
-    if(!txt) return{err:true,q};
+    let res=await this.hzLookup(q);
+    const squashed=q.replace(/[\s_-]+/g,'');
+    if(res&&!res.length&&squashed!==q) res=await this.hzLookup(squashed);
+    if(res&&res.length){
+      const items=res.map(r=>this.hzItem(r));
+      if(items.length===1) return{ok:true,...items[0],orbitClass:items[0].type};
+      return{multi:items.slice(0,12)};
+    }
+    /* SBDB fallback (provisional designations, partial matches) */
+    const txt=await this.fetchText('https://ssd-api.jpl.nasa.gov/sbdb.api?sstr='+encodeURIComponent(q));
+    if(!txt) return res===null?{err:true,q}:{none:true,q};
     let j;try{j=JSON.parse(txt);}catch(e){return{err:true,q};}
     if(j.object){
       const des=j.object.des||j.object.spkid;
       const cmd=j.object.kind&&j.object.kind[0]==='c'?'DES='+des+';CAP':des+';';
-      return{ok:true,cmd,name:(j.object.fullname||des).trim(),
-             kind:j.object.kind,orbitClass:j.object.orbit_class?j.object.orbit_class.name:null};
+      return{ok:true,cmd,name:(j.object.fullname||des).trim(),kind:'small',
+             orbitClass:j.object.orbit_class?j.object.orbit_class.name:null};
     }
     if(j.code==='300'&&j.list&&j.list.length){
-      return{multi:j.list.slice(0,8).map(o=>({cmd:o.pdes?o.pdes+';':'DES='+o.name+';CAP',name:o.name||o.pdes}))};
+      return{multi:j.list.slice(0,8).map(o=>({cmd:o.pdes?o.pdes+';':'DES='+o.name+';CAP',name:o.name||o.pdes,kind:'small',type:''}))};
     }
     return{none:true,q};
+  },
+
+  /* Horizons answers a request outside a target's data span with one line:
+     No ephemeris for target "X" after A.D. 2026-APR-10 23:54:22.8576 TDB
+     (or "prior to"). Parse it so the UI can say so and re-aim the window. */
+  coverage(txt){
+    const m=txt&&txt.match(/No ephemeris for target "([^"]+)" (after|prior to) A\.D\. (\d{4})-([A-Z]{3})-(\d{2}) (\d{2}):(\d{2}):(\d{2})/);
+    if(!m) return null;
+    const MON={JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11};
+    /* TDB is ~69 s ahead of UTC; a minute's margin keeps the retry inside the span */
+    const d=new Date(Date.UTC(+m[3],MON[m[4]],+m[5],+m[6],+m[7],+m[8])-69000);
+    return{name:m[1],side:m[2]==='after'?'end':'start',date:d};
+  },
+  /* geocentric ICRF state vectors in km, N equal steps over [t0,t1] */
+  async geoVectors(cmd,t0,t1,n){
+    const fmt=d=>"'"+d.toISOString().slice(0,19).replace('T',' ')+"'";
+    const p=new URLSearchParams({
+      format:'text',COMMAND:"'"+cmd+"'",OBJ_DATA:'NO',MAKE_EPHEM:'YES',
+      EPHEM_TYPE:'VECTORS',CENTER:"'500@399'",REF_PLANE:'FRAME',
+      START_TIME:fmt(t0),STOP_TIME:fmt(t1),STEP_SIZE:"'"+(n||400)+"'",
+      VEC_TABLE:'2',OUT_UNITS:'KM-S',CSV_FORMAT:'YES',VEC_LABELS:'NO'});
+    const txt=await this.fetchText('https://ssd.jpl.nasa.gov/api/horizons.api?'+p.toString());
+    if(!txt) return{err:'network'};
+    const cov=this.coverage(txt);
+    if(cov) return{cov};
+    const pack=this.parseVectors(txt);
+    if(!pack) return{err:(txt.match(/API ERROR[^\n]*|Cannot[^\n]*|No [^\n]*/)||['Unexpected Horizons response'])[0]};
+    return{pack};
+  },
+  /* trajectory around the sim epoch; if Horizons has no data there, slide the
+     window onto the edge of the target's coverage and report it */
+  async trajectory(cmd,spanDays){
+    const now=EPOCH.ms(),half=spanDays*43200000;
+    let t0=new Date(now-half),t1=new Date(now+half);
+    let r=await this.geoVectors(cmd,t0,t1);
+    let cov=null;
+    for(let k=0;k<3&&r.cov;k++){
+      cov=r.cov;
+      if(cov.side==='end'){t1=new Date(Math.min(t1.getTime(),cov.date.getTime()-60000));t0=new Date(t1.getTime()-2*half);}
+      else{t0=new Date(Math.max(t0.getTime(),cov.date.getTime()+60000));t1=new Date(t0.getTime()+2*half);}
+      r=await this.geoVectors(cmd,t0,t1);
+    }
+    /* the far edge of a short mission can also be inside the window */
+    if(r.cov&&cov&&r.cov.side!==cov.side){
+      const c2=r.cov;
+      if(c2.side==='end') t1=new Date(c2.date.getTime()-60000); else t0=new Date(c2.date.getTime()+60000);
+      r=await this.geoVectors(cmd,t0,t1);
+    }
+    if(!r.pack) return{err:r.err||'no data',cov};
+    return{pack:r.pack,t0,t1,cov};
   },
 
   /* ───── state-vector packets (heliocentric ecliptic J2000, AU & AU/d) ───── */
@@ -4362,9 +4599,9 @@ const SS={
              [-0.00031596,0.00005170,0.00004818,145.20780515,-0.04062942,-0.01183482]]
   },
   STYLE:{
-    Mercury:{c:'#cfc8c0',r:5}, Venus:{c:'#ffd9a0',r:7}, Earth:{c:'#5fd4ff',r:7},
-    Mars:{c:'#ff6b4a',r:6},   Jupiter:{c:'#ffb56b',r:11},Saturn:{c:'#ffe2a8',r:10},
-    Uranus:{c:'#7fe8e0',r:8}, Neptune:{c:'#7a9bff',r:8}, Pluto:{c:'#cdb8ff',r:4}
+    Mercury:{c:'#e0e0e0',r:5}, Venus:{c:'#e0e0e0',r:7}, Earth:{c:'#d5d5d5',r:7},
+    Mars:{c:'#d66e6e',r:6},   Jupiter:{c:'#d6d6d6',r:11},Saturn:{c:'#e0e0e0',r:10},
+    Uranus:{c:'#e0e0e0',r:8}, Neptune:{c:'#aeaeae',r:8}, Pluto:{c:'#d9d9d9',r:4}
   },
   CMD:{Mercury:'199',Venus:'299',Mars:'499',Jupiter:'599',Saturn:'699',
        Uranus:'799',Neptune:'899',Pluto:'999',Earth:null},
@@ -4442,12 +4679,12 @@ const SS={
   labelTex(txt,color){
     const cv=document.createElement('canvas');
     const cx=cv.getContext('2d');
-    cx.font='600 26px "Share Tech Mono",monospace';
+    cx.font='600 26px "IBM Plex Mono",monospace';
     const w=Math.ceil(cx.measureText(txt.toUpperCase()).width)+18;
     cv.width=w;cv.height=36;
     const c2=cv.getContext('2d');
-    c2.font='600 26px "Share Tech Mono",monospace';
-    c2.fillStyle=color;c2.shadowColor='rgba(0,0,0,0.9)';c2.shadowBlur=5;
+    c2.font='600 26px "IBM Plex Mono",monospace';
+    c2.fillStyle=color;c2.shadowColor='rgba(0,0,0,0.9)';c2.shadowBlur=0;
     c2.fillText(txt.toUpperCase(),9,28);
     const t=new THREE.CanvasTexture(cv);
     return{tex:t,aspect:w/36};
@@ -4485,7 +4722,7 @@ const SS={
     const W=container.clientWidth||800,H=container.clientHeight||340;
     const renderer=new THREE.WebGLRenderer({antialias:true});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-    renderer.setSize(W,H);renderer.setClearColor(0x000204,1);
+    renderer.setSize(W,H);renderer.setClearColor(0x010101,1);
     container.appendChild(renderer.domElement);
     const scene=new THREE.Scene();
     scene.add(new THREE.AmbientLight(0xffffff,0.9));
@@ -4500,14 +4737,14 @@ const SS={
       for(let i=0;i<2400;i++){const th=Math.random()*2*Math.PI,ph=Math.acos(2*Math.random()-1),r=4.6e4;
         sv.push(r*Math.sin(ph)*Math.cos(th),r*Math.cos(ph),r*Math.sin(ph)*Math.sin(th));}
       const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.Float32BufferAttribute(sv,3));
-      scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xcfe2ff,size:60,transparent:true,opacity:.5})));
+      scene.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xe0e0e0,size:60,transparent:true,opacity:.5})));
     });
     /* Sun */
-    const sun=new THREE.Sprite(new THREE.SpriteMaterial({map:this.dotTex('#ffcf5a'),sizeAttenuation:false,depthTest:false,transparent:true}));
+    const sun=new THREE.Sprite(new THREE.SpriteMaterial({map:this.dotTex('#e0e0e0'),sizeAttenuation:false,depthTest:false,transparent:true}));
     sun.scale.set(0.085,0.085,1);
     sun.userData={ssName:'Sun',cmd:'10'};
     scene.add(sun);
-    const sunGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:this.dotTex('#ff9a2a'),sizeAttenuation:false,depthTest:false,transparent:true,opacity:.35}));
+    const sunGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:this.dotTex('#bbbbbb'),sizeAttenuation:false,depthTest:false,transparent:true,opacity:.35}));
     sunGlow.scale.set(0.22,0.22,1);scene.add(sunGlow);
     this._sunSp=sun;
 
@@ -4537,7 +4774,7 @@ const SS={
     this.buildGrid();
     this.buildBelts();
     /* bridge marker: the tracker's primary TLE target mapped into heliocentric space */
-    const bm=new THREE.Sprite(new THREE.SpriteMaterial({map:this.dotTex('#00e5ff'),sizeAttenuation:false,depthTest:false,transparent:true}));
+    const bm=new THREE.Sprite(new THREE.SpriteMaterial({map:this.dotTex('#cccccc'),sizeAttenuation:false,depthTest:false,transparent:true}));
     bm.scale.set(0.02,0.02,1);bm.visible=false;
     this.three.scene.add(bm);this._bridgeMk=bm;
   },
@@ -4567,8 +4804,8 @@ const SS={
     };
     /* warm dust-amber main belt + icy teal Kuiper — visually distinct from the
        cool-white starfield; clouds are non-pickable so clicks reach labeled bodies */
-    this._mainBelt=mkCloud(1700,2.1,3.3,16,'#c89a5b',2.4,0.6);
-    this._kuiper=mkCloud(900,32,48,22,'#4fc3d9',2.1,0.42);
+    this._mainBelt=mkCloud(1700,2.1,3.3,16,'#b2b2b2',2.4,0.6);
+    this._kuiper=mkCloud(900,32,48,22,'#c1c1c1',2.1,0.42);
     grp.children.forEach(c=>c.raycast=function(){});
     this.beltGrp=grp;this.three.scene.add(grp);
     this._beltJd0=this.jd;
@@ -4584,8 +4821,8 @@ const SS={
         pts.push(this.disp([rAU*Math.cos(a),rAU*Math.sin(a),0]));
       }
       const g=new THREE.BufferGeometry().setFromPoints(pts);
-      grp.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0x1d3a52,transparent:true,opacity:.5})));
-      const lb=this.labelTex(rAU+' AU','#41617c');
+      grp.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0x333333,transparent:true,opacity:.5})));
+      const lb=this.labelTex(rAU+' AU','#585858');
       const s=new THREE.Sprite(new THREE.SpriteMaterial({map:lb.tex,sizeAttenuation:false,depthTest:false,transparent:true,opacity:.8}));
       s.scale.set(0.026*lb.aspect,0.026,1);
       s.position.copy(this.disp([rAU,0,0]));
@@ -4593,7 +4830,7 @@ const SS={
     });
     /* vernal-equinox direction ♈ */
     const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0),this.disp([46,0,0])]);
-    grp.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0x2a5470,transparent:true,opacity:.55})));
+    grp.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:0x494949,transparent:true,opacity:.55})));
     this.gridGrp=grp;this.three.scene.add(grp);
   },
 
@@ -4828,6 +5065,132 @@ const SS={
   }
 };
 
+/* ════ TRAJ · geocentric trajectory view for spacecraft ════
+   Geocentric ICRF (Earth mean equator, J2000-aligned) state vectors from
+   Horizons, km. The Moon is fetched over the same window for context. If the
+   sim epoch is outside the target's Horizons data span, the window slides to
+   the nearest edge of coverage and the panel says so. Scene units: 1000 km;
+   axes as elsewhere (x, z, −y) so north is up. */
+const TRAJ={
+  three:null,inited:false,plot:null,_tok:0,objs:[],maxR:1,
+  S:1e-3,
+  v3(p){return new THREE.Vector3(p[0]*this.S,p[2]*this.S,-p[1]*this.S);},
+  init(){
+    if(this.inited) return;
+    this.inited=true;
+    const c=document.getElementById('traj-wrap');
+    const W=c.clientWidth||800,H=c.clientHeight||360;
+    const renderer=new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    renderer.setSize(W,H);renderer.setClearColor(0x000000,1);
+    c.appendChild(renderer.domElement);
+    const scene=new THREE.Scene();
+    scene.add(new THREE.AmbientLight(0xffffff,0.55));
+    const sun=new THREE.DirectionalLight(0xffffff,1.0);scene.add(sun);
+    const earth=new THREE.Mesh(new THREE.SphereGeometry(RE_KM*this.S,48,48),
+      new THREE.MeshPhongMaterial({color:0x282828,shininess:4}));
+    scene.add(earth);
+    loadEarthDay(tex=>{earth.material.map=tex;earth.material.color.set(0xffffff);earth.material.needsUpdate=true;});
+    const camera=new THREE.PerspectiveCamera(45,W/H,0.01,1e7);
+    const ctrl=makeOrbitCtrl(renderer.domElement,camera,{rad:1000,theta:0.6,phi:1.05,minR:8,maxR:5e6});
+    new ResizeObserver(()=>{requestAnimationFrame(()=>{const w=c.clientWidth,h=c.clientHeight;
+      if(w&&h){renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}});}).observe(c);
+    const mk=new THREE.Mesh(new THREE.SphereGeometry(1,16,16),new THREE.MeshBasicMaterial({color:0xffffff}));
+    mk.visible=false;scene.add(mk);
+    const moon=new THREE.Mesh(new THREE.SphereGeometry(1737.4*this.S,24,24),new THREE.MeshPhongMaterial({color:0x9b9b9b}));
+    moon.visible=false;scene.add(moon);
+    this.three={renderer,scene,camera,ctrl,earth,sun,mk,moon,container:c};
+  },
+  hide(){document.getElementById('traj-panel').style.display='none';this.plot=null;},
+  clear(){
+    const sc=this.three.scene;
+    this.objs.forEach(o=>{sc.remove(o);if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});
+    this.objs=[];
+  },
+  line(pts,color,op,dashed){
+    const g=new THREE.BufferGeometry().setFromPoints(pts);
+    const m=dashed?new THREE.LineDashedMaterial({color,transparent:true,opacity:op,dashSize:4,gapSize:4})
+                  :new THREE.LineBasicMaterial({color,transparent:true,opacity:op});
+    const l=new THREE.Line(g,m);if(dashed)l.computeLineDistances();
+    this.three.scene.add(l);this.objs.push(l);return l;
+  },
+  async load(plot){
+    document.getElementById('traj-panel').style.display='block';
+    this.init();
+    this.plot=plot;
+    const tok=++this._tok;
+    const info=document.getElementById('traj-info');
+    document.getElementById('traj-title').textContent=plot.name.toUpperCase()+' · GEOCENTRIC ICRF';
+    document.getElementById('traj-window').textContent='';
+    info.textContent='Fetching trajectory from Horizons…';
+    this.clear();this.three.mk.visible=false;this.three.moon.visible=false;
+    if(!plot.traj||plot.trajEpoch!==Math.round(EPOCH.ms()/3600000)){
+      const r=await EPHSVC.trajectory(plot.cmd,14);
+      if(tok!==this._tok) return;
+      if(!r.pack){info.textContent=r.cov?'Horizons has no ephemeris for this target near '+fmtDateUTC(EPOCH.now())+'.':'Trajectory request failed ('+r.err+').';return;}
+      const moon=await EPHSVC.geoVectors('301',r.t0,r.t1);
+      if(tok!==this._tok) return;
+      plot.traj=r;plot.trajMoon=moon.pack||null;plot.trajEpoch=Math.round(EPOCH.ms()/3600000);
+    }
+    this.draw();
+  },
+  draw(){
+    const p=this.plot;if(!p||!p.traj) return;
+    const r=p.traj,P=r.pack.P;
+    this.clear();
+    let maxR=RE_KM*3;
+    P.forEach(q=>{const d=Math.hypot(q[0],q[1],q[2]);if(d>maxR)maxR=d;});
+    this.maxR=maxR;
+    this.line(P.map(q=>this.v3(q)),0xffffff,0.85);
+    if(p.trajMoon){
+      this.line(p.trajMoon.P.map(q=>this.v3(q)),0x898989,0.6,true);
+    }
+    /* end-of-data marker */
+    const last=P[P.length-1],first=P[0];
+    const dot=(q,col)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(maxR*this.S*0.008,12,12),new THREE.MeshBasicMaterial({color:col}));
+      m.position.copy(this.v3(q));this.three.scene.add(m);this.objs.push(m);};
+    dot(first,0x9b9b9b);dot(last,0x9b9b9b);
+    this.three.mk.scale.setScalar(maxR*this.S*0.014);
+    this.three.moon.visible=!!p.trajMoon;
+    const c=this.three.ctrl;c.tRad=Math.max(30,maxR*this.S*2.6);c.maxR=Math.max(5e3,maxR*this.S*20);
+    const t0=r.t0.toISOString().slice(0,16).replace('T',' '),t1=r.t1.toISOString().slice(0,16).replace('T',' ');
+    document.getElementById('traj-window').textContent=t0+' → '+t1+' UTC';
+    this._infoT=0;
+  },
+  resetView(){if(!this.three)return;const c=this.three.ctrl;c.clearTarget();c.tTheta=0.6;c.tPhi=1.05;c.tRad=Math.max(30,this.maxR*this.S*2.6);},
+  frame(nowP,dt){
+    const T=this.three;if(!T||!this.plot||!this.plot.traj) return;
+    if(document.getElementById('traj-panel').style.display==='none') return;
+    T.ctrl.update(dt);
+    const jd=EPOCH.jd(),r=this.plot.traj,pk=r.pack;
+    const inWin=jd>=pk.jd0&&jd<=pk.jd1;
+    let pos=inWin?EPHSVC.posAt(pk,jd):pk.P[pk.P.length-1];
+    if(!inWin&&r.cov&&r.cov.side==='start') pos=pk.P[0];
+    T.mk.visible=!!pos;
+    if(pos) T.mk.position.copy(this.v3(pos));
+    if(this.plot.trajMoon){
+      const mp=jd>=this.plot.trajMoon.jd0&&jd<=this.plot.trajMoon.jd1?EPHSVC.posAt(this.plot.trajMoon,jd):null;
+      T.moon.visible=!!mp;if(mp) T.moon.position.copy(this.v3(mp));
+    }
+    T.earth.rotation.y=gmst_from_jd(julianDate(EPOCH.now()));
+    if(nowP-(this._sunT||0)>500){this._sunT=nowP;const su=sunECIUnit(EPOCH.now());T.sun.position.set(su[0],su[2],-su[1]);}
+    if(nowP-(this._infoT||0)>400&&pos){
+      this._infoT=nowP;
+      const rng=Math.hypot(pos[0],pos[1],pos[2]);
+      let moonD='';
+      if(this.plot.trajMoon&&T.moon.visible){const m=T.moon.position;const q=this.v3(pos);moonD=' · from Moon '+(q.distanceTo(m)/this.S).toFixed(0)+' km';}
+      let state;
+      if(inWin) state='At sim epoch '+EPOCH.now().toISOString().slice(0,16).replace('T',' ')+' UTC';
+      else if(r.cov&&r.cov.side==='end') state='Last Horizons state, '+fmtDateUTC(new Date((pk.jd1-2440587.5)*86400000))+' UTC. No ephemeris after this.';
+      else if(r.cov&&r.cov.side==='start') state='First Horizons state, '+fmtDateUTC(new Date((pk.jd0-2440587.5)*86400000))+' UTC.';
+      else state='Sim epoch is outside the fetched window.';
+      document.getElementById('traj-info').innerHTML=state+'<br/>Range from Earth '+rng.toFixed(0)+' km'+moonD+
+        '<br/><span class="dim">Solid: '+this.plot.name+' · dashed: Moon · grey dots: window start and end</span>';
+    }
+    T.renderer.render(T.scene,T.camera);
+  }
+};
+
 /* ════ V3 · EPHEMERIS — JPL HORIZONS multi-target observer module ════
    Apparent (airless) topocentric RA/DEC + AZ/EL, magnitude, range, elongation
    and phase from the JPL Horizons API for the observer site. Twilight state
@@ -4845,6 +5208,10 @@ const EPH={
     {cat:'ASTEROIDS',items:[
       {cmd:'1;',name:'1 Ceres',g:'⬡'},{cmd:'2;',name:'2 Pallas',g:'⬡'},{cmd:'4;',name:'4 Vesta',g:'⬡'},
       {cmd:'7;',name:'7 Iris',g:'⬡'},{cmd:'433;',name:'433 Eros',g:'⬡'},{cmd:'99942;',name:'99942 Apophis',g:'⬡'}]},
+    {cat:'SPACECRAFT',items:[
+      {cmd:'-1176',name:'CAPSTONE',g:'◇',kind:'sc'},{cmd:'-1024',name:'Artemis II (Integrity)',g:'◇',kind:'sc'},
+      {cmd:'-159',name:'Europa Clipper',g:'◇',kind:'sc'},{cmd:'-170',name:'JWST',g:'◇',kind:'sc'},
+      {cmd:'-31',name:'Voyager 1',g:'◇',kind:'sc'}]},
     {cat:'COMETS',items:[
       {cmd:'DES=1P;CAP',name:'1P/Halley',g:'☄'},{cmd:'DES=2P;CAP',name:'2P/Encke',g:'☄'},
       {cmd:'DES=12P;CAP',name:'12P/Pons-Brooks',g:'☄'},{cmd:'DES=29P;CAP',name:'29P/SW 1',g:'☄'}]}
@@ -4858,8 +5225,8 @@ const EPH={
     {n:'Royal Greenwich',lat:51.4769,lon:0.0005,h:46},
     {n:'Siding Spring',lat:-31.2733,lon:149.0617,h:1165}
   ],
-  PALETTE:['#00ff9d','#ffd24a','#ff5fd2','#9d6bff','#4ad9ff','#ff8a4a'],
-  enabled:{PLANETS:true,'SUN / MOON':true,ASTEROIDS:true,COMETS:true},
+  PALETTE:['#f0f0f0','#d6b26e','#7fa8d8','#c48fb5','#8fc4a0','#c9a08a'],
+  enabled:{PLANETS:true,'SUN / MOON':true,SPACECRAFT:true,ASTEROIDS:true,COMETS:true},
   cache:{},elsCache:{},
   plotted:[],            /* [{cmd,name,g,color,rows,bodyName,els?}] */
   active:null,           /* cmd of the active (detailed) target */
@@ -4940,7 +5307,7 @@ const EPH={
     const box=document.getElementById('eph-sbdb-results');
     if(v.length<2){box.style.display='none';box.innerHTML='';return;}
     box.style.display='block';
-    box.innerHTML='<div class="sbdb-row dim">⌕ searching SBDB…</div>';
+    box.innerHTML='<div class="sbdb-row dim">Searching Horizons…</div>';
     this._sbdbTimer=setTimeout(()=>this.sbdbRun(v),450);
   },
   async sbdbRun(v){
@@ -4949,22 +5316,24 @@ const EPH={
     if(token!==this._sbdbToken) return;
     const box=document.getElementById('eph-sbdb-results');
     if(!box) return;
+    const esc=x=>String(x).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const row=m=>'<div class="sbdb-row hit" onclick="EPH.pickSbdb(\''+esc(m.cmd)+'\',\''+esc(m.name)+'\',\''+(m.kind||'')+'\')">'+
+      String(m.name).replace(/</g,'&lt;')+
+      '<span class="sbdb-sub">'+[m.type||m.orbitClass||'',(m.alias&&m.alias.length?'aka '+m.alias.join(', '):'')].filter(Boolean).join(' · ')+'</span></div>';
     if(res.ok){
-      box.innerHTML='<div class="sbdb-row hit" onclick="EPH.pickSbdb(\''+res.cmd.replace(/'/g,"\\'")+'\',\''+res.name.replace(/'/g,"\\'")+'\')">'+
-        '◆ '+res.name+(res.orbitClass?'<span class="sbdb-sub">'+res.orbitClass+'</span>':'')+'</div>';
+      box.innerHTML=row(res);
     } else if(res.multi){
-      box.innerHTML='<div class="sbdb-row dim">'+res.multi.length+' MATCHES — PICK ONE:</div>'+
-        res.multi.map(m=>'<div class="sbdb-row hit" onclick="EPH.pickSbdb(\''+m.cmd.replace(/'/g,"\\'")+'\',\''+String(m.name).replace(/'/g,"\\'")+'\')">◆ '+m.name+'</div>').join('');
+      box.innerHTML='<div class="sbdb-row dim">'+res.multi.length+' matches</div>'+res.multi.map(row).join('');
     } else if(res.none){
-      box.innerHTML='<div class="sbdb-row nores">⚠ NO RECORD FOUND: \''+v.replace(/</g,'&lt;')+'\'<span class="sbdb-sub">SBDB has no object matching this designation</span></div>';
+      box.innerHTML='<div class="sbdb-row nores">No Horizons object matches “'+v.replace(/</g,'&lt;')+'”.<span class="sbdb-sub">Named minor planets are one word, e.g. Kathleenhowell. Numbers work too: 5396.</span></div>';
     } else {
-      box.innerHTML='<div class="sbdb-row nores">⚠ SBDB UNREACHABLE — network/CORS</div>';
+      box.innerHTML='<div class="sbdb-row nores">Could not reach JPL. Check the network.</div>';
     }
   },
-  pickSbdb(cmd,name){
+  pickSbdb(cmd,name,kind){
     document.getElementById('eph-sbdb-results').style.display='none';
     document.getElementById('eph-custom-inp').value='';
-    this.select({cmd,name,g:'◆'});
+    this.select({cmd,name:name.replace(/ \(spacecraft\)$/,''),g:kind==='sc'?'◇':'◆',kind});
   },
   customLookup(){ /* ENTER key — run resolution immediately */
     const v=document.getElementById('eph-custom-inp').value.trim();
@@ -4978,6 +5347,7 @@ const EPH={
     return SITE.lon_deg.toFixed(6)+','+SITE.lat_deg.toFixed(6)+','+(SITE.h_m/1000).toFixed(4);
   },
   isSmallBody(cmd){return cmd.includes(';');},
+  isSpacecraft(cmd){return /^-\d+$/.test(String(cmd));},
 
   /* ───────── selection / fetching ───────── */
   async select(it){
@@ -4999,6 +5369,9 @@ const EPH={
       plot={cmd:it.cmd,name:it.name,g:it.g||'◆',color:this.PALETTE[this.plotted.length%this.PALETTE.length]};
       this.plotted.push(plot);
     }
+    if(this.isSpacecraft(it.cmd)){
+      TRAJ.load(plot);
+    } else TRAJ.hide();
     if(this.isSmallBody(it.cmd)){
       if(!plot.els&&typeof SS!=='undefined'){const pe=SS.presetEls(it.cmd);if(pe) plot.els=pe;}
       if(typeof SS!=='undefined'&&SS.inited) SS.refreshSmalls();
@@ -5019,8 +5392,19 @@ const EPH={
       if(res&&res.rows&&res.rows.length) this.cache[key]=res;
     }
     if(token!==this._token) return;
-    document.getElementById('eph-fetch-state').textContent=res&&res.rows.length?'LIVE':'ERROR';
-    if(!res){this.showError('Horizons observer-table request failed (network/CORS) — 3-D orbit still plotted. Try ↺ refetch.');return;}
+    document.getElementById('eph-fetch-state').textContent=res&&res.rows.length?'LIVE':res&&res.coverage?'NO CURRENT DATA':'ERROR';
+    if(!res){this.showError('Horizons observer-table request failed (network). The 3-D orbit is still plotted. Try refetch.');return;}
+    if(res.coverage){
+      plot.coverage=res.coverage;plot.rows=null;
+      document.getElementById('eph-target-sub').textContent=(res.coverage.name||it.name)+' · '+res.msg;
+      document.getElementById('eph-verdict').style.display='inline-flex';
+      document.getElementById('eph-verdict').className='verdict v-down';
+      document.getElementById('eph-verdict').textContent=res.coverage.side==='end'?'NO EPHEMERIS AFTER '+res.coverage.date.toISOString().slice(0,10):'NOT YET COVERED';
+      ['eph-now-grid','eph-chart-panel','eph-win-title'].forEach(id=>document.getElementById(id).style.display='none');
+      document.getElementById('eph-windows').innerHTML='';
+      this.renderList();
+      return;
+    }
     if(!res.rows.length){
       this.showError(res.msg||'No ephemeris rows returned.');
       if(res.excerpt){lg.textContent=res.excerpt;lg.style.display='block';}
@@ -5058,6 +5442,7 @@ const EPH={
     document.getElementById('eph-target-name').textContent=p.name.toUpperCase();
     document.getElementById('eph-target-sub').textContent=p.bodyName+' · '+(p.rows?p.rows.length:0)+' × 30-min steps · 72 h · fetched '+fmtUTCShort(p.fetchedAt)+' UTC';
     if(typeof SS!=='undefined') SS.selectByName(p.name);
+    if(this.isSpacecraft(cmd)) TRAJ.load(p); else TRAJ.hide();
     this.renderList();this.renderAll();
   },
   refetch(){
@@ -5112,8 +5497,7 @@ const EPH={
   },
   async fetchAPI(params,parser){
     const base='https://ssd.jpl.nasa.gov/api/horizons.api?'+params.toString();
-    const urls=[base,'https://corsproxy.io/?'+encodeURIComponent(base),
-      'https://api.allorigins.win/raw?url='+encodeURIComponent(base)];
+    const urls=urlChain(base);
     for(const u of urls){
       try{
         const r=await fetch(u,{signal:fetchTimeoutSignal(15000)});
@@ -5132,6 +5516,14 @@ const EPH={
     if(tn) out.bodyName=tn[1].trim();
     const i0=txt.indexOf('$$SOE'),i1=txt.indexOf('$$EOE');
     if(i0<0||i1<0){
+      const cov=EPHSVC.coverage(txt);
+      if(cov){
+        out.coverage=cov;
+        out.msg=cov.side==='end'
+          ?'Horizons has no ephemeris after '+fmtDateUTC(cov.date)+' UTC. The mission has ended, the object is lost or decayed, or JPL has not published newer data.'
+          :'Horizons ephemeris starts '+fmtDateUTC(cov.date)+' UTC.';
+        return out;
+      }
       if(/Multiple major-bodies|matches|Matching small-bodies/i.test(txt)){
         out.msg='Ambiguous designation — Horizons returned multiple matches (list below). Refine the query.';
         out.excerpt=txt.split('\n').filter(l=>/^\s*-?\d|Record|name/i.test(l)).slice(0,25).join('\n');
@@ -5173,8 +5565,8 @@ const EPH={
 
   twiLabel(f){return f==='*'?'DAYLIGHT':f==='C'?'CIVIL TWILIGHT':f==='N'?'NAUTICAL TWILIGHT':f==='A'?'ASTRONOMICAL TWILIGHT':'NIGHT';},
   twiShort(f){return f==='*'?'DAY':f==='C'?'CIV':f==='N'?'NAU':f==='A'?'AST':'NIGHT';},
-  twiColor(f){return f==='*'?'rgba(120,170,255,0.20)':f==='C'?'rgba(110,140,235,0.135)':f==='N'?'rgba(100,110,210,0.085)':f==='A'?'rgba(85,85,170,0.05)':'rgba(0,0,0,0)';},
-  twiText(f){return f==='*'?'rgba(150,195,255,.95)':f==='C'?'rgba(140,165,245,.9)':f==='N'?'rgba(130,140,225,.85)':f==='A'?'rgba(125,120,205,.8)':'rgba(110,130,150,.75)';},
+  twiColor(f){return f==='*'?'rgba(185,185,185,0.20)':f==='C'?'rgba(157,157,157,0.135)':f==='N'?'rgba(129,129,129,0.085)':f==='A'?'rgba(87,87,87,0.05)':'rgba(0,0,0,0)';},
+  twiText(f){return f==='*'?'rgba(213,213,213,.95)':f==='C'?'rgba(185,185,185,.9)':f==='N'?'rgba(161,161,161,.85)':f==='A'?'rgba(142,142,142,.8)':'rgba(142,142,142,.75)';},
   darkOK(f){return f===''||f==='A';},
   minEl(){return parseInt(document.getElementById('eph-minel').value,10);},
 
@@ -5215,7 +5607,7 @@ const EPH={
     g.innerHTML=
       cell('EPOCH',fmtLocalShort(rNow.d,SITE.tz)+' LOC / '+fmtUTCShort(rNow.d)+' UTC','accent')+
       cell('AZ / EL',rNow.az!==null?rNow.az.toFixed(1)+'° / '+rNow.el.toFixed(1)+'°':'—',rNow.el>minEl?'green':'')+
-      cell('RA (APP)',raStr)+cell('DEC (APP)',decStr)+
+      cell('RA (ICRF)',raStr)+cell('DEC (ICRF)',decStr)+
       cell('V MAG',rNow.mag!==null?rNow.mag.toFixed(2):'—')+
       cell('RANGE',rNow.delta!==null?(rNow.delta<0.01?(rNow.delta*149597870.7).toFixed(0)+' km':rNow.delta.toFixed(4)+' AU'):'—')+
       cell('RANGE-RATE',rNow.deldot!==null?rNow.deldot.toFixed(2)+' km/s':'—')+
@@ -5267,7 +5659,7 @@ const EPH={
     if(!ap.rows||!ap.rows.length) return;
     const rows=ap.rows,minEl=this.minEl();
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='#02080f';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#040404';ctx.fillRect(0,0,W,H);
     const padL=36,padR=10,padT=22,padB=30;
     const pw=W-padL-padR,ph=H-padT-padB;
     const t0=rows[0].d.getTime(),t1=rows[rows.length-1].d.getTime();
@@ -5285,7 +5677,7 @@ const EPH={
       if(col!=='rgba(0,0,0,0)'){ctx.fillStyle=col;ctx.fillRect(x0,padT,x1-x0,ph);}
       if(x1-x0>34){ /* readable in-chart band label */
         ctx.fillStyle=this.twiText(f);
-        ctx.font='bold 10px "Share Tech Mono",monospace';ctx.textAlign='center';
+        ctx.font='bold 10px "IBM Plex Mono",monospace';ctx.textAlign='center';
         ctx.fillText(this.twiShort(f),(x0+x1)/2,padT-9);
         ctx.strokeStyle=this.twiText(f);ctx.lineWidth=.6;ctx.globalAlpha=.6;
         ctx.beginPath();ctx.moveTo(x0+1,padT-5);ctx.lineTo(x1-1,padT-5);ctx.stroke();ctx.globalAlpha=1;
@@ -5295,14 +5687,14 @@ const EPH={
     /* grid */
     ctx.font='11px IBM Plex Mono';ctx.textAlign='right';
     [-30,0,30,60,90].forEach(e=>{
-      ctx.strokeStyle=e===0?'rgba(0,229,255,0.5)':'rgba(28,58,82,0.7)';
+      ctx.strokeStyle=e===0?'rgba(204,204,204,0.5)':'rgba(51,51,51,0.7)';
       ctx.lineWidth=e===0?1:0.5;
       ctx.beginPath();ctx.moveTo(padL,Y(e));ctx.lineTo(W-padR,Y(e));ctx.stroke();
-      ctx.fillStyle='rgba(138,163,181,0.9)';ctx.fillText(e+'°',padL-4,Y(e)+2);
+      ctx.fillStyle='rgba(178,178,178,0.9)';ctx.fillText(e+'°',padL-4,Y(e)+2);
     });
-    ctx.strokeStyle='rgba(157,107,255,0.55)';ctx.setLineDash([4,4]);ctx.lineWidth=1;
+    ctx.strokeStyle='rgba(144,144,144,0.55)';ctx.setLineDash([4,4]);ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(padL,Y(minEl));ctx.lineTo(W-padR,Y(minEl));ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(157,107,255,0.85)';ctx.textAlign='left';
+    ctx.fillStyle='rgba(144,144,144,0.85)';ctx.textAlign='left';
     ctx.fillText('MIN EL '+minEl+'°',padL+4,Y(minEl)-3);
 
     /* time axis: local-midnight ticks with weekday+date, noon minor */
@@ -5313,21 +5705,21 @@ const EPH={
       const lh=parseInt(ls.slice(0,2),10),lm=parseInt(ls.slice(3,5),10);
       if(lm!==0) continue;
       if(lh===0){
-        ctx.strokeStyle='rgba(0,229,255,0.3)';ctx.lineWidth=1;
+        ctx.strokeStyle='rgba(204,204,204,0.3)';ctx.lineWidth=1;
         ctx.beginPath();ctx.moveTo(X(t),padT);ctx.lineTo(X(t),padT+ph);ctx.stroke();
-        ctx.fillStyle='rgba(0,229,255,0.9)';ctx.font='bold 11px "Share Tech Mono",monospace';
+        ctx.fillStyle='rgba(204,204,204,0.9)';ctx.font='bold 11px "IBM Plex Mono",monospace';
         ctx.fillText(this.dayTag(new Date(t+3600000)),X(t),H-17);
-        ctx.fillStyle='rgba(138,163,181,0.8)';ctx.font='10px IBM Plex Mono';
+        ctx.fillStyle='rgba(178,178,178,0.8)';ctx.font='10px IBM Plex Mono';
         ctx.fillText('00:00',X(t),H-7);
       } else if(lh%6===0){
-        ctx.strokeStyle='rgba(50,80,105,0.35)';ctx.lineWidth=.5;
+        ctx.strokeStyle='rgba(72,72,72,0.35)';ctx.lineWidth=.5;
         ctx.beginPath();ctx.moveTo(X(t),padT);ctx.lineTo(X(t),padT+ph);ctx.stroke();
-        ctx.fillStyle='rgba(110,135,155,0.85)';ctx.font='10px IBM Plex Mono';
+        ctx.fillStyle='rgba(147,147,147,0.85)';ctx.font='10px IBM Plex Mono';
         ctx.fillText(padZ(lh)+':00',X(t),H-7);
       }
     }
     ctx.textAlign='left';
-    ctx.fillStyle='rgba(138,163,181,0.85)';ctx.font='10px "Share Tech Mono",monospace';
+    ctx.fillStyle='rgba(178,178,178,0.85)';ctx.font='10px "IBM Plex Mono",monospace';
     ctx.fillText('LOCAL TIME · '+SITE.tz,padL,H-17);
 
     /* curves: every plotted target; active = thick, visible spans glow green */
@@ -5340,7 +5732,7 @@ const EPH={
         if(a.el===null||b.el===null) continue;
         if(a.d<t0||b.d>t1) continue;
         const vis=a.el>minEl&&(ex2||this.darkOK(a.sunFlag));
-        if(isA&&vis){ctx.strokeStyle='#00ff9d';ctx.lineWidth=2.6;ctx.shadowColor='#00ff9d';ctx.shadowBlur=6;}
+        if(isA&&vis){ctx.strokeStyle='#7fbf98';ctx.lineWidth=2.6;ctx.shadowColor='#7fbf98';ctx.shadowBlur=0;}
         else{ctx.strokeStyle=p.color;ctx.lineWidth=isA?1.7:1;ctx.shadowBlur=0;ctx.globalAlpha=isA?0.95:0.55;}
         ctx.beginPath();ctx.moveTo(X(a.d),Y(a.el));ctx.lineTo(X(b.d),Y(b.el));ctx.stroke();
         ctx.shadowBlur=0;ctx.globalAlpha=1;
@@ -5350,14 +5742,14 @@ const EPH={
     /* NOW line with timestamp (global epoch) */
     const nowMs=EPOCH.ms();
     if(nowMs>=t0&&nowMs<=t1){
-      ctx.strokeStyle='#ffd24a';ctx.lineWidth=1.2;
+      ctx.strokeStyle='#e0e0e0';ctx.lineWidth=1.2;
       ctx.beginPath();ctx.moveTo(X(nowMs),padT);ctx.lineTo(X(nowMs),padT+ph);ctx.stroke();
-      ctx.fillStyle='#ffd24a';ctx.font='bold 10px "Share Tech Mono",monospace';ctx.textAlign='center';
+      ctx.fillStyle='#e0e0e0';ctx.font='bold 10px "IBM Plex Mono",monospace';ctx.textAlign='center';
       ctx.fillText('NOW '+fmtLocalShort(new Date(nowMs),SITE.tz),X(nowMs),padT+8);
       ctx.textAlign='left';
     }
     ctx.save();ctx.translate(9,padT+ph/2);ctx.rotate(-Math.PI/2);
-    ctx.fillStyle='rgba(138,163,181,0.9)';ctx.font='10px "Share Tech Mono",monospace';ctx.textAlign='center';
+    ctx.fillStyle='rgba(178,178,178,0.9)';ctx.font='10px "IBM Plex Mono",monospace';ctx.textAlign='center';
     ctx.fillText('ELEVATION',0,0);ctx.restore();
 
     /* hover crosshair */
@@ -5377,7 +5769,7 @@ const EPH={
       ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=0.8;
       ctx.beginPath();ctx.moveTo(X(rH.d),padT);ctx.lineTo(X(rH.d),padT+ph);ctx.stroke();
       if(rH.el!==null){
-        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(X(rH.d),Y(rH.el),3,0,2*Math.PI);ctx.fill();
+        ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(X(rH.d),Y(rH.el),3,0,2*Math.PI);ctx.fill();
       }
       this._tipRow=rH;this._tipT=tH;
     }
@@ -5514,10 +5906,10 @@ const DISC={
     document.getElementById('d-stats-total').innerHTML=
       (o.total||0).toLocaleString()+'<small>TRACKED OBJECTS · '+(d.date||'')+'</small>';
     const bars=[
-      ['PAYLOAD',o.payload||0,'#00d4ff'],
-      ['DEBRIS',o.debris||0,'#9fb8c8'],
-      ['ROCKET BODY',o.rocket_body||0,'#ff7a4a'],
-      ['UNKNOWN',(o.unknown||0)+(o.tba||0),'#cc88ff']
+      ['PAYLOAD',o.payload||0,'#bebebe'],
+      ['DEBRIS',o.debris||0,'#c9c9c9'],
+      ['ROCKET BODY',o.rocket_body||0,'#a4a4a4'],
+      ['UNKNOWN',(o.unknown||0)+(o.tba||0),'#b2b2b2']
     ];
     const max=Math.max(1,...bars.map(b=>b[1]));
     document.getElementById('d-stats-bars').innerHTML=bars.map(b=>
@@ -5532,7 +5924,7 @@ const DISC={
     const hist=(recent&&Array.isArray(recent.data))?recent.data:[];
     if(hist.length>1){
       const series=hist.slice().reverse().map(r=>r.objects&&r.objects.total).filter(v=>typeof v==='number');
-      this.drawSpark('d-stats-spark',series,{color:'#00d4ff',fill:true});
+      this.drawSpark('d-stats-spark',series,{color:'#bebebe',fill:true});
       document.getElementById('d-stats-trend-range').textContent=hist.length+' DAYS';
     }
   },
@@ -5690,7 +6082,7 @@ const DISC={
       kNow=parseFloat(kp[kp.length-1].kp_index??kp[kp.length-1].estimated_kp);
       kEl.textContent='Kp '+kNow.toFixed(1);
       kBar.style.width=Math.min(100,kNow/9*100)+'%';
-      kBar.style.background=kNow<4?'#00ff9d':kNow<6?'#ffd24a':'#ff5566';
+      kBar.style.background=kNow<4?'#7fbf98':kNow<6?'#e0e0e0':'#d66e6e';
       document.getElementById('d-kp-tag').textContent=kNow<4?'QUIET FIELD':kNow<5?'UNSETTLED':kNow<6?'MINOR STORM G1':kNow<7?'MODERATE STORM G2':'STRONG STORM G3+';
       this.drawKpSpark(kp);
     } else kEl.textContent='Kp —';
@@ -5707,8 +6099,8 @@ const DISC={
       else if(lastSpd!=null) wEl.textContent=lastSpd.toFixed(0)+' km/s';
       else wEl.textContent='— km/s';
       if(lastDen!=null) document.getElementById('d-dens-val').textContent=lastDen.toFixed(1)+' p/cm³';
-      this.drawSpark('d-wind-spark',spd,{color:'#ffd24a',fill:true});
-      this.drawSpark('d-dens-spark',den,{color:'#7fe0ff',fill:true});
+      this.drawSpark('d-wind-spark',spd,{color:'#e0e0e0',fill:true});
+      this.drawSpark('d-dens-spark',den,{color:'#e0e0e0',fill:true});
     }else{
       if(wind&&wind.WindSpeed) wEl.textContent=parseFloat(wind.WindSpeed).toFixed(0)+' km/s';
       else wEl.textContent='— km/s';
@@ -5722,19 +6114,19 @@ const DISC={
         const bz=parseFloat(last[iBz]),bt=parseFloat(last[iBt]);
         const bzEl=document.getElementById('d-bz-val');
         bzEl.textContent=(bz>=0?'+':'')+bz.toFixed(1)+' nT';
-        bzEl.style.color=bz<-5?'#ff5566':bz<-2?'#ffd24a':'#00ff9d';
+        bzEl.style.color=bz<-5?'#d66e6e':bz<-2?'#e0e0e0':'#7fbf98';
         document.getElementById('d-bz-tag').textContent=
           bz<-5?'STRONGLY SOUTH — COUPLING OPEN':bz<-2?'SOUTHWARD — ENERGY LEAKING IN':bz<2?'NEUTRAL':'NORTHWARD — SHIELD CLOSED';
         document.getElementById('d-bt-val').textContent='|B| '+bt.toFixed(1)+' nT';
       }
       const bzS=this._sampleSeries(mag.slice(1),140).map(r=>parseFloat(r[iBz])).filter(v=>isFinite(v));
-      this.drawSpark('d-bz-spark',bzS,{color:'#ff7ad0',zero:true});
+      this.drawSpark('d-bz-spark',bzS,{color:'#afafaf',zero:true});
     }
     const fEl=document.getElementById('d-flare-val');
     if(flare&&flare.length&&flare[0].max_class){
       fEl.textContent=flare[0].max_class;
-      fEl.style.color=/^[XM]/.test(flare[0].max_class)?'#ff5566':/^C/.test(flare[0].max_class)?'#ffd24a':'#00ff9d';
-    } else if(flare&&flare.length===0){fEl.textContent='NONE 24H';fEl.style.color='#00ff9d';}
+      fEl.style.color=/^[XM]/.test(flare[0].max_class)?'#d66e6e':/^C/.test(flare[0].max_class)?'#e0e0e0':'#7fbf98';
+    } else if(flare&&flare.length===0){fEl.textContent='NONE 24H';fEl.style.color='#7fbf98';}
     else fEl.textContent='—';
     /* F10.7 — thermosphere heating / density proxy */
     if(f107&&f107.Flux){
@@ -5743,7 +6135,7 @@ const DISC={
       el.textContent=f.toFixed(0)+' sfu';
       document.getElementById('d-f107-tag').textContent=
         f<90?'LOW DENSITY · LOW DRAG':f<150?'MODERATE THERMOSPHERE':'HOT EXPANDED ATMOSPHERE · HIGH DRAG';
-      el.style.color=f<90?'#00ff9d':f<150?'#ffd24a':'#ff5566';
+      el.style.color=f<90?'#7fbf98':f<150?'#e0e0e0':'#d66e6e';
     }
     /* NOAA R/S/G scales now */
     if(scales&&scales['0']){
@@ -5778,11 +6170,11 @@ const DISC={
     if(mx-mn<1e-9){mx+=1;mn-=1;}
     const X=i=>i/(n-1)*(W-pad*2)+pad;
     const Y=v=>H-pad-((v-mn)/(mx-mn))*(H-pad*2);
-    if(opts.zero){const y=Y(0);ctx.strokeStyle='rgba(140,160,180,.35)';ctx.lineWidth=1;
+    if(opts.zero){const y=Y(0);ctx.strokeStyle='rgba(176,176,176,.35)';ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
-    (opts.bands||[]).forEach(b=>{const y=Y(b.v);ctx.strokeStyle=b.color||'rgba(120,145,165,.22)';ctx.lineWidth=1;
+    (opts.bands||[]).forEach(b=>{const y=Y(b.v);ctx.strokeStyle=b.color||'rgba(158,158,158,.22)';ctx.lineWidth=1;
       ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();});
-    const col=opts.color||'#00e5ff';
+    const col=opts.color||'#cccccc';
     if(opts.fill){
       ctx.beginPath();ctx.moveTo(X(0),H-pad);
       vals.forEach((v,i)=>ctx.lineTo(X(i),Y(v)));
@@ -5792,12 +6184,12 @@ const DISC={
     }
     ctx.beginPath();
     vals.forEach((v,i)=>{i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));});
-    ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.shadowColor=col;ctx.shadowBlur=6;ctx.stroke();ctx.shadowBlur=0;
+    ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.shadowColor=col;ctx.shadowBlur=0;ctx.stroke();ctx.shadowBlur=0;
   },
   drawKpSpark(kp){
     const series=kp.filter((r,i)=>i%5===0).map(r=>parseFloat(r.kp_index??r.estimated_kp)||0);
-    this.drawSpark('d-kp-spark',series,{color:'#00e5ff',min:0,max:9,
-      bands:[{v:5,color:'rgba(255,210,74,.30)'},{v:7,color:'rgba(255,86,102,.30)'}]});
+    this.drawSpark('d-kp-spark',series,{color:'#cccccc',min:0,max:9,
+      bands:[{v:5,color:'rgba(224,224,224,.30)'},{v:7,color:'rgba(214,110,110,.30)'}]});
   },
 
   /* ═════ 4b · LIVE AURORA OVAL — on a 3-D globe (NOAA OVATION 30-min) ═════
@@ -5819,7 +6211,7 @@ const DISC={
     host.add(shell);
     /* observer site pinned to the rotating earth */
     const la=SITE.lat_deg*D2R,lo=SITE.lon_deg*D2R;
-    const mk=new THREE.Mesh(new THREE.SphereGeometry(90,10,10),new THREE.MeshBasicMaterial({color:0xff5566}));
+    const mk=new THREE.Mesh(new THREE.SphereGeometry(90,10,10),new THREE.MeshBasicMaterial({color:0xd66e6e}));
     mk.position.set(RE_KM*1.01*Math.cos(la)*Math.cos(lo),RE_KM*1.01*Math.sin(la),-RE_KM*1.01*Math.cos(la)*Math.sin(lo));
     host.add(mk);
   },
@@ -6071,8 +6463,8 @@ const DISC={
       const iw=worldMapImg.width,ih=worldMapImg.height;
       const sx=(lon0+180)/360*iw, sy=(90-lat0)/180*ih;
       ctx.drawImage(worldMapImg,sx,sy,(2*dLon)/360*iw,(2*dLat)/180*ih,0,0,W,H);
-      ctx.fillStyle='rgba(2,8,14,.45)';ctx.fillRect(0,0,W,H);
-    } else {ctx.fillStyle='#06101a';ctx.fillRect(0,0,W,H);}
+      ctx.fillStyle='rgba(4,4,4,.45)';ctx.fillRect(0,0,W,H);
+    } else {ctx.fillStyle='#080808';ctx.fillRect(0,0,W,H);}
     const pad=xy(L.lat,L.lon);
     const kmPerPxX=2*dLon*111.32*Math.cos(L.lat*D2R)/W;
     const az=this.launchAz(L)*D2R;
@@ -6085,32 +6477,32 @@ const DISC={
     const cor=[[0,3],[120,18],[420,60],[820,110],[820,-110],[420,-60],[120,-18],[0,-3]];
     cor.forEach((c,k)=>{const p=downrange(c[0],c[1]);k?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y);});
     ctx.closePath();
-    ctx.fillStyle='rgba(255,85,102,.13)';ctx.fill();
-    ctx.strokeStyle='rgba(255,85,102,.75)';ctx.lineWidth=2;ctx.setLineDash([8,5]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(214,110,110,.13)';ctx.fill();
+    ctx.strokeStyle='rgba(214,110,110,.75)';ctx.lineWidth=2;ctx.setLineDash([8,5]);ctx.stroke();ctx.setLineDash([]);
     /* stage-1 + fairing drop boxes downrange */
     [[300,40,'STAGE 1 / BOOSTER DZ'],[640,55,'FAIRING DZ']].forEach(z=>{
       const c=downrange(z[0],0),r=z[1]/kmPerPxX;
-      ctx.strokeStyle='rgba(255,170,60,.85)';ctx.lineWidth=2;
+      ctx.strokeStyle='rgba(202,202,202,.85)';ctx.lineWidth=2;
       ctx.strokeRect(c.x-r,c.y-r*0.6,r*2,r*1.2);
-      ctx.fillStyle='rgba(255,190,90,.95)';ctx.font='bold 13px IBM Plex Mono';
+      ctx.fillStyle='rgba(220,220,220,.95)';ctx.font='bold 13px IBM Plex Mono';
       ctx.fillText(z[2],c.x-r,c.y-r*0.6-6);
     });
     /* concentric TFR rings around the pad: 5 / 12 / 30 NM */
     [[9.26,'5 NM'],[22.2,'12 NM'],[55.6,'30 NM TFR']].forEach(rr=>{
-      ctx.strokeStyle='rgba(0,229,255,.7)';ctx.lineWidth=1.6;
+      ctx.strokeStyle='rgba(204,204,204,.7)';ctx.lineWidth=1.6;
       ctx.beginPath();ctx.arc(pad.x,pad.y,rr[0]/kmPerPxX,0,2*Math.PI);ctx.stroke();
-      ctx.fillStyle='rgba(0,229,255,.85)';ctx.font='12px IBM Plex Mono';
+      ctx.fillStyle='rgba(204,204,204,.85)';ctx.font='12px IBM Plex Mono';
       ctx.fillText(rr[1],pad.x+rr[0]/kmPerPxX*0.71+4,pad.y-rr[0]/kmPerPxX*0.71);
     });
     /* pad marker + azimuth arrow */
-    ctx.fillStyle='#ff5566';
+    ctx.fillStyle='#d66e6e';
     ctx.beginPath();ctx.moveTo(pad.x,pad.y-10);ctx.lineTo(pad.x+7,pad.y);ctx.lineTo(pad.x,pad.y+10);ctx.lineTo(pad.x-7,pad.y);ctx.closePath();ctx.fill();
     const tip=downrange(150,0);
-    ctx.strokeStyle='#00ff9d';ctx.lineWidth=3;
+    ctx.strokeStyle='#7fbf98';ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(pad.x,pad.y);ctx.lineTo(tip.x,tip.y);ctx.stroke();
-    ctx.fillStyle='#00ff9d';ctx.font='bold 13px IBM Plex Mono';
+    ctx.fillStyle='#7fbf98';ctx.font='bold 13px IBM Plex Mono';
     ctx.fillText('AZ '+this.launchAz(L).toFixed(0)+'° ('+(L.orbit||'LEO')+')',tip.x+6,tip.y);
-    ctx.fillStyle='#ffb0ba';ctx.font='bold 13px IBM Plex Mono';
+    ctx.fillStyle='#d66e6e';ctx.font='bold 13px IBM Plex Mono';
     ctx.fillText('PAD · '+L.lat.toFixed(3)+'°, '+L.lon.toFixed(3)+'°',pad.x+12,pad.y+22);
     document.getElementById('d-tfr-note').textContent=
       'ILLUSTRATIVE TFR + HAZARD GEOMETRY for the planned '+(L.orbit||'LEO')+' azimuth — live FAA NOTAM polygons require authenticated API access. Safety zones map directly to the launch azimuth and staging points before the vehicle ever leaves the pad.';
@@ -6148,8 +6540,7 @@ const CA={
     ];
     let rows=null,src=null;
     for(const base of bases){
-      const urls=[base,'https://corsproxy.io/?'+encodeURIComponent(base),
-                  'https://api.allorigins.win/raw?url='+encodeURIComponent(base)];
+      const urls=urlChain(base);
       for(const u of urls){
         try{
           const r=await fetch(u,{signal:fetchTimeoutSignal(20000)});
@@ -6162,7 +6553,7 @@ const CA={
       if(rows&&rows.length) break;
     }
     if(!rows||!rows.length){
-      rows=this.sampleRows();src='⚠ FEED UNREACHABLE — EMBEDDED SAMPLE';
+      rows=[];src='SOCRATES FEED UNREACHABLE · NO CONJUNCTION DATA';
     }
     this._src=src;
     this.rows=rows;
@@ -6262,8 +6653,7 @@ const CA={
       if(hit){this._tleCache[id]=hit.tle;return hit.tle;}
     }
     const base='https://celestrak.org/NORAD/elements/gp.php?CATNR='+id+'&FORMAT=tle';
-    for(const u of [base,'https://corsproxy.io/?'+encodeURIComponent(base),
-                    'https://api.allorigins.win/raw?url='+encodeURIComponent(base)]){
+    for(const u of urlChain(base)){
       try{
         const r=await fetch(u,{signal:fetchTimeoutSignal(15000)});
         if(!r.ok) continue;
@@ -6320,21 +6710,21 @@ const CA={
         new THREE.LineBasicMaterial({color,transparent:true,opacity:.9}));
       line.name=name;T.scene.add(line);
     };
-    mkOrbit(this.t1,0x00e5ff,'caOrb1');
-    mkOrbit(this.t2,0xffd24a,'caOrb2');
+    mkOrbit(this.t1,0xcccccc,'caOrb1');
+    mkOrbit(this.t2,0xe0e0e0,'caOrb2');
     const s1=this.eciAt(this.t1,r.tca),s2=this.eciAt(this.t2,r.tca);
     if(s1&&s2){
       const p1=new THREE.Vector3(s1.r[0],s1.r[2],-s1.r[1]);
       const p2=new THREE.Vector3(s2.r[0],s2.r[2],-s2.r[1]);
       const mk=(p,c,n)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(130,16,16),
         new THREE.MeshBasicMaterial({color:c}));m.position.copy(p);m.name=n;T.scene.add(m);};
-      mk(p1,0x00e5ff,'caMk1');mk(p2,0xffd24a,'caMk2');
+      mk(p1,0xcccccc,'caMk1');mk(p2,0xe0e0e0,'caMk2');
       const miss=new THREE.Line(new THREE.BufferGeometry().setFromPoints([p1,p2]),
-        new THREE.LineBasicMaterial({color:0xff5566}));
+        new THREE.LineBasicMaterial({color:0xd66e6e}));
       miss.name='caMiss';T.scene.add(miss);
       const mid=p1.clone().add(p2).multiplyScalar(0.5);
       const tcaMk=new THREE.Mesh(new THREE.TorusGeometry(420,40,10,40),
-        new THREE.MeshBasicMaterial({color:0xff5566,transparent:true,opacity:.65}));
+        new THREE.MeshBasicMaterial({color:0xd66e6e,transparent:true,opacity:.65}));
       tcaMk.position.copy(mid);tcaMk.lookAt(0,0,0);tcaMk.name='caTCA';T.scene.add(tcaMk);
       /* conjunction SUB-POINT: rotate the ECI midpoint into ECEF at TCA → geodetic */
       const gm=gmst_from_jd(julianDate(r.tca)),ct=Math.cos(gm),st=Math.sin(gm);
@@ -6346,12 +6736,12 @@ const CA={
       /* the sub-point lives on the rotating earthMesh so it tracks GMST */
       const la=lat*D2R,lo=lon*D2R;
       const sp=new THREE.Mesh(new THREE.SphereGeometry(110,12,12),
-        new THREE.MeshBasicMaterial({color:0xff5fd2}));
+        new THREE.MeshBasicMaterial({color:0x9a9a9a}));
       sp.position.set(RE_KM*1.01*Math.cos(la)*Math.cos(lo),RE_KM*1.01*Math.sin(la),-RE_KM*1.01*Math.cos(la)*Math.sin(lo));
       sp.name='caSub';
       if(T.earthMesh) T.earthMesh.add(sp); else T.scene.add(sp);
       const sl=new THREE.Line(new THREE.BufferGeometry().setFromPoints([sp.position.clone().multiplyScalar(1.0),sp.position.clone().normalize().multiplyScalar(mid.length())]),
-        new THREE.LineBasicMaterial({color:0xff5fd2,transparent:true,opacity:.3}));
+        new THREE.LineBasicMaterial({color:0x9a9a9a,transparent:true,opacity:.3}));
       sl.name='caSubLine';
       if(T.earthMesh) T.earthMesh.add(sl); else T.scene.add(sl);
     }
@@ -6363,8 +6753,8 @@ const CA={
     c.width=c.clientWidth*2;c.height=c.clientHeight*2;
     const ctx=c.getContext('2d'),W=c.width,H=c.height;
     ctx.clearRect(0,0,W,H);
-    ctx.fillStyle='rgba(2,8,14,.6)';ctx.fillRect(0,0,W,H);
-    const series=[[this.t1,'#00e5ff'],[this.t2,'#ffd24a']].map(([tle,col])=>{
+    ctx.fillStyle='rgba(4,4,4,.6)';ctx.fillRect(0,0,W,H);
+    const series=[[this.t1,'#cccccc'],[this.t2,'#e0e0e0']].map(([tle,col])=>{
       const pts=[];
       for(let k=0;k<=96;k++){
         const d=new Date(this.cur.tca.getTime()+((k/96)-0.5)*24*3600*1000);
@@ -6380,21 +6770,21 @@ const CA={
     let aMin=Math.min(...all),aMax=Math.max(...all);
     const pad=(aMax-aMin)*0.15+0.5;aMin-=pad;aMax+=pad;
     /* TCA line */
-    ctx.strokeStyle='rgba(255,85,102,.8)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
+    ctx.strokeStyle='rgba(214,110,110,.8)';ctx.lineWidth=2;ctx.setLineDash([6,4]);
     ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(255,85,102,.9)';ctx.font='13px IBM Plex Mono';ctx.fillText('TCA',W/2+5,14);
+    ctx.fillStyle='rgba(214,110,110,.9)';ctx.font='13px IBM Plex Mono';ctx.fillText('TCA',W/2+5,14);
     series.forEach(s=>{
       ctx.beginPath();
       s.pts.forEach((p,i)=>{
         const x=p.k/96*W,y=H-(p.a-aMin)/(aMax-aMin)*H;
         i?ctx.lineTo(x,y):ctx.moveTo(x,y);
       });
-      ctx.strokeStyle=s.col;ctx.lineWidth=2.5;ctx.shadowColor=s.col;ctx.shadowBlur=5;ctx.stroke();ctx.shadowBlur=0;
+      ctx.strokeStyle=s.col;ctx.lineWidth=2.5;ctx.shadowColor=s.col;ctx.shadowBlur=0;ctx.stroke();ctx.shadowBlur=0;
       const last=s.pts[s.pts.length-1];
       ctx.fillStyle=s.col;ctx.font='13px IBM Plex Mono';
-      ctx.fillText(s.tle.name.slice(0,14)+' a≈'+last.a.toFixed(1)+' km',8,s.col==='#00e5ff'?16:32);
+      ctx.fillText(s.tle.name.slice(0,14)+' a≈'+last.a.toFixed(1)+' km',8,s.col==='#cccccc'?16:32);
     });
-    ctx.fillStyle='rgba(140,165,185,.85)';ctx.font='12px IBM Plex Mono';
+    ctx.fillStyle='rgba(180,180,180,.85)';ctx.font='12px IBM Plex Mono';
     ctx.fillText('OSCULATING SMA · TCA ± 12 H',W-220,H-8);
   },
 
@@ -6403,7 +6793,7 @@ const CA={
     const row=(k,v)=>'<div class="ssi-k">'+k+'</div><div class="ssi-v">'+v+'</div>';
     el.innerHTML='<div class="ssi-name" style="font-size:11px;">CONJUNCTION GEOMETRY</div>'+
       '<div class="ssi-grid">'+
-      row('OBJECTS','<span style="color:#00e5ff">'+r.n1+'</span> ('+r.id1+')<br/><span style="color:#ffd24a">'+r.n2+'</span> ('+r.id2+')')+
+      row('OBJECTS','<span style="color:#cccccc">'+r.n1+'</span> ('+r.id1+')<br/><span style="color:#e0e0e0">'+r.n2+'</span> ('+r.id2+')')+
       row('TCA',fmtDateUTC(r.tca)+'<span class="ssi-sub">'+fmtLocalTime(r.tca,SITE.tz)+' LOCAL</span>')+
       row('MISS DIST',(r.rangeKm<1?(r.rangeKm*1000).toFixed(0)+' m':r.rangeKm.toFixed(2)+' km'))+
       row('REL VELOCITY',r.relV.toFixed(2)+' km/s')+
@@ -6598,12 +6988,15 @@ window.addEventListener('load',async()=>{
     }
   }
 
-  document.getElementById('load-msg').textContent='Fetching TLE catalog from Celestrak…';
+  /* the page is usable now; the catalog streams in behind it */
+  document.getElementById('loading-overlay').classList.add('hide');
+  setTimeout(()=>{document.getElementById('loading-overlay').style.display='none';},500);
+  document.getElementById('sat-list').innerHTML='<div class="loading-list">Loading Space Stations from CelesTrak…</div>';
   let raw=await fetchGroup('stations');
   allSats=raw?parseCatalog(raw):getFallbackSats();
-  if(!raw) document.getElementById('sat-list').innerHTML=
-    '<div class="loading-list" style="color:var(--amber)">⚠ CORS blocked.<br>Showing embedded samples.</div>';
   populateList(allSats);
+  if(!raw) document.getElementById('sat-list').innerHTML=
+    '<div class="loading-list">Could not reach CelesTrak.<br>Check the network and pick a group again.</div>';
 
   /* restore the ActiveSelection array (NORAD ids), else default to ISS */
   let restored=0;
@@ -6620,9 +7013,6 @@ window.addEventListener('load',async()=>{
     if(iss) SEL.push({tle:iss,color:SEL_COLORS[0]});
   }
   if(SEL.length){renderAllSel();startTimers();}
-
-  document.getElementById('loading-overlay').classList.add('hide');
-  setTimeout(()=>{document.getElementById('loading-overlay').style.display='none';},700);
   setTimeout(()=>fetchConditions(),1500);
 
   /* restore active tab last (lazily boots its module) */
