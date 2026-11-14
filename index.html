@@ -859,6 +859,9 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
 .sbdb-sub{display:block;color:var(--muted);font-size:10px;margin-top:2px;}
 .verdict{font-family:var(--font-ui)!important;background:transparent!important;border:1px solid #333!important;color:#bdbdbd!important;}
 .verdict.v-vis{color:var(--green)!important;border-color:var(--green)!important;}
+#sky-btns{top:28px!important;}
+.hud-btn.sm,#sky-btns .hud-btn{white-space:nowrap;font-size:10px!important;padding:3px 8px!important;}
+.no-webgl{display:flex;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center;color:var(--muted);font-size:11px;}
 </style></head><body data-view="tracker">
 
 <div id="loading-overlay">
@@ -1049,7 +1052,7 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
         <button class="hz-btn" data-h="6"  onclick="setHorizon(6,this)">6H</button>
         <button class="hz-btn" data-h="12" onclick="setHorizon(12,this)">12H</button>
         <button class="hz-btn" data-h="18" onclick="setHorizon(18,this)">18H</button>
-        <button class="hz-btn on" data-h="24" onclick="setHorizon(24,this)">1 DAY · 24H MAX</button>
+        <button class="hz-btn on" data-h="24" onclick="setHorizon(24,this)">24H</button>
       </div>
     </div>
   </div>
@@ -2367,9 +2370,18 @@ function initThree3D(cid,opts={}){
   return api;
 }
 
+/* WebGL can be unavailable (remote desktops, blocked GPU drivers). The 3-D
+   panels then show a note and everything else keeps working. */
+let WEBGL_OK=true;
 function initThreeScenes(){
-  if(!eciThree)  eciThree =initThree3D('eci-container');
-  if(!ecefThree) ecefThree=initThree3D('ecef-container');
+  try{
+    if(!eciThree)  eciThree =initThree3D('eci-container');
+    if(!ecefThree) ecefThree=initThree3D('ecef-container');
+  }catch(e){
+    WEBGL_OK=false;eciThree=null;ecefThree=null;
+    ['eci-container','ecef-container'].forEach(id=>{const c=document.getElementById(id);
+      if(c) c.innerHTML='<div class="no-webgl">3-D view unavailable: this browser could not create a WebGL context.</div>';});
+  }
 }
 
 function clearOrbit3D(scene,tag){
@@ -3111,8 +3123,8 @@ function renderAllSel(){
         ecefPts.push([xECEF[3*k],xECEF[3*k+1],xECEF[3*k+2]]);
     }
     const c=parseInt(s.color.slice(1),16);
-    drawOrbit3D(eciThree.scene,eciPts,c,'-'+si,c);
-    drawOrbit3D(ecefThree.scene,ecefPts,c,'-'+si,c);
+    if(eciThree) drawOrbit3D(eciThree.scene,eciPts,c,'-'+si,c);
+    if(ecefThree) drawOrbit3D(ecefThree.scene,ecefPts,c,'-'+si,c);
   });
 
   const gtC=document.getElementById('gt-canvas');resizeCanvas(gtC);
@@ -5370,7 +5382,7 @@ const EPH={
       this.plotted.push(plot);
     }
     if(this.isSpacecraft(it.cmd)){
-      TRAJ.load(plot);
+      if(WEBGL_OK) TRAJ.load(plot);
     } else TRAJ.hide();
     if(this.isSmallBody(it.cmd)){
       if(!plot.els&&typeof SS!=='undefined'){const pe=SS.presetEls(it.cmd);if(pe) plot.els=pe;}
@@ -5442,7 +5454,7 @@ const EPH={
     document.getElementById('eph-target-name').textContent=p.name.toUpperCase();
     document.getElementById('eph-target-sub').textContent=p.bodyName+' · '+(p.rows?p.rows.length:0)+' × 30-min steps · 72 h · fetched '+fmtUTCShort(p.fetchedAt)+' UTC';
     if(typeof SS!=='undefined') SS.selectByName(p.name);
-    if(this.isSpacecraft(cmd)) TRAJ.load(p); else TRAJ.hide();
+    if(this.isSpacecraft(cmd)&&WEBGL_OK) TRAJ.load(p); else TRAJ.hide();
     this.renderList();this.renderAll();
   },
   refetch(){
@@ -6886,8 +6898,9 @@ function switchView(v){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));
   try{
   if(v==='catalog'&&!CAT.inited){
-    CAT.init();
-    CAT.loadChecked();
+    if(!WEBGL_OK){document.getElementById('cat-canvas-wrap').innerHTML='<div class="no-webgl">3-D catalog view needs WebGL, which this browser could not provide.</div>';}
+    else CAT.init();
+    if(CAT.inited) CAT.loadChecked();
     const c=STATE._pending&&STATE._pending.cams?STATE._pending.cams.cat:null;
     if(c) STATE.applyCam(CAT.three,c);
   }
@@ -6901,7 +6914,7 @@ function switchView(v){
         const o=document.createElement('option');o.value=i;o.textContent=s.n;sel.appendChild(o);
       });
     }
-    if(!SS.inited){
+    if(!SS.inited&&WEBGL_OK){
       SS.init();
       document.querySelectorAll('.ss-scale-btn').forEach((b,k)=>b.classList.toggle('on',(k===1)===SS.trueScale));
       const c=STATE._pending&&STATE._pending.cams?STATE._pending.cams.ss:null;
@@ -6919,12 +6932,12 @@ function switchView(v){
     if(EPH.activePlot()) setTimeout(()=>EPH.drawChart(),40);
   }
   if(v==='ca'&&!CA.inited){
-    CA.init();
+    try{CA.init();}catch(e){console.warn('CA 3-D unavailable',e);CA.refresh&&CA.refresh();}
     const c=STATE._pending&&STATE._pending.cams?STATE._pending.cams.ca:null;
     if(c) STATE.applyCam(CA.three,c);
   }
   if(v==='disc'&&!DISC.inited){
-    DISC.init();
+    try{DISC.init();}catch(e){console.warn('Discovery 3-D unavailable',e);DISC.inited=true;}
     const c=STATE._pending&&STATE._pending.cams?STATE._pending.cams.sb:null;
     if(c) STATE.applyCam(DISC.three,c);
   }
