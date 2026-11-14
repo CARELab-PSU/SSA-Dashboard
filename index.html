@@ -862,6 +862,11 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
 #sky-btns{top:28px!important;}
 .hud-btn.sm,#sky-btns .hud-btn{white-space:nowrap;font-size:10px!important;padding:3px 8px!important;}
 .no-webgl{display:flex;align-items:center;justify-content:center;height:100%;padding:20px;text-align:center;color:var(--muted);font-size:11px;}
+#sky-btns .hud-btn{position:static!important;}
+#sky-legend{top:52px!important;bottom:auto!important;display:flex;flex-direction:column;gap:3px;font-size:10px!important;font-family:var(--font-ui)!important;color:var(--muted);}
+#sky-sunmoon{font-size:10px!important;font-family:var(--font-ui)!important;}
+.site-lbl{width:44px!important;white-space:nowrap;}
+#oe-grid{grid-template-columns:1fr!important;}
 </style></head><body data-view="tracker">
 
 <div id="loading-overlay">
@@ -1104,7 +1109,7 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
     </div>
     <div class="plot-panel" id="gt-panel">
       <div class="plot-label">GROUND TRACK</div>
-      <div class="plot-status">5 REVS · TERMINATOR LIVE · CLICK TO MOVE SITE</div>
+      <div class="plot-status">Click the map to move the site</div>
       <canvas id="gt-canvas" class="plot-canvas"></canvas>
       <div class="site-info-gt" id="site-label-gt">⬟ PSU (40.79°N, 77.86°W)</div>
       <div class="auto-refresh-badge">
@@ -2504,7 +2509,7 @@ function updateNowMarker(nowP){
 function repaintGroundLive(){
   const gtC=document.getElementById('gt-canvas');
   if(!gtC||!gtC.width||!gtC._bg) return;
-  if(gtC._bg.width!==gtC.width||gtC._bg.height!==gtC.height){gtC._bg=null;return;}
+  if(gtC._bg.width!==gtC.width||gtC._bg.height!==gtC.height){redrawStatic2D();return;}
   const ctx=gtC.getContext('2d'),W=gtC.width,H=gtC.height;
   ctx.drawImage(gtC._bg,0,0);
   drawTerminator(ctx,W,H,EPOCH.now());
@@ -2530,7 +2535,7 @@ function repaintGroundLive(){
 function repaintSkyLive(){
   const c=document.getElementById('sky-canvas');
   if(!c||!c.width||!c._bg) return;
-  if(c._bg.width!==c.width||c._bg.height!==c.height){c._bg=null;return;}
+  if(c._bg.width!==c.width||c._bg.height!==c.height){redrawStatic2D();return;}
   const ctx=c.getContext('2d'),W=c.width,H=c.height;
   ctx.drawImage(c._bg,0,0);
   const cx=W/2,cy=H/2+4,R=Math.min(W,H)*.40;
@@ -2627,7 +2632,9 @@ function _masterFrame(){
   _lastFrameP=nowP;
   EPOCH.tick(nowP);            /* ← single master clock: SGP4 + ephemerides in lockstep */
   const view=document.body.dataset.view||'tracker';
-  if(view==='tracker'&&eciThree&&ecefThree){
+  if(view==='tracker'&&!(eciThree&&ecefThree)){
+    updateNowMarker(nowP);
+  } else if(view==='tracker'&&eciThree&&ecefThree){
     eciThree.ctrl.update(dt);ecefThree.ctrl.update(dt);
     const now=EPOCH.now();
     if(eciThree.earthMesh&&propagationGMST0!==null&&propagationTime!==null){
@@ -3415,10 +3422,22 @@ document.getElementById('cat-select').addEventListener('change',e=>loadCategory(
 function getFallbackSats(){return [];}
 
 /* ════ INIT ════ */
+let _redrawT=null;
+function redrawStatic2D(){
+  if(!SEL.length||!SEL[0].data) return;
+  const gtC=document.getElementById('gt-canvas'),skyC=document.getElementById('sky-canvas');
+  resizeCanvas(gtC);resizeCanvas(skyC);
+  if(gtC.width>1){gtC._bg=null;drawGroundTrack(gtC,SEL);gtC._bg=cloneCanvas(gtC);}
+  if(skyC.width>1){skyC._bg=null;drawSkyPlot(skyC,SEL);skyC._bg=cloneCanvas(skyC);}
+  _gtLast=0;_skyLast=0;
+}
 function setupResizers(){
   ['gt-canvas','sky-canvas'].forEach(id=>{
     let c=document.getElementById(id);
-    new ResizeObserver(()=>{requestAnimationFrame(()=>resizeCanvas(c));}).observe(c.parentElement);
+    new ResizeObserver(()=>{
+      clearTimeout(_redrawT);
+      _redrawT=setTimeout(()=>{redrawStatic2D();},120);
+    }).observe(c.parentElement);
   });
 }
 
