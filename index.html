@@ -867,6 +867,10 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
 #sky-sunmoon{font-size:10px!important;font-family:var(--font-ui)!important;}
 .site-lbl{width:44px!important;white-space:nowrap;}
 #oe-grid{grid-template-columns:1fr!important;}
+#eph-empty{font-family:var(--font-ui)!important;font-size:13px!important;color:var(--text)!important;letter-spacing:0!important;line-height:1.6;}
+#eph-empty span{display:block;margin-top:8px;font-size:12px;color:var(--muted);max-width:640px;margin-left:auto;margin-right:auto;}
+#eph-relay-note{color:var(--red)!important;}
+#sky-sunmoon{top:112px!important;bottom:auto!important;left:11px!important;right:auto!important;text-align:left!important;color:var(--muted)!important;}
 </style></head><body data-view="tracker">
 
 <div id="loading-overlay">
@@ -1308,10 +1312,12 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
     <div id="eph-windows"></div>
     <div id="eph-log"></div>
     <div id="eph-empty">
-      ◈ SELECT A SOLAR-SYSTEM TARGET — OR CLICK ONE IN THE ORBIT MAP ABOVE<br/>
-      <span style="font-size:9px;">Apparent RA/DEC · AZ/EL · magnitude · range · elongation are fetched live from
-      JPL Horizons for your observer site, screened against twilight for true visibility windows. Plot up to six
-      targets together; small bodies get their heliocentric orbit drawn in the 3-D map from live osculating elements.</span>
+      Search for a target or pick one from the list.<br/>
+      <span>For each target Horizons returns RA/Dec, azimuth and elevation, magnitude, range and solar elongation
+      for your site over the next 72 hours, with twilight marked. Asteroids and comets get their heliocentric
+      orbit drawn in the map. Spacecraft get a geocentric trajectory view, and if Horizons has no data for the
+      current date, the page says when its data ends.</span>
+      <span id="eph-relay-note"></span>
     </div>
     <div class="eph-att" id="eph-att" style="display:none;">SOURCE: JPL HORIZONS API · ASTROMETRIC RA/DEC (ICRF) · AIRLESS APPARENT AZ/EL · TWILIGHT FROM HORIZONS SOLAR-PRESENCE FLAGS · PLANET MAP: JPL/STANDISH MEAN ELEMENTS (1800–2050)</div>
   </div>
@@ -1814,12 +1820,31 @@ function sgp4ECI(satrec, date){
    ╚══════════════════════════════════════════════════════════════════╝ */
 /* robust fetch timeout: AbortSignal.timeout() is unavailable on older lab
    browsers — every network failure traced back to this. Polyfill-safe helper. */
-/* Direct fetch first. The free public CORS proxies this used to fall back on
-   (corsproxy.io, allorigins) no longer serve production sites, so they only
-   added timeouts. CelesTrak, JPL and OrbitSmith all send CORS headers. If a
-   lab network ever needs a proxy, set CORS_PROXY to its URL prefix. */
-const CORS_PROXY='';
-function urlChain(u){return CORS_PROXY?[u,CORS_PROXY+encodeURIComponent(u)]:[u];}
+/* Network routing.
+   CelesTrak and OrbitSmith allow direct browser requests. JPL's SSD APIs
+   (Horizons, Horizons Lookup, SBDB) do not, so the browser blocks their
+   responses. The free public proxies this page used to rely on (corsproxy.io,
+   allorigins) no longer serve production sites. JPL requests therefore go
+   through the lab's own relay: proxy/jpl-proxy-worker.js in this repo.
+   Set JPL_PROXY_DEFAULT to the deployed Worker URL, or open the page once
+   with ?proxy=<url> (remembered in this browser). */
+const JPL_PROXY_DEFAULT='';
+const JPL_PROXY=(()=>{
+  try{
+    const q=new URLSearchParams(location.search);
+    if(q.has('proxy')){const v=q.get('proxy').trim();
+      if(v) localStorage.setItem('ssa.jplProxy',v); else localStorage.removeItem('ssa.jplProxy');}
+    return localStorage.getItem('ssa.jplProxy')||JPL_PROXY_DEFAULT;
+  }catch(e){return JPL_PROXY_DEFAULT;}
+})();
+const NEEDS_RELAY=/^https:\/\/(ssd|ssd-api)\.jpl\.nasa\.gov\//;
+function urlChain(u){
+  if(NEEDS_RELAY.test(u)) return JPL_PROXY?[JPL_PROXY+(JPL_PROXY.includes('?')?'&':'?')+'url='+encodeURIComponent(u)]:[u];
+  return [u];
+}
+const JPL_BLOCKED_MSG='JPL Horizons does not accept requests made directly from web pages, so this tab needs the lab relay. See proxy/README.md in the repository.';
+document.addEventListener('DOMContentLoaded',()=>{const n=document.getElementById('eph-relay-note');
+  if(n&&!JPL_PROXY) n.textContent='Note: no JPL relay is configured, so requests to Horizons will be blocked by the browser. See proxy/README.md.';});
 function fetchTimeoutSignal(ms){
   try{if(typeof AbortSignal!=='undefined'&&AbortSignal.timeout) return AbortSignal.timeout(ms);}catch(e){}
   try{const c=new AbortController();setTimeout(()=>c.abort(),ms);return c.signal;}catch(e){return undefined;}
@@ -4475,24 +4500,25 @@ const EPHSVC={
   /* trajectory around the sim epoch; if Horizons has no data there, slide the
      window onto the edge of the target's coverage and report it */
   async trajectory(cmd,spanDays){
-    const now=EPOCH.ms(),half=spanDays*43200000;
-    let t0=new Date(now-half),t1=new Date(now+half);
-    let r=await this.geoVectors(cmd,t0,t1);
+    /* Each "No ephemeris after/prior to" answer gives one edge of the target's
+       data span. Clamp the window to every edge learned so far; short
+       missions (Artemis II: 8 days) can report both. */
+    const now=EPOCH.ms(),span=spanDays*86400000;
+    let lo=-Infinity,hi=Infinity,t0=now-span/2,t1=now+span/2,r=null;
+    for(let k=0;k<4;k++){
+      r=await this.geoVectors(cmd,new Date(t0),new Date(t1));
+      if(!r.cov) break;
+      if(r.cov.side==='end') hi=Math.min(hi,r.cov.date.getTime()-300000);
+      else lo=Math.max(lo,r.cov.date.getTime()+300000);
+      if(hi<lo) return{err:'no data'};
+      if(t1>hi){t1=hi;t0=Math.max(lo,t1-span);}
+      if(t0<lo){t0=lo;t1=Math.min(hi,t0+span);}
+    }
+    if(!r||!r.pack) return{err:(r&&r.err)||'no data'};
     let cov=null;
-    for(let k=0;k<3&&r.cov;k++){
-      cov=r.cov;
-      if(cov.side==='end'){t1=new Date(Math.min(t1.getTime(),cov.date.getTime()-60000));t0=new Date(t1.getTime()-2*half);}
-      else{t0=new Date(Math.max(t0.getTime(),cov.date.getTime()+60000));t1=new Date(t0.getTime()+2*half);}
-      r=await this.geoVectors(cmd,t0,t1);
-    }
-    /* the far edge of a short mission can also be inside the window */
-    if(r.cov&&cov&&r.cov.side!==cov.side){
-      const c2=r.cov;
-      if(c2.side==='end') t1=new Date(c2.date.getTime()-60000); else t0=new Date(c2.date.getTime()+60000);
-      r=await this.geoVectors(cmd,t0,t1);
-    }
-    if(!r.pack) return{err:r.err||'no data',cov};
-    return{pack:r.pack,t0,t1,cov};
+    if(now>hi) cov={side:'end',date:new Date(hi+300000)};
+    else if(now<lo) cov={side:'start',date:new Date(lo-300000)};
+    return{pack:r.pack,t0:new Date(t0),t1:new Date(t1),cov};
   },
 
   /* ───── state-vector packets (heliocentric ecliptic J2000, AU & AU/d) ───── */
@@ -5158,6 +5184,7 @@ const TRAJ={
     if(!plot.traj||plot.trajEpoch!==Math.round(EPOCH.ms()/3600000)){
       const r=await EPHSVC.trajectory(plot.cmd,14);
       if(tok!==this._tok) return;
+      if(!r.pack&&r.err==='network'&&!JPL_PROXY){info.textContent=JPL_BLOCKED_MSG;return;}
       if(!r.pack){info.textContent=r.cov?'Horizons has no ephemeris for this target near '+fmtDateUTC(EPOCH.now())+'.':'Trajectory request failed ('+r.err+').';return;}
       const moon=await EPHSVC.geoVectors('301',r.t0,r.t1);
       if(tok!==this._tok) return;
@@ -5358,7 +5385,7 @@ const EPH={
     } else if(res.none){
       box.innerHTML='<div class="sbdb-row nores">No Horizons object matches “'+v.replace(/</g,'&lt;')+'”.<span class="sbdb-sub">Named minor planets are one word, e.g. Kathleenhowell. Numbers work too: 5396.</span></div>';
     } else {
-      box.innerHTML='<div class="sbdb-row nores">Could not reach JPL. Check the network.</div>';
+      box.innerHTML='<div class="sbdb-row nores">'+(JPL_PROXY?'Could not reach JPL through the relay.':JPL_BLOCKED_MSG)+'</div>';
     }
   },
   pickSbdb(cmd,name,kind){
@@ -5424,7 +5451,7 @@ const EPH={
     }
     if(token!==this._token) return;
     document.getElementById('eph-fetch-state').textContent=res&&res.rows.length?'LIVE':res&&res.coverage?'NO CURRENT DATA':'ERROR';
-    if(!res){this.showError('Horizons observer-table request failed (network). The 3-D orbit is still plotted. Try refetch.');return;}
+    if(!res){this.showError(JPL_PROXY?'Horizons request failed through the relay. Try refetch.':JPL_BLOCKED_MSG);return;}
     if(res.coverage){
       plot.coverage=res.coverage;plot.rows=null;
       document.getElementById('eph-target-sub').textContent=(res.coverage.name||it.name)+' · '+res.msg;
