@@ -1764,34 +1764,94 @@ function parseCatalog(raw){
   }
   return sats;
 }
-async function fetchGroup(group){
-  let base=`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`;
-  for(const url of urlChain(base)){
-    try{let r=await fetch(url,{mode:'cors',signal:fetchTimeoutSignal(15000)});if(r.ok){let t=await r.text();if(/^1 \d{5}/m.test(t)&&/^2 \d{5}/m.test(t)&&!/<html/i.test(t.slice(0,400))) return t;}}catch(e){}
+/* CelesTrak refuses to serve the same group twice within its 2-hour update
+   cycle ("GP data has not updated since your last successful download"), and
+   it counts by network address, so a whole lab behind one address shares the
+   limit. Every group is therefore kept in the browser for 2 hours and reused. */
+const TLE_TTL_MS=2*3600*1000;
+const TLECACHE={
+  mem:new Map(),
+  async get(url){
+    const m=this.mem.get(url);
+    if(m) return m;
+    try{
+      const c=await caches.open('ssa-tle-v1'),r=await c.match(url);
+      if(!r) return null;
+      const o={t:+r.headers.get('x-saved')||0,text:await r.text()};
+      this.mem.set(url,o);return o;
+    }catch(e){return null;}
+  },
+  async put(url,text){
+    const o={t:Date.now(),text};this.mem.set(url,o);
+    try{const c=await caches.open('ssa-tle-v1');
+      await c.put(url,new Response(text,{headers:{'x-saved':String(o.t),'content-type':'text/plain'}}));}catch(e){}
   }
-  return null;
+};
+const isTLE=t=>/^1 \d{5}/m.test(t)&&/^2 \d{5}/m.test(t)&&!/<html/i.test(t.slice(0,400));
+let LAST_TLE_NOTE='';
+async function fetchGroup(group){
+  const url=`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`;
+  const hit=await TLECACHE.get(url);
+  if(hit&&Date.now()-hit.t<TLE_TTL_MS) return hit.text;
+  try{
+    const r=await fetch(url,{mode:'cors',signal:fetchTimeoutSignal(60000)});
+    const t=await r.text();
+    if(r.ok&&isTLE(t)){TLECACHE.put(url,t);return t;}
+    if(/has not updated/i.test(t)) LAST_TLE_NOTE='CelesTrak limits each group to one download per 2 hours from one network address.';
+  }catch(e){}
+  return hit?hit.text:null;   /* an older copy beats nothing */
+}
+/* feed a saved copy through the same batch interface, without blocking the page */
+async function replayTLE(text,onBatch,isLive){
+  const lines=text.split('\n');let n=0,i=0;
+  while(i<lines.length){
+    const batch=[],end=Math.min(lines.length,i+3000);
+    for(;i+2<end+2&&i+2<lines.length;){
+      const a=lines[i].trim(),b=lines[i+1].trim(),c=lines[i+2].trim();
+      if(a&&!/^[12] /.test(a)&&/^1 /.test(b)&&/^2 /.test(c)){
+        const t=parseTLE(a,b,c);if(t){t.rawL1=b;t.rawL2=c;batch.push(t);}
+        i+=3;
+      } else i++;
+      if(i>=end) break;
+    }
+    if(i+2>=lines.length) i=lines.length;
+    if(!isLive()) return n;
+    if(batch.length){n+=batch.length;onBatch(batch);}
+    await new Promise(r=>setTimeout(r,0));
+  }
+  return n;
 }
 /* Read a CelesTrak TLE response as it downloads and hand over each batch of
    complete element sets, so the list fills while the transfer is still running.
    Returns the number of objects, or -1 if the source could not be read. */
 async function streamGroup(group,onBatch,isLive){
   const url=`https://celestrak.org/NORAD/elements/gp.php?GROUP=${group}&FORMAT=tle`;
-  let count=0;
+  let count=0,full='';
+  LAST_TLE_NOTE='';
+  const hit=await TLECACHE.get(url);
+  if(hit&&Date.now()-hit.t<TLE_TTL_MS) return replayTLE(hit.text,onBatch,isLive);
+  const stale=()=>hit?replayTLE(hit.text,onBatch,isLive):-1;
   try{
     const r=await fetch(url,{mode:'cors',signal:fetchTimeoutSignal(120000)});
-    if(!r.ok) return -1;
+    if(!r.ok){
+      try{if(/has not updated/i.test(await r.text())) LAST_TLE_NOTE='CelesTrak limits each group to one download per 2 hours from one network address. Try again later.';}catch(e){}
+      return stale();
+    }
     if(!r.body||!r.body.getReader){
-      const sats=parseCatalog(await r.text());
-      if(sats.length) onBatch(sats);
-      return sats.length;
+      const txt=await r.text(),sats=parseCatalog(txt);
+      if(sats.length){TLECACHE.put(url,txt);onBatch(sats);}
+      return sats.length||stale();
     }
     const rd=r.body.getReader(),dec=new TextDecoder();
     let buf='',lines=[],sniffed=false;
     for(;;){
       const{done,value}=await rd.read();
       if(!isLive()){try{rd.cancel();}catch(e){}return count;}
-      buf+=done?dec.decode():dec.decode(value,{stream:true});
-      if(!sniffed&&buf.length>40){sniffed=true;if(/<html|<!doctype/i.test(buf.slice(0,400))){try{rd.cancel();}catch(e){}return -1;}}
+      const piece=done?dec.decode():dec.decode(value,{stream:true});
+      buf+=piece;full+=piece;
+      if(!sniffed&&buf.length>40){sniffed=true;
+        if(/has not updated/i.test(buf)){LAST_TLE_NOTE='CelesTrak limits each group to one download per 2 hours from one network address. Try again later.';try{rd.cancel();}catch(e){}return stale();}
+        if(/<html|<!doctype/i.test(buf.slice(0,400))){try{rd.cancel();}catch(e){}return stale();}}
       const parts=buf.split('\n');buf=done?'':parts.pop();
       for(const q of parts){const t=q.trim();if(t) lines.push(t);}
       const batch=[];let i=0;
@@ -1806,8 +1866,9 @@ async function streamGroup(group,onBatch,isLive){
       if(batch.length){count+=batch.length;onBatch(batch);}
       if(done) break;
     }
+    if(count) TLECACHE.put(url,full);
     return count;
-  }catch(e){return count||-1;}
+  }catch(e){return count||stale();}
 }
 let _catTok=0;
 async function loadCategory(group){
@@ -1829,7 +1890,7 @@ async function loadCategory(group){
   if(tok!==_catTok) return;
   if(!allSats.length){
     cnt.textContent='0 objects';
-    list.innerHTML='<div class="loading-list">'+(n<0?'Could not reach CelesTrak for this group.<br>Check the network and pick the group again.':'CelesTrak returned no objects for this group.')+'</div>';
+    list.innerHTML='<div class="loading-list">'+(LAST_TLE_NOTE||(n<0?'Could not reach CelesTrak for this group.<br>Check the network and pick the group again.':'CelesTrak returned no objects for this group.'))+'</div>';
     return;
   }
   cnt.textContent=allSats.length+' objects';
