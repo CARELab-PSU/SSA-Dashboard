@@ -8,16 +8,19 @@ const SWX={
     /* the two feeds are independent: show each as soon as it arrives */
     get('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json').then(kp=>{
       if(!kp||!kp.length) return;
-      const k=parseFloat(kp[kp.length-1].kp_index??kp[kp.length-1].estimated_kp);
+      const last=kp[kp.length-1],k=parseFloat(last.estimated_kp??last.kp_index);
       if(!isFinite(k)) return;
       const e=document.getElementById('ep-kp');
       e.textContent='Kp '+k.toFixed(1);e.className=k>=5?'storm':'';
       e.title='Planetary K index (NOAA SWPC). '+(k<4?'Quiet field.':k<5?'Unsettled.':'Geomagnetic storm: expect higher drag in LEO.');
     });
     get('https://services.swpc.noaa.gov/products/summary/10cm-flux.json').then(f=>{
-      if(!f||!f.Flux) return;
+      /* SWPC has served this both as {Flux:"124"} and as [{flux:124}] */
+      const rec=Array.isArray(f)?f[f.length-1]:f;
+      const v=rec?parseFloat(rec.flux??rec.Flux):NaN;
+      if(!isFinite(v)) return;
       const e=document.getElementById('ep-f107');
-      e.textContent='F10.7 '+parseFloat(f.Flux).toFixed(0)+' sfu';
+      e.textContent='F10.7 '+v.toFixed(0)+' sfu';
       e.title='10.7 cm solar radio flux (NOAA SWPC), the standard proxy for thermospheric density and drag.';
     });
   },

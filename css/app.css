@@ -905,3 +905,7 @@ body[data-frame="ecef"] #eci-panel{visibility:hidden;}
 #cat-toolbar .ct-group:nth-child(2),#cat-toolbar .ct-group:nth-child(3){display:none!important;}
 #ep-wx{margin-left:auto;display:flex;gap:14px;font-family:var(--font-num);font-size:11px;color:#9a9a9a;white-space:nowrap;padding-left:14px;}
 #ep-wx .storm{color:var(--red);}
+/* observer column: plots take whatever height is left, whichever strips are showing */
+#main{display:flex!important;flex-direction:column;}
+#main>*{flex-shrink:0;}
+#plots-grid{flex:1 1 0!important;min-height:0;}
