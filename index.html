@@ -871,6 +871,31 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
 #eph-empty span{display:block;margin-top:8px;font-size:12px;color:var(--muted);max-width:640px;margin-left:auto;margin-right:auto;}
 #eph-relay-note{color:var(--red)!important;}
 #sky-sunmoon{top:112px!important;bottom:auto!important;left:11px!important;right:auto!important;text-align:left!important;color:var(--muted)!important;}
+#pass-board{display:flex!important;gap:18px;max-height:292px!important;overflow:hidden!important;padding:8px 14px 8px!important;}
+#pb-left{flex:1;min-width:0;display:flex;flex-direction:column;}
+#pb-scroll{flex:1;overflow-y:auto;min-height:60px;}
+#pb-table thead th{position:sticky;top:0;background:#000;z-index:1;}
+#pb-tabs{display:flex;gap:2px;flex-shrink:0;}
+.pb-tab{background:transparent;border:0;border-bottom:1px solid transparent;color:var(--muted);font-family:var(--font-ui);font-size:12px;padding:3px 10px 5px;cursor:pointer;white-space:nowrap;}
+.pb-tab:hover{color:var(--text);}
+.pb-tab.on{color:var(--text);border-bottom-color:var(--text);}
+.pb-head{align-items:center!important;}
+.pb-sub{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#pb-filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;font-size:11px;color:#9a9a9a;margin:2px 0 6px;}
+#pb-filters select,#pb-filters input:not([type=checkbox]){background:#000;border:1px solid #2a2a2a;color:var(--text);font-family:var(--font-ui);font-size:11px;padding:2px 5px;border-radius:3px;}
+#pb-filters input:not([type=checkbox]){width:170px;}
+#pb-filters input[type=checkbox]{accent-color:#bdbdbd;vertical-align:-2px;}
+#pb-table tr.cur td{background:rgba(127,191,152,.07);}
+#pb-table tr.cur td:first-child{box-shadow:inset 2px 0 0 var(--green)!important;padding-left:8px;}
+#pb-table tr.picked td:first-child{font-weight:500;}
+.pb-vis{color:var(--green)!important;}
+#sat-data{width:268px;flex-shrink:0;border-left:1px solid var(--border);padding-left:16px;overflow-y:auto;}
+.sd-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sd-state{font-size:11px;color:#9a9a9a;margin:3px 0 8px;}
+.sd-up{color:var(--green);}
+.sd-grid{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:11px;}
+.sd-k{color:var(--muted);}
+.sd-v{font-family:var(--font-num);color:var(--text);text-align:right;white-space:nowrap;}
 </style></head><body data-view="tracker">
 
 <div id="loading-overlay">
@@ -1069,15 +1094,37 @@ select.hud-sel:focus,.site-input:focus,#search-wrap input:focus,#eph-custom-inp:
 
   <!-- PASS BOARD: one row per tracked object -->
   <div id="pass-board">
-    <div class="pb-head">
-      <span class="pb-title">Passes over the observer site</span>
-      <span class="pb-sub" id="pb-sub">Elevation above 0°. Naked-eye visible means the object is sunlit, above 5°, and the Sun is below −6° at the site.</span>
-      <button class="pt-export" onclick="exportCSV()" title="Export the primary object's passes as CSV">Export CSV</button>
+    <div id="pb-left">
+      <div class="pb-head">
+        <div id="pb-tabs">
+          <button class="pb-tab on" data-tab="tracked" onclick="PB.setTab('tracked')">Tracked</button>
+          <button class="pb-tab" data-tab="passes" onclick="PB.setTab('passes')">Current and upcoming passes</button>
+          <button class="pb-tab" data-tab="inview" onclick="PB.setTab('inview')">In view now</button>
+          <button class="pb-tab" data-tab="geo" onclick="PB.setTab('geo')">Always in view (GEO)</button>
+        </div>
+        <span class="pb-sub" id="pb-sub"></span>
+        <button class="pt-export" onclick="exportCSV()" title="Export the primary object's passes as CSV">Export CSV</button>
+      </div>
+      <div id="pb-filters" style="display:none;">
+        <label>Next <select id="pbf-hours" onchange="PB.rescan()"><option>1</option><option selected>2</option><option>4</option><option>6</option></select> h</label>
+        <label>Max elevation above <select id="pbf-minel" onchange="PB.render()"><option>0</option><option>10</option><option>20</option><option selected>30</option><option>45</option><option>60</option></select>°</label>
+        <label><input type="checkbox" id="pbf-vis" onchange="PB.render()"/> Naked-eye visible only</label>
+        <label><input type="checkbox" id="pbf-noday" onchange="PB.render()"/> Exclude daytime passes</label>
+        <input id="pbf-name" placeholder="Name or NORAD contains" oninput="PB.render()"/>
+        <button class="hud-btn sm" onclick="PB.rescan()">Recalculate</button>
+      </div>
+      <div id="pb-scroll">
+        <table id="pb-table">
+          <thead id="pb-thead"></thead>
+          <tbody id="pb-body"><tr><td colspan="7" class="pb-empty">Select an object from the list.</td></tr></tbody>
+        </table>
+      </div>
     </div>
-    <table id="pb-table">
-      <thead><tr><th>Object</th><th>Status</th><th>Rise (AOS)</th><th>Set (LOS)</th><th>Max el</th><th>Next naked-eye pass</th><th>TLE age</th></tr></thead>
-      <tbody id="pb-body"><tr><td colspan="7" class="pb-empty">Select an object from the list.</td></tr></tbody>
-    </table>
+    <div id="sat-data">
+      <div class="sd-name" id="sd-name">No object tracked</div>
+      <div class="sd-state" id="sd-state">&nbsp;</div>
+      <div class="sd-grid" id="sd-grid"></div>
+    </div>
   </div>
 
   <!-- OBSERVING CONDITIONS STRIP -->
@@ -2478,8 +2525,9 @@ let _gtLast=0,_skyLast=0,_metaLast=0,_sunLast=0;
 function cloneCanvas(c){const o=document.createElement('canvas');o.width=c.width;o.height=c.height;o.getContext('2d').drawImage(c,0,0);return o;}
 
 let _repropLast=0;
+let _pbIdle=0;
 function updateNowMarker(nowP){
-  if(!SEL.length) return;
+  if(!SEL.length){if(nowP-_pbIdle>500){_pbIdle=nowP;renderPassBoard();}return;}
   const simMs=EPOCH.ms();
   /* epoch scrubbed/run beyond the propagated window → regenerate trajectories */
   const D0=SEL[0].data;
@@ -2904,7 +2952,270 @@ function nextNakedEye(S,elapsed){
   const v=_deepVis[key];
   return v===undefined?'scan':v;
 }
+/* ════ OBS · one-shot topocentric state from SGP4 ════
+   Az/El from the ECEF line of sight rotated into the site's ENU frame.
+   RA/Dec are topocentric, in the SGP4 output frame (TEME, equator of date);
+   they differ from J2000 by precession since 2000 (about 0.35° in 2026).
+   Range rate uses the site's inertial velocity ω×r. */
+const OBS={
+  ctx(){return{site:geo2ecef(SITE.lat_deg,SITE.lon_deg,SITE.h_m),R:topoRotm(SITE.lat_deg,SITE.lon_deg)};},
+  frame(d){const g=gmst_from_jd(julianDate(d));return{d,c:Math.cos(g),s:Math.sin(g),su:null};},
+  look(satrec,F,C,full){
+    const pv=sgp4ECI(satrec,F.d);if(!pv||!isFinite(pv.r[0])) return null;
+    const r=pv.r,xf=F.c*r[0]+F.s*r[1],yf=-F.s*r[0]+F.c*r[1],zf=r[2];
+    const dx=xf-C.site[0],dy=yf-C.site[1],dz=zf-C.site[2],R=C.R;
+    const e=R[0]*dx+R[1]*dy+R[2]*dz,n=R[3]*dx+R[4]*dy+R[5]*dz,u=R[6]*dx+R[7]*dy+R[8]*dz;
+    const rng=Math.hypot(dx,dy,dz);
+    const o={el:Math.asin(u/rng)*R2D,az:(Math.atan2(e,n)*R2D+360)%360,rng,r};
+    if(!full) return o;
+    const X=C.site[0],Y=C.site[1],Z=C.site[2];
+    const sx=F.c*X-F.s*Y,sy=F.s*X+F.c*Y,sz=Z;
+    const px=r[0]-sx,py=r[1]-sy,pz=r[2]-sz,v=pv.v;
+    o.ra=((Math.atan2(py,px)*R2D+360)%360)/15;
+    o.dec=Math.asin(pz/rng)*R2D;
+    o.rr=(px*(v[0]+WE*sy)+py*(v[1]-WE*sx)+pz*v[2])/rng;
+    const rm=Math.hypot(r[0],r[1],r[2]);
+    o.alt=rm-RE_KM;o.speed=Math.hypot(v[0],v[1],v[2]);
+    o.lat=Math.asin(zf/rm)*R2D;o.lon=Math.atan2(yf,xf)*R2D;
+    if(!F.su) F.su=sunECIUnit(F.d);
+    o.sunlit=isSunlit(r,F.su);
+    return o;
+  },
+  sunAlt(d){const sp=sunPos(d);return eqToAltAz(sp.ra,sp.dec,d,SITE.lat_deg,SITE.lon_deg).alt;},
+  compass(az){return['N','NE','E','SE','S','SW','W','NW'][Math.round(az/45)%8];},
+  fmtRA(h){let t=Math.round(h*3600)%86400;const H=Math.floor(t/3600),M=Math.floor(t%3600/60),S=t%60;
+    return String(H).padStart(2,'0')+'h'+String(M).padStart(2,'0')+'m'+String(S).padStart(2,'0')+'s';},
+  fmtDec(d){const sg=d<0?'−':'+';let t=Math.round(Math.abs(d)*3600);const D=Math.floor(t/3600),M=Math.floor(t%3600/60),S=t%60;
+    return sg+String(D).padStart(2,'0')+'°'+String(M).padStart(2,'0')+'′'+String(S).padStart(2,'0')+'″';},
+  fmtDMS(d){let t=Math.round(d*3600);const D=Math.floor(t/3600),M=Math.floor(t%3600/60),S=t%60;
+    return D+'°'+String(M).padStart(2,'0')+'′'+String(S).padStart(2,'0')+'″';}
+};
+function pbPick(n){
+  const t=allSats.find(x=>x.satnum===n);if(!t) return;
+  if(SEL.find(q=>q.tle.satnum===n)) makePrimary(n); else selectSat(t);
+}
+
+/* ════ PB · site-wide lists over the loaded TLE group ════
+   passes : every pass of every loaded object in the next few hours
+   inview : everything above the horizon right now
+   geo    : geosynchronous objects that stay above the horizon for a full day */
+const PB={
+  tab:'tracked',MAXOBJ:6000,_tok:0,res:null,busy:false,_last:0,_geo:null,
+  HEAD:{
+    tracked:'<tr><th>Object</th><th>Status</th><th>Rise (AOS)</th><th>Set (LOS)</th><th>Max el</th><th>Next naked-eye pass</th><th>TLE age</th></tr>',
+    passes:'<tr><th>Name</th><th>NORAD</th><th>AOS</th><th>LOS</th><th>Elevation</th><th>Max elevation</th><th>Visibility</th></tr>',
+    inview:'<tr><th>Name</th><th>NORAD</th><th>Azimuth</th><th>Elevation</th><th>Range</th><th>RA</th><th>Dec</th><th>Lighting</th></tr>',
+    geo:'<tr><th>Name</th><th>NORAD</th><th>Azimuth</th><th>Elevation</th><th>Range</th><th>RA</th><th>Dec</th><th>Sub-longitude</th><th>Lighting</th></tr>'
+  },
+  SUB:{
+    tracked:'Objects you selected. Naked-eye visible means sunlit, above 5°, with the Sun below −6° at the site.',
+    passes:'',inview:'',geo:''
+  },
+  setTab(t){
+    this.tab=t;
+    document.querySelectorAll('.pb-tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+    document.getElementById('pb-thead').innerHTML=this.HEAD[t];
+    document.getElementById('pb-filters').style.display=t==='passes'?'flex':'none';
+    document.getElementById('pb-sub').textContent=this.SUB[t];
+    document.getElementById('pb-body').innerHTML='';
+    this._last=0;
+    if(t==='tracked') renderPassBoard(); else this.tick(true);
+  },
+  key(){return allSats.length+'|'+(allSats[0]?allSats[0].satnum:0)+'|'+SITE.lat_deg+'|'+SITE.lon_deg+'|'+SITE.h_m;},
+  sub(t){document.getElementById('pb-sub').textContent=t;},
+  empty(msg,cols){document.getElementById('pb-body').innerHTML='<tr><td colspan="'+cols+'" class="pb-empty">'+msg+'</td></tr>';},
+  tick(force){
+    const now=performance.now();
+    if(this.tab==='passes'){
+      const hrs=+document.getElementById('pbf-hours').value;
+      const stale=!this.res||this.res.key!==this.key()+'|'+hrs||EPOCH.ms()<this.res.t0||EPOCH.ms()-this.res.t0>600000;
+      if(stale&&!this.busy) this.rescan();
+      else if(force||now-this._last>1000){this._last=now;this.render();}
+    } else if(this.tab==='inview'||this.tab==='geo'){
+      if(force||now-this._last>3000){this._last=now;this.renderNow();}
+    }
+  },
+  rescan(){
+    const tok=++this._tok;this.busy=true;
+    const sats=allSats.filter(t=>t.satrec).slice(0,this.MAXOBJ);
+    const hrs=+document.getElementById('pbf-hours').value;
+    const W=hrs*3600,step=W>7200?60:30,N=Math.floor(W/step);
+    const t0=EPOCH.ms(),C=OBS.ctx(),F=[],sAlt=[];
+    for(let i=0;i<=N;i++){const d=new Date(t0+i*step*1000);F.push(OBS.frame(d));sAlt.push(OBS.sunAlt(d));}
+    const out=[],key=this.key()+'|'+hrs;
+    const el=new Float32Array(N+1);
+    const tAt=i=>t0+i*step*1000;
+    const one=t=>{
+      /* coarse elevation series; far below the horizon, skip ahead */
+      let any=false;
+      for(let i=0;i<=N;i++){
+        const o=OBS.look(t.satrec,F[i],C);
+        el[i]=o?o.el:-90;
+        if(el[i]>0) any=true;
+        if(el[i]<-25){const k=Math.min(N,i+2);for(let q=i+1;q<=k;q++) el[q]=el[i];i=k;}
+      }
+      if(!any) return;
+      let i=0;
+      while(i<=N){
+        if(el[i]<=0){i++;continue;}
+        let i0=i,i1=i;while(i1<N&&el[i1+1]>0) i1++;
+        i=i1+1;
+        const open0=i0===0,open1=i1===N;
+        if(open0&&open1) continue;                        /* up for the whole window */
+        const cross=(a,b)=>tAt(a)+(tAt(b)-tAt(a))*(el[a]/(el[a]-el[b]));
+        const aos=open0?null:cross(i0-1,i0),los=open1?null:cross(i1,i1+1);
+        let k=i0;for(let q=i0;q<=i1;q++) if(el[q]>el[k]) k=q;
+        /* refine the peak between the neighbouring samples */
+        let lo=tAt(Math.max(0,k-1)),hi=tAt(Math.min(N,k+1)),pk=null;
+        const f=ms=>{const o=OBS.look(t.satrec,OBS.frame(new Date(ms)),C,true);return o;};
+        for(let it=0;it<14;it++){
+          const m1=lo+(hi-lo)/3,m2=hi-(hi-lo)/3,o1=f(m1),o2=f(m2);
+          if(!o1||!o2) break;
+          if(o1.el<o2.el) lo=m1; else hi=m2;
+        }
+        const tpk=(lo+hi)/2;pk=f(tpk);
+        if(!pk) continue;
+        const sa=sAlt[k];
+        const a0=OBS.look(t.satrec,F[i0],C),a1=OBS.look(t.satrec,F[i1],C);
+        out.push({tle:t,aos,los,tpk,elpk:pk.el,azpk:pk.az,
+          az0:a0?a0.az:0,az1:a1?a1.az:0,
+          day:sa>=VIS_SUN_MAX,vis:pk.el>VIS_EL_MIN&&pk.sunlit&&sa<VIS_SUN_MAX,sunlit:pk.sunlit});
+      }
+    };
+    let idx=0;
+    const chunk=()=>{
+      if(tok!==this._tok) return;
+      const tEnd=performance.now()+25;
+      while(idx<sats.length&&performance.now()<tEnd){try{one(sats[idx]);}catch(e){} idx++;}
+      if(idx<sats.length){
+        if(this.tab==='passes') this.sub('Computing passes for '+sats.length+' objects… '+Math.round(100*idx/sats.length)+'%');
+        setTimeout(chunk,0);
+      } else {
+        this.res={key,t0,hrs,list:out,n:sats.length,capped:allSats.length>sats.length};
+        this.busy=false;this._last=performance.now();
+        if(this.tab==='passes') this.render();
+      }
+    };
+    if(!sats.length){this.res={key,t0,hrs,list:[],n:0};this.busy=false;this.render();return;}
+    if(this.tab==='passes') this.empty('Computing passes…',7);
+    setTimeout(chunk,0);
+  },
+  render(){
+    if(this.tab!=='passes'||!this.res) return;
+    const R=this.res,now=EPOCH.ms(),tz=SITE.tz;
+    const minEl=+document.getElementById('pbf-minel').value;
+    const visOnly=document.getElementById('pbf-vis').checked,noDay=document.getElementById('pbf-noday').checked;
+    const q=document.getElementById('pbf-name').value.trim().toLowerCase();
+    let L=R.list.filter(p=>p.elpk>=minEl&&(!visOnly||p.vis)&&(!noDay||!p.day)&&(p.los===null||p.los>now)&&
+      (!q||p.tle.name.toLowerCase().includes(q)||String(p.tle.satnum).includes(q)));
+    const cur=p=>(p.aos===null||p.aos<=now);
+    L.sort((a,b)=>{const ca=cur(a),cb=cur(b);
+      if(ca!==cb) return ca?-1:1;
+      return ca?((a.los||Infinity)-(b.los||Infinity)):(a.aos-b.aos);});
+    const total=L.length;L=L.slice(0,300);
+    const hms=ms=>fmtLocalTime(new Date(ms),tz);
+    const C=OBS.ctx(),F0=OBS.frame(new Date(now)),F1=OBS.frame(new Date(now+2000));
+    const rows=L.map(p=>{
+      const c=cur(p);let elTxt='—';
+      if(c){const o0=OBS.look(p.tle.satrec,F0,C),o1=OBS.look(p.tle.satrec,F1,C);
+        if(o0&&o1) elTxt=o0.el.toFixed(0)+'° '+(o1.el>=o0.el?'ascending':'descending');}
+      const sel=SEL.find(x=>x.tle.satnum===p.tle.satnum);
+      return '<tr class="'+(c?'cur':'')+(sel?' picked':'')+'" onclick="pbPick('+p.tle.satnum+')">'+
+        '<td>'+(sel?'<i class="pb-dot" style="background:'+sel.color+'"></i>':'')+p.tle.name+'</td><td>'+p.tle.satnum+'</td>'+
+        '<td>'+(c?(p.aos===null?'':'<span class="pb-az">'+hms(p.aos)+'</span>'):hms(p.aos)+' <span class="pb-az">'+OBS.compass(p.az0)+'</span>')+'</td>'+
+        '<td>'+(p.los===null?'after window':hms(p.los)+' <span class="pb-az">'+OBS.compass(p.az1)+'</span>')+'</td>'+
+        '<td>'+elTxt+'</td>'+
+        '<td>'+p.elpk.toFixed(0)+'° at '+hms(p.tpk)+' <span class="pb-az">'+OBS.compass(p.azpk)+'</span></td>'+
+        '<td class="'+(p.vis?'pb-vis':'')+'">'+(p.vis?'Naked-eye':p.day?'Daylight':p.sunlit?'Low':'Eclipsed')+'</td></tr>';
+    }).join('');
+    if(rows) document.getElementById('pb-body').innerHTML=rows;
+    else this.empty(R.n?'No passes match these filters.':'No objects loaded.',7);
+    const grp=document.getElementById('cat-select');
+    this.sub(total+' passes in the next '+R.hrs+' h · '+R.n+' objects in “'+(grp&&grp.selectedOptions[0]?grp.selectedOptions[0].textContent.trim():'group')+'”'+
+      (R.capped?' (first '+this.MAXOBJ+' only)':'')+(total>300?' · showing 300':'')+' · local time');
+  },
+  geoSet(){
+    const key=this.key();
+    if(this._geo&&this._geo.key===key) return this._geo.set;
+    const set=new Set(),C=OBS.ctx(),t0=EPOCH.ms(),F=[];
+    for(let i=0;i<48;i++) F.push(OBS.frame(new Date(t0+i*1800000)));
+    allSats.forEach(t=>{
+      if(!t.satrec||!(t.n>0.9&&t.n<1.1)) return;
+      for(let i=0;i<48;i++){const o=OBS.look(t.satrec,F[i],C);if(!o||o.el<=0) return;}
+      set.add(t.satnum);
+    });
+    this._geo={key,set};return set;
+  },
+  renderNow(){
+    const geo=this.tab==='geo',cols=geo?9:8;
+    const now=EPOCH.ms(),C=OBS.ctx(),F0=OBS.frame(new Date(now)),F1=OBS.frame(new Date(now+2000));
+    const gs=geo?this.geoSet():null;
+    const src=allSats.filter(t=>t.satrec&&(!geo||gs.has(t.satnum))).slice(0,this.MAXOBJ);
+    let L=[];
+    src.forEach(t=>{const o=OBS.look(t.satrec,F0,C,true);if(o&&o.el>0) L.push({t,o});});
+    L.sort((a,b)=>geo?a.o.az-b.o.az:b.o.el-a.o.el);
+    const total=L.length;L=L.slice(0,300);
+    const rows=L.map(({t,o})=>{
+      let ad='';
+      if(!geo){const o1=OBS.look(t.satrec,F1,C);if(o1) ad=o1.el>=o.el?' ascending':' descending';}
+      const sel=SEL.find(x=>x.tle.satnum===t.satnum);
+      return '<tr class="'+(sel?'picked':'')+'" onclick="pbPick('+t.satnum+')">'+
+        '<td>'+(sel?'<i class="pb-dot" style="background:'+sel.color+'"></i>':'')+t.name+'</td><td>'+t.satnum+'</td>'+
+        '<td>'+o.az.toFixed(1)+'° <span class="pb-az">'+OBS.compass(o.az)+'</span></td>'+
+        '<td>'+o.el.toFixed(1)+'°<span class="pb-az">'+ad+'</span></td>'+
+        '<td>'+o.rng.toFixed(0)+' km</td><td>'+OBS.fmtRA(o.ra)+'</td><td>'+OBS.fmtDec(o.dec)+'</td>'+
+        (geo?'<td>'+Math.abs(o.lon).toFixed(1)+'° '+(o.lon<0?'W':'E')+'</td>':'')+
+        '<td>'+(o.sunlit?'Sunlit':'Eclipsed')+'</td></tr>';
+    }).join('');
+    if(rows) document.getElementById('pb-body').innerHTML=rows;
+    else if(geo) this.empty('No geosynchronous objects in the loaded group stay above this site\'s horizon. <button class="hud-btn sm" onclick="PB.loadGeo()">Load the Geostationary group</button>',cols);
+    else this.empty(allSats.length?'Nothing in the loaded group is above the horizon right now.':'No objects loaded.',cols);
+    this.sub(geo?total+' geosynchronous objects above the horizon for the next 24 h · sorted by azimuth'
+                :total+' of '+src.length+' loaded objects above the horizon'+(total>300?' · showing the 300 highest':'')+' · RA/Dec topocentric, of date');
+  },
+  loadGeo(){
+    const sel=document.getElementById('cat-select');
+    const opt=[...sel.options].find(o=>/Geostationary/i.test(o.textContent));
+    if(opt){sel.value=opt.value;sel.dispatchEvent(new Event('change'));}
+  },
+  /* live data panel for the primary tracked object */
+  dataPanel(){
+    const nameEl=document.getElementById('sd-name');if(!nameEl) return;
+    const S=SEL[0];
+    if(!S){nameEl.textContent='No object tracked';document.getElementById('sd-state').innerHTML='&nbsp;';document.getElementById('sd-grid').innerHTML='';return;}
+    const now=EPOCH.ms(),C=OBS.ctx();
+    const o=S.tle.satrec?OBS.look(S.tle.satrec,OBS.frame(new Date(now)),C,true):null;
+    nameEl.innerHTML='<i class="pb-dot" style="background:'+S.color+'"></i>'+S.tle.name;
+    if(!o){document.getElementById('sd-state').textContent='SGP4 could not propagate this element set';document.getElementById('sd-grid').innerHTML='';return;}
+    const o1=OBS.look(S.tle.satrec,OBS.frame(new Date(now+1000)),C);
+    const up=o.el>0,asc=o1&&o1.el>=o.el;
+    document.getElementById('sd-state').innerHTML=
+      '<span class="'+(up?'sd-up':'')+'">'+(up?'Above horizon':'Below horizon')+'</span> · '+(asc?'Ascending':'Descending')+' '+OBS.compass(o.az)+' · '+(o.sunlit?'Sunlit':'Eclipsed');
+    let aos='—',los='—';
+    if(S.data&&S.passes){
+      const el0=(now-S.data.now.getTime())/1000;
+      const cur=S.passes.find(p=>p.t_rise<=el0&&el0<=p.t_set),nxt=S.passes.find(p=>p.t_rise>el0);
+      if(cur) los=fmtHMS(cur.t_set-el0);
+      else if(nxt){aos=fmtHMS(nxt.t_rise-el0);}
+    }
+    const yr=S.tle.intl||'';
+    const row=(k,v)=>'<div class="sd-k">'+k+'</div><div class="sd-v">'+v+'</div>';
+    document.getElementById('sd-grid').innerHTML=
+      row('NORAD',S.tle.satnum)+
+      row('T + epoch',tleAgeDays(S.tle).toFixed(4)+' d')+
+      row('RA',OBS.fmtRA(o.ra))+row('Dec',OBS.fmtDec(o.dec))+
+      row('Azimuth',OBS.fmtDMS(o.az))+row('Elevation',(o.el<0?'−':'+')+OBS.fmtDMS(Math.abs(o.el)))+
+      row('Range',o.rng.toFixed(0)+' km')+row('Range rate',(o.rr>=0?'+':'−')+Math.abs(o.rr).toFixed(3)+' km/s')+
+      row('Altitude',o.alt.toFixed(0)+' km')+row('Velocity',o.speed.toFixed(3)+' km/s')+
+      row('Sub-point',Math.abs(o.lat).toFixed(1)+'°'+(o.lat<0?'S':'N')+' '+Math.abs(o.lon).toFixed(1)+'°'+(o.lon<0?'W':'E'))+
+      row('AOS in',aos)+row('LOS in',los);
+  }
+};
+document.addEventListener('DOMContentLoaded',()=>{const h=document.getElementById('pb-thead');if(h){h.innerHTML=PB.HEAD.tracked;document.getElementById('pb-sub').textContent=PB.SUB.tracked;}});
+
 function renderPassBoard(){
+  PB.dataPanel();
+  if(PB.tab!=='tracked'){PB.tick();return;}
   const body=document.getElementById('pb-body');if(!body) return;
   if(!SEL.length){body.innerHTML='<tr><td colspan="7" class="pb-empty">Select an object from the list.</td></tr>';return;}
   const nowMs=EPOCH.ms(),tz=SITE.tz;
