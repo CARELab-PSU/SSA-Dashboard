@@ -1611,10 +1611,27 @@ function satItem(tle){
   return div;
 }
 /* add rows to the end of the list as data arrives */
-function appendList(sats){
-  const frag=document.createDocumentFragment();
-  sats.forEach(t=>frag.appendChild(satItem(t)));
-  document.getElementById('sat-list').appendChild(frag);
+/* The list shows at most LIST_CAP rows; search reaches everything loaded.
+   Tens of thousands of rows make the page sluggish for no benefit. */
+const LIST_CAP=400;
+let _listShown=0,_listTotal=0;
+function appendList(sats,reset){
+  const list=document.getElementById('sat-list');
+  if(reset){_listShown=0;_listTotal=0;}
+  _listTotal+=sats.length;
+  const room=Math.max(0,LIST_CAP-_listShown);
+  if(room){
+    const frag=document.createDocumentFragment();
+    sats.slice(0,room).forEach(t=>frag.appendChild(satItem(t)));
+    _listShown+=Math.min(room,sats.length);
+    const more=document.getElementById('list-more');
+    if(more) list.insertBefore(frag,more); else list.appendChild(frag);
+  }
+  let more=document.getElementById('list-more');
+  if(_listTotal>_listShown){
+    if(!more){more=document.createElement('div');more.id='list-more';more.className='loading-list';list.appendChild(more);}
+    more.textContent='Showing the first '+_listShown+' of '+_listTotal+'. Search by name or NORAD ID to reach the rest.';
+  } else if(more) more.remove();
 }
 function checkQuality(sats){
   let toCheck=sats.slice(0,40);
@@ -1632,7 +1649,7 @@ function checkQuality(sats){
 function populateList(sats){
   let list=document.getElementById('sat-list');list.innerHTML='';
   if(sats.length===0){list.innerHTML='<div class="loading-list">No satellites found.</div>';return;}
-  appendList(sats);
+  appendList(sats,true);
   syncListHighlight();
   document.getElementById('sat-count').textContent=sats.length+' objects';
   checkQuality(sats);
@@ -1801,9 +1818,12 @@ async function loadCategory(group){
   allSats=[];
   let first=true;
   const n=await streamGroup(group,batch=>{
-    if(first){list.innerHTML='';first=false;}
     for(const t of batch) allSats.push(t);
-    if(!search.value) appendList(batch);
+    if(!search.value){
+      if(first) list.innerHTML='';
+      appendList(batch,first);
+    }
+    first=false;
     cnt.textContent=allSats.length+' objects…';
   },()=>tok===_catTok);
   if(tok!==_catTok) return;
