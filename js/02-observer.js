@@ -948,14 +948,40 @@ function nextNakedEye(S,elapsed){
   const v=_deepVis[key];
   return v===undefined?'scan':v;
 }
+/* ════ J2K · TEME (SGP4 output) → J2000 (FK5) rotation ════
+   r_J2000 = P · N · R3(−Δψ cos ε̄) · r_TEME, with IAU-1976 precession and the
+   largest terms of the IAU-1980 nutation series (error under 1 arcsecond).
+   Star catalogs and telescope mounts work in J2000, so RA/Dec are shown there. */
+const J2K={
+  matrix(d){
+    const T=(julianDate(d)-2451545.0)/36525,AS=Math.PI/648000,D=Math.PI/180;
+    const R1=a=>{const c=Math.cos(a),s=Math.sin(a);return[1,0,0, 0,c,s, 0,-s,c];};
+    const R2=a=>{const c=Math.cos(a),s=Math.sin(a);return[c,0,-s, 0,1,0, s,0,c];};
+    const R3=a=>{const c=Math.cos(a),s=Math.sin(a);return[c,s,0, -s,c,0, 0,0,1];};
+    const mul=(A,B)=>{const C=new Array(9);for(let i=0;i<3;i++)for(let j=0;j<3;j++)
+      C[3*i+j]=A[3*i]*B[j]+A[3*i+1]*B[3+j]+A[3*i+2]*B[6+j];return C;};
+    const zeta=(2306.2181*T+0.30188*T*T+0.017998*T*T*T)*AS,
+          theta=(2004.3109*T-0.42665*T*T-0.041833*T*T*T)*AS,
+          z=(2306.2181*T+1.09468*T*T+0.018203*T*T*T)*AS;
+    const Om=(125.04452-1934.136261*T)*D,Ls=(280.4665+36000.7698*T)*D,
+          Lm=(218.3165+481267.8813*T)*D,lp=(357.52772+35999.05034*T)*D;
+    const dpsi=(-17.1996*Math.sin(Om)-1.3187*Math.sin(2*Ls)-0.2274*Math.sin(2*Lm)+0.2062*Math.sin(2*Om)+0.1426*Math.sin(lp))*AS,
+          deps=(9.2025*Math.cos(Om)+0.5736*Math.cos(2*Ls)+0.0977*Math.cos(2*Lm)-0.0895*Math.cos(2*Om))*AS,
+          eps0=(84381.448-46.8150*T)*AS;
+    const P=mul(mul(R3(zeta),R2(-theta)),R3(z));
+    const N=mul(mul(R1(-eps0),R3(dpsi)),R1(eps0+deps));
+    return mul(mul(P,N),R3(-dpsi*Math.cos(eps0)));
+  },
+  apply(M,v){return[M[0]*v[0]+M[1]*v[1]+M[2]*v[2],M[3]*v[0]+M[4]*v[1]+M[5]*v[2],M[6]*v[0]+M[7]*v[1]+M[8]*v[2]];}
+};
+
 /* ════ OBS · one-shot topocentric state from SGP4 ════
    Az/El from the ECEF line of sight rotated into the site's ENU frame.
-   RA/Dec are topocentric, in the SGP4 output frame (TEME, equator of date);
-   they differ from J2000 by precession since 2000 (about 0.35° in 2026).
+   RA/Dec are topocentric J2000: the TEME line of sight rotated by J2K.matrix;
    Range rate uses the site's inertial velocity ω×r. */
 const OBS={
   ctx(){return{site:geo2ecef(SITE.lat_deg,SITE.lon_deg,SITE.h_m),R:topoRotm(SITE.lat_deg,SITE.lon_deg)};},
-  frame(d){const g=gmst_from_jd(julianDate(d));return{d,c:Math.cos(g),s:Math.sin(g),su:null};},
+  frame(d){const g=gmst_from_jd(julianDate(d));return{d,c:Math.cos(g),s:Math.sin(g),su:null,j2k:null};},
   look(satrec,F,C,full){
     const pv=sgp4ECI(satrec,F.d);if(!pv||!isFinite(pv.r[0])) return null;
     const r=pv.r,xf=F.c*r[0]+F.s*r[1],yf=-F.s*r[0]+F.c*r[1],zf=r[2];
@@ -967,8 +993,10 @@ const OBS={
     const X=C.site[0],Y=C.site[1],Z=C.site[2];
     const sx=F.c*X-F.s*Y,sy=F.s*X+F.c*Y,sz=Z;
     const px=r[0]-sx,py=r[1]-sy,pz=r[2]-sz,v=pv.v;
-    o.ra=((Math.atan2(py,px)*R2D+360)%360)/15;
-    o.dec=Math.asin(pz/rng)*R2D;
+    if(!F.j2k) F.j2k=J2K.matrix(F.d);
+    const q=J2K.apply(F.j2k,[px,py,pz]);
+    o.ra=((Math.atan2(q[1],q[0])*R2D+360)%360)/15;
+    o.dec=Math.asin(q[2]/rng)*R2D;
     o.rr=(px*(v[0]+WE*sy)+py*(v[1]-WE*sx)+pz*v[2])/rng;
     const rm=Math.hypot(r[0],r[1],r[2]);
     o.alt=rm-RE_KM;o.speed=Math.hypot(v[0],v[1],v[2]);
@@ -1000,8 +1028,8 @@ const PB={
   HEAD:{
     tracked:'<tr><th>Object</th><th>Status</th><th>Rise (AOS)</th><th>Set (LOS)</th><th>Max el</th><th>Next naked-eye pass</th><th>TLE age</th></tr>',
     passes:'<tr><th>Name</th><th>NORAD</th><th>AOS</th><th>LOS</th><th>Elevation</th><th>Max elevation</th><th>Visibility</th></tr>',
-    inview:'<tr><th>Name</th><th>NORAD</th><th>Azimuth</th><th>Elevation</th><th>Range</th><th>RA</th><th>Dec</th><th>Lighting</th></tr>',
-    geo:'<tr><th>Name</th><th>NORAD</th><th>Azimuth</th><th>Elevation</th><th>Range</th><th>RA</th><th>Dec</th><th>Sub-longitude</th><th>Lighting</th></tr>'
+    inview:'<tr><th>Name</th><th>NORAD</th><th>Azimuth</th><th>Elevation</th><th>Range</th><th>RA (J2000)</th><th>Dec (J2000)</th><th>Lighting</th></tr>',
+    geo:'<tr><th>Name</th><th>NORAD</th><th>Azimuth</th><th>Elevation</th><th>Range</th><th>RA (J2000)</th><th>Dec (J2000)</th><th>Sub-longitude</th><th>Lighting</th></tr>'
   },
   SUB:{
     tracked:'Objects you selected. Naked-eye visible means sunlit, above 5°, with the Sun below −6° at the site.',
@@ -1173,7 +1201,7 @@ const PB={
     else if(geo) this.empty('No geosynchronous objects in the loaded group stay above this site\'s horizon. <button class="hud-btn sm" onclick="PB.loadGeo()">Load the Geostationary group</button>',cols);
     else this.empty(allSats.length?'Nothing in the loaded group is above the horizon right now.':'No objects loaded.',cols);
     this.sub(geo?total+' geosynchronous objects above the horizon for the next 24 h · sorted by azimuth'
-                :total+' of '+src.length+' loaded objects above the horizon'+(total>300?' · showing the 300 highest':'')+' · RA/Dec topocentric, of date');
+                :total+' of '+src.length+' loaded objects above the horizon'+(total>300?' · showing the 300 highest':'')+' · RA/Dec topocentric J2000');
   },
   loadGeo(){
     const sel=document.getElementById('cat-select');
@@ -1205,7 +1233,7 @@ const PB={
     document.getElementById('sd-grid').innerHTML=
       row('NORAD',S.tle.satnum)+
       row('T + epoch',tleAgeDays(S.tle).toFixed(4)+' d')+
-      row('RA',OBS.fmtRA(o.ra))+row('Dec',OBS.fmtDec(o.dec))+
+      row('RA (J2000)',OBS.fmtRA(o.ra))+row('Dec (J2000)',OBS.fmtDec(o.dec))+
       row('Azimuth',OBS.fmtDMS(o.az))+row('Elevation',(o.el<0?'−':'+')+OBS.fmtDMS(Math.abs(o.el)))+
       row('Range',o.rng.toFixed(0)+' km')+row('Range rate',(o.rr>=0?'+':'−')+Math.abs(o.rr).toFixed(3)+' km/s')+
       row('Altitude',o.alt.toFixed(0)+' km')+row('Velocity',o.speed.toFixed(3)+' km/s')+
