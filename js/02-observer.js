@@ -759,9 +759,11 @@ function drawGroundTrack(canvas,sels){
   let W=canvas.width,H=canvas.height;
   const xy=(la,lo)=>({x:((lo+180)/360)*W,y:((90-la)/180)*H});
   ctx.clearRect(0,0,W,H);
-  if(worldMapImg){ctx.drawImage(worldMapImg,0,0,W,H);ctx.fillStyle='rgba(4,4,4,0.50)';ctx.fillRect(0,0,W,H);}
+  const bp=worldMapImg?blueprintMap(worldMapImg):null;
+  if(bp) ctx.drawImage(bp,0,0,W,H);
+  else if(worldMapImg){ctx.drawImage(worldMapImg,0,0,W,H);ctx.fillStyle='rgba(0,0,0,0.80)';ctx.fillRect(0,0,W,H);}
   else{ctx.fillStyle='#080808';ctx.fillRect(0,0,W,H);}
-  ctx.strokeStyle='rgba(32,32,32,0.55)';ctx.lineWidth=.4;
+  ctx.strokeStyle='rgba(60,60,60,0.6)';ctx.lineWidth=.5;
   for(let g=-180;g<=180;g+=30){let{x}=xy(0,g);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
   for(let g=-90;g<=90;g+=30){let{y}=xy(g,0);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
   ctx.strokeStyle='rgba(190,190,190,0.18)';ctx.lineWidth=.7;
@@ -841,6 +843,30 @@ function drawGroundTrack(canvas,sels){
    Selection color   = geometric pass but sky too bright
    SKY_VIS_ONLY      = plot ONLY passes that clear the night-visibility screen */
 let SKY_VIS_ONLY=false,SKY_ALL=false;
+/* right column: sky plot or ground track, one at a time at full size */
+function setRView(v){
+  document.body.dataset.rview=v;
+  document.querySelectorAll('.rview-toggle .hud-btn').forEach(b=>b.classList.toggle('on',b.dataset.r===v));
+  try{localStorage.setItem('ssa.rview',v);}catch(e){}
+  if(typeof redrawStatic2D==='function') setTimeout(redrawStatic2D,30);
+}
+document.addEventListener('DOMContentLoaded',()=>{let v='sky';try{v=localStorage.getItem('ssa.rview')||'sky';}catch(e){}setRView(v);});
+function toggleSitePop(force){
+  const p=document.getElementById('site-pop');if(!p) return;
+  const open=force===undefined?!p.classList.contains('open'):force;
+  if(open){   /* fixed position under the button: the top bar scrolls sideways and would clip it */
+    const r=document.getElementById('site-btn').getBoundingClientRect();
+    p.style.top=(r.bottom+6)+'px';
+    p.style.left=Math.max(8,Math.min(window.innerWidth-256,r.left))+'px';
+  }
+  p.classList.toggle('open',open);
+}
+document.addEventListener('click',e=>{const c=document.getElementById('site-cluster');if(c&&!c.contains(e.target)) toggleSitePop(false);});
+function siteButtonText(){
+  const b=document.getElementById('site-btn');if(!b) return;
+  b.textContent=Math.abs(SITE.lat_deg).toFixed(2)+'°'+(SITE.lat_deg>=0?'N':'S')+' '+Math.abs(SITE.lon_deg).toFixed(2)+'°'+(SITE.lon_deg>=0?'E':'W')+' · '+Math.round(SITE.h_m)+' m';
+}
+document.addEventListener('DOMContentLoaded',()=>siteButtonText());
 /* the 3-D panel shows one frame at a time; both scenes stay live underneath */
 function setFrame(f){
   document.body.dataset.frame=f;
@@ -877,6 +903,14 @@ function drawSkyPlot(canvas,sels){
 
   const nowEl=new Date(EPOCH.ms());
   let drewAny=false;
+  const boxes=[];
+  const label=(txt,x,y)=>{   /* place a label where it overlaps nothing already drawn; else skip it */
+    const w=ctx.measureText(txt).width+4,hh=12;
+    for(const dy of [0,12,-12,24,-24]){
+      const b={x,y:y+dy-hh+2,w,h:hh};
+      if(!boxes.some(o=>b.x<o.x+o.w&&o.x<b.x+b.w&&b.y<o.y+o.h&&o.y<b.y+b.h)){boxes.push(b);ctx.fillText(txt,x,y+dy);return;}
+    }
+  };
   sels.forEach((S,si)=>{
     const az=S.azF,el=S.elF,now=S.data.now,sunlit=S.data.sunlit,sunAlt=S.data.sunAlt;
     const prim=si===0,col=S.color;
@@ -920,7 +954,7 @@ function drawSkyPlot(canvas,sels){
       const xp=cx-rp*Math.sin(ap),yp=cy-rp*Math.cos(ap);
       ctx.fillStyle=col;ctx.beginPath();ctx.arc(xp,yp,prim?3:2.5,0,2*Math.PI);ctx.fill();
       ctx.font='10px '+UI;ctx.textAlign='left';ctx.fillStyle=prim?'#e0e0e0':'#acacac';
-      ctx.fillText((prim?'':S.tle.name.slice(0,12)+' ')+p.el_peak.toFixed(0)+'°',xp+6,yp-4);
+      label((prim?'':S.tle.name.slice(0,12)+' ')+p.el_peak.toFixed(0)+'°',xp+6,yp-4);
     });
   });
   if(!drewAny){
@@ -1747,6 +1781,7 @@ async function applySite(){
   document.getElementById('inp-lon').value=lon.toFixed(4);
   document.getElementById('site-label-gt').textContent='⬟ '+lat.toFixed(2)+'°N '+Math.abs(lon).toFixed(2)+'°'+(lon>=0?'E':'W');
   updateLocalTZLabel();
+  siteButtonText();
   if(typeof EPH!=='undefined') EPH.onSiteChange();
   if(currentTLE){currentData=null;renderAll(currentTLE);}
   setTimeout(fetchConditions,400);
@@ -1756,10 +1791,10 @@ async function geolocateMe(){
   if(!navigator.geolocation){alert('Geolocation not available');return;}
   document.getElementById('site-tz-display').textContent='TZ: locating…';
   navigator.geolocation.getCurrentPosition(async pos=>{
-    let lat=pos.coords.latitude,lon=pos.coords.longitude,h=pos.coords.altitude||0;
+    let lat=pos.coords.latitude,lon=pos.coords.longitude,h=pos.coords.altitude;
     document.getElementById('inp-lat').value=lat.toFixed(4);
     document.getElementById('inp-lon').value=lon.toFixed(4);
-    document.getElementById('inp-alt').value=Math.round(h);
+    if(h!==null&&isFinite(h)) document.getElementById('inp-alt').value=Math.round(h);
     await applySite();
   },err=>{document.getElementById('site-tz-display').textContent='TZ: geolocation denied';});
 }
@@ -1968,7 +2003,43 @@ function downloadTLE(){
   a.click();
 }
 
-let worldMapImg=null;
+let worldMapImg=null,_bpCache=null;
+/* Outline ("blueprint") map: land and sea are told apart from the colour of
+   the satellite mosaic (sea is blue-dominant), small specks are removed with a
+   majority filter, and coastlines are the land pixels that touch sea.
+   Built once, then reused. Falls back to a darkened photo if the image
+   cannot be read. */
+function blueprintMap(img){
+  if(_bpCache!==null) return _bpCache||null;
+  try{
+    const W=2048,H=1024,c=document.createElement('canvas');c.width=W;c.height=H;
+    const x=c.getContext('2d');x.drawImage(img,0,0,W,H);
+    const d=x.getImageData(0,0,W,H),p=d.data;
+    const land=new Uint8Array(W*H);
+    for(let i=0,k=0;k<W*H;k++,i+=4){
+      const r=p[i],g=p[i+1],b=p[i+2];
+      land[k]=(b>r*1.25&&b>=g*1.0)?0:1;
+    }
+    const sm=new Uint8Array(W*H);
+    for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){
+      let s=0;
+      for(let dy=-1;dy<=1;dy++){const y2=Math.min(H-1,Math.max(0,yy+dy));
+        for(let dx=-1;dx<=1;dx++){s+=land[y2*W+((xx+dx+W)%W)];}}
+      sm[yy*W+xx]=s>=5?1:0;
+    }
+    for(let k=0,i=0;k<W*H;k++,i+=4){
+      let v,yy=(k/W)|0,xx=k-yy*W;
+      if(sm[k]){
+        const coast=(xx>0&&!sm[k-1])||(xx<W-1&&!sm[k+1])||(yy>0&&!sm[k-W])||(yy<H-1&&!sm[k+W]);
+        v=coast?[120,120,120]:[16,16,16];
+      } else v=[3,3,3];
+      p[i]=v[0];p[i+1]=v[1];p[i+2]=v[2];p[i+3]=255;
+    }
+    x.putImageData(d,0,0);
+    _bpCache=c;
+  }catch(e){_bpCache=false;}   /* image not readable (cross-origin): use the darkened photo */
+  return _bpCache||null;
+}
 function loadWorldMap(cb){
   if(worldMapImg){cb(worldMapImg);return;}
   let img=new Image();img.crossOrigin='anonymous';

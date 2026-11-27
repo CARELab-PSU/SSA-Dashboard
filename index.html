@@ -8,7 +8,7 @@
 <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script crossorigin="anonymous" src="https://cdnjs.cloudflare.com/ajax/libs/satellite.js/4.0.0/satellite.min.js"></script>
 <link rel="stylesheet" href="css/app.css"/>
-</head><body data-view="tracker">
+</head><body data-view="tracker" data-rview="sky">
 
 <div id="loading-overlay">
   <div class="spinner"></div>
@@ -125,10 +125,10 @@
   <div id="sat-list"><div class="loading-list">Loading catalog…</div></div>
 
   <!-- Orbital Elements -->
-  <div id="oe-block">
+  <div id="oe-block" hidden>
     <div class="oe-header" onclick="toggleOE()">
       <span class="oe-title">ORBITAL ELEMENTS</span>
-      <button class="pt-export" id="tle-dl-btn" onclick="event.stopPropagation();downloadTLE()" title="Download TLE file" style="font-size:8px;margin-left:auto;margin-right:6px;">⬇ TLE</button>
+      
       <span class="oe-toggle" id="oe-toggle-btn">▾</span>
     </div>
     <div id="oe-grid">
@@ -140,33 +140,6 @@
       <div class="oe-row"><span class="oe-key">M°</span><span class="oe-val" id="oe-M">—</span></div>
       <div class="oe-row"><span class="oe-key">BSTAR</span><span class="oe-val" id="oe-b">—</span></div>
       <div class="oe-row"><span class="oe-key">EPOCH</span><span class="oe-val" id="oe-ep" style="font-size:8px">—</span></div>
-    </div>
-  </div>
-
-  <!-- Site settings -->
-  <div id="site-panel">
-    <div class="site-header" onclick="toggleSite()">
-      <span class="site-title">Observer site</span>
-      <span class="site-toggle" id="site-toggle-btn">▾</span>
-    </div>
-    <div id="site-form">
-      <div class="site-row">
-        <span class="site-lbl">LAT °N</span>
-        <input class="site-input" id="inp-lat" value="40.7945" placeholder="40.7945"/>
-      </div>
-      <div class="site-row">
-        <span class="site-lbl">LON °E</span>
-        <input class="site-input" id="inp-lon" value="-77.8616" placeholder="-77.8616"/>
-      </div>
-      <div class="site-row">
-        <span class="site-lbl">ALT m</span>
-        <input class="site-input" id="inp-alt" value="354" placeholder="354"/>
-      </div>
-      <div class="site-btn-row">
-        <button class="hud-btn amber" onclick="geolocateMe()">Locate me</button>
-        <button class="hud-btn" onclick="applySite()">APPLY</button>
-      </div>
-      <div id="site-tz-display">TZ: America/New_York (UTC-4)</div>
     </div>
   </div>
 
@@ -199,6 +172,33 @@
         <button class="hz-btn" data-h="18" onclick="setHorizon(18,this)">18H</button>
         <button class="hz-btn on" data-h="24" onclick="setHorizon(24,this)">24H</button>
       </div>
+    </div>
+    <div class="msep"></div>
+    <div class="mi" id="site-cluster">
+      <div class="ml">OBSERVER SITE</div>
+      <div class="hz-row">
+        <button class="hz-btn" id="site-btn" onclick="toggleSitePop()" title="Edit the observer site">40.79°N 77.86°W · 354 m</button>
+        <button class="hz-btn" onclick="geolocateMe()" title="Use this device's location">Locate me</button>
+        <button class="hz-btn" id="tle-dl-btn" onclick="downloadTLE()" title="Download the primary object's TLE">TLE ↓</button>
+      </div>
+      <div id="site-pop">
+      <div class="site-row">
+        <span class="site-lbl">LAT °N</span>
+        <input class="site-input" id="inp-lat" value="40.7945" placeholder="40.7945"/>
+      </div>
+      <div class="site-row">
+        <span class="site-lbl">LON °E</span>
+        <input class="site-input" id="inp-lon" value="-77.8616" placeholder="-77.8616"/>
+      </div>
+      <div class="site-row">
+        <span class="site-lbl">ALT m</span>
+        <input class="site-input" id="inp-alt" value="354" placeholder="354"/>
+      </div>
+      <div class="site-btn-row">
+                <button class="hud-btn" onclick="applySite();toggleSitePop(false)">Apply</button>
+      </div>
+      <div id="site-tz-display">TZ: America/New_York (UTC-4)</div>
+    </div>
     </div>
   </div>
   <div id="sel-chips"></div>
@@ -275,6 +275,10 @@
     </div>
     <div class="plot-panel" id="gt-panel">
       <div class="plot-label">GROUND TRACK</div>
+      <div class="rview-toggle">
+        <button class="hud-btn sm" data-r="sky" onclick="setRView('sky')">Sky plot</button>
+        <button class="hud-btn sm" data-r="gt" onclick="setRView('gt')">Ground track</button>
+      </div>
       <div class="plot-status">Click the map to move the site</div>
       <canvas id="gt-canvas" class="plot-canvas"></canvas>
       <div class="site-info-gt" id="site-label-gt">⬟ PSU (40.79°N, 77.86°W)</div>
@@ -285,6 +289,10 @@
     </div>
     <div class="plot-panel" id="sky-panel">
       <div class="plot-label">VISIBILITY PASSES · SKY PLOT</div>
+      <div class="rview-toggle">
+        <button class="hud-btn sm" data-r="sky" onclick="setRView('sky')">Sky plot</button>
+        <button class="hud-btn sm" data-r="gt" onclick="setRView('gt')">Ground track</button>
+      </div>
       <div class="plot-status" id="sky-site-label">AZ/EL · PENN STATE</div>
       <div id="sky-btns">
         <button id="sky-all-btn" class="hud-btn sm" onclick="toggleSkyAll(this)" title="Show every pass in the forecast horizon instead of only the next one">All passes</button>

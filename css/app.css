@@ -909,3 +909,23 @@ body[data-frame="ecef"] #eci-panel{visibility:hidden;}
 #main{display:flex!important;flex-direction:column;}
 #main>*{flex-shrink:0;}
 #plots-grid{flex:1 1 0!important;min-height:0;}
+
+/* ── layout 2: sidebar is the object list only; site lives in the top bar ── */
+#sidebar{grid-template-rows:auto auto 1fr!important;}
+#oe-block[hidden]{display:none!important;}
+#site-cluster{position:relative;}
+#site-btn{font-family:var(--font-num)!important;}
+#site-pop{display:none;position:fixed;z-index:200;background:#000;border:1px solid #2a2a2a;border-radius:4px;padding:10px 12px;width:240px;flex-direction:column;gap:6px;}
+#site-pop.open{display:flex;}
+#site-pop .site-row{display:flex;align-items:center;gap:8px;}
+#site-pop .site-input{flex:1;padding:4px 6px;font-size:12px;}
+#site-pop .site-btn-row{display:flex;justify-content:flex-end;margin-top:2px;}
+#site-tz-display{font-size:10px;color:var(--muted);}
+/* ── right column: sky plot or ground track, full height ── */
+#plots-grid{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)!important;}
+#sky-panel,#gt-panel{grid-column:2!important;grid-row:1 / span 2!important;}
+body[data-rview="sky"] #gt-panel,body[data-rview="gt"] #sky-panel{visibility:hidden;}
+.rview-toggle{position:absolute;left:10px;top:30px;z-index:6;display:flex;gap:4px;}
+#sky-legend{top:62px!important;}
+#sky-sunmoon{top:122px!important;}
+#gt-panel .site-info-gt{bottom:8px;}
