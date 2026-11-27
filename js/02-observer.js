@@ -1117,7 +1117,16 @@ const PB={
     if(t==='tracked') renderPassBoard(); else this.tick(true);
   },
   /* the list the site-wide tabs scan: the whole catalog, or the sidebar group if the catalog could not be fetched */
-  cat(){return SITECAT.list.length?SITECAT.list:allSats;},
+  cat(){
+    const L=SITECAT.list.length?SITECAT.list:allSats;
+    if(this._catSrc!==L||this._catN!==L.length){
+      /* element sets older than TLE_STALE_D belong to decayed or lost objects; SGP4 output for them is meaningless */
+      const ok=L.filter(t=>t.satrec&&tleAgeDays(t)<=TLE_STALE_D);
+      this._catSrc=L;this._catN=L.length;this._cat=ok;this._stale=L.length-ok.length;
+    }
+    return this._cat;
+  },
+  staleNote(){return this._stale?' · '+this._stale+' with element sets older than '+TLE_STALE_D+' d left out':'';},
   catLabel(){
     if(SITECAT.list.length) return 'the full catalog ('+SITECAT.src+')';
     const g=document.getElementById('cat-select');
@@ -1160,6 +1169,22 @@ const PB={
     const d=psi-B.lam-0.035;                                 /* 2° margin */
     return d>0?0.8*d/B.w:0;
   },
+  /* the same idea in reverse: seconds the object is sure to stay above the horizon
+     (horizon cone is smallest at perigee) */
+  setBound(t,r,sx,sy,sz){
+    this.bound(t,r,sx,sy,sz);
+    const B=t._pbB;
+    if(B.lamMin===undefined){
+      const s=t.satrec,e=Math.min(0.99,Math.max(0,s.ecco||0)),n=(s.no||0)/60;
+      const rp=n>0?Math.cbrt(398600.4418/(n*n))*(1-e):0;
+      B.lamMin=rp>6378.5?Math.acos(6378.5/rp):0;
+    }
+    if(!B.lamMin) return 0;
+    const rm=Math.hypot(r[0],r[1],r[2]),sm=Math.hypot(sx,sy,sz);
+    const psi=Math.acos(Math.max(-1,Math.min(1,(r[0]*sx+r[1]*sy+r[2]*sz)/(rm*sm))));
+    const d=B.lamMin-psi-0.035;
+    return d>0?0.8*d/B.w:0;
+  },
   key(){const L=this.cat();return L.length+'|'+(L[0]?L[0].satnum:0)+'|'+SITE.lat_deg+'|'+SITE.lon_deg+'|'+SITE.h_m;},
   sub(t){document.getElementById('pb-sub').textContent=t;},
   empty(msg,cols){document.getElementById('pb-body').innerHTML='<tr><td colspan="'+cols+'" class="pb-empty">'+msg+'</td></tr>';},
@@ -1185,17 +1210,30 @@ const PB={
     for(let i=0;i<=N;i++){const d=new Date(t0+i*step*1000),f=OBS.frame(d);F.push(f);sAlt.push(OBS.sunAlt(d));
       SX[i]=f.c*C.site[0]-f.s*C.site[1];SY[i]=f.s*C.site[0]+f.c*C.site[1];}
     const out=[],key=this.key()+'|'+hrs;
-    const el=new Float32Array(N+1);
+    const el=new Float32Array(N+1),real=new Uint8Array(N+1);
     const tAt=i=>t0+i*step*1000;
     const one=t=>{
       /* coarse elevation series; while the object cannot possibly be up yet, jump ahead */
-      let any=false,i=0;
+      /* and while it is sure to stay up, jump ahead too, filling the gap by linear interpolation */
+      let any=false,i=0,up0=-1;
+      real.fill(0);
       while(i<=N){
         const o=OBS.look(t.satrec,F[i],C);
-        if(!o){if(i===0) return;el[i]=-90;i++;continue;}
-        el[i]=o.el;
-        if(o.el>0){any=true;i++;continue;}
-        const sk=Math.floor(this.bound(t,o.r,SX[i],SY[i],SZ)/step);
+        if(!o){if(i===0) return;el[i]=-90;up0=-1;i++;continue;}
+        el[i]=o.el;real[i]=1;
+        if(up0>=0){for(let q=up0+1;q<i;q++) el[q]=el[up0]+(el[i]-el[up0])*(q-up0)/(i-up0);up0=-1;}
+        let sk;
+        if(o.el>0){
+          any=true;
+          sk=Math.floor(this.setBound(t,o.r,SX[i],SY[i],SZ)/step);
+          if(sk>=2){
+            const k=i+sk;
+            if(k>N){for(let q=i+1;q<=N;q++) el[q]=o.el;break;}
+            up0=i;i=k;continue;
+          }
+          i++;continue;
+        }
+        sk=Math.floor(this.bound(t,o.r,SX[i],SY[i],SZ)/step);
         if(sk>=2){
           const k=i+sk;
           if(k>N){for(let q=i+1;q<=N;q++) el[q]=-90;break;}
@@ -1213,9 +1251,10 @@ const PB={
         if(open0&&open1) continue;                        /* up for the whole window */
         const cross=(a,b)=>tAt(a)+(tAt(b)-tAt(a))*(el[a]/(el[a]-el[b]));
         const aos=open0?null:cross(i0-1,i0),los=open1?null:cross(i1,i1+1);
-        let k=i0;for(let q=i0;q<=i1;q++) if(el[q]>el[k]) k=q;
-        /* refine the peak between the neighbouring samples */
-        let lo=tAt(Math.max(0,k-1)),hi=tAt(Math.min(N,k+1)),pk=null;
+        let k=i0;for(let q=i0;q<=i1;q++) if(real[q]&&el[q]>el[k]) k=q;
+        /* refine the peak between the neighbouring computed samples */
+        let a=k-1,b=k+1;while(a>0&&!real[a]) a--;while(b<N&&!real[b]) b++;
+        let lo=tAt(Math.max(0,a)),hi=tAt(Math.min(N,b)),pk=null;
         const f=ms=>{const o=OBS.look(t.satrec,OBS.frame(new Date(ms)),C,true);return o;};
         for(let it=0;it<14;it++){
           const m1=lo+(hi-lo)/3,m2=hi-(hi-lo)/3,o1=f(m1),o2=f(m2);
@@ -1283,7 +1322,7 @@ const PB={
     if(rows) document.getElementById('pb-body').innerHTML=rows;
     else this.empty(R.pct!==undefined?'Computing passes…':R.n?'No passes match these filters.':'No objects loaded.',7);
     this.sub((R.pct!==undefined?'Computing… '+R.pct+'% · ':'')+total+' passes in the next '+R.hrs+' h · '+R.n+' objects in '+this.catLabel()+
-      (R.capped?' (first '+this.MAXOBJ+' only)':'')+(total>300?' · showing 300':'')+' · local time');
+      (R.capped?' (first '+this.MAXOBJ+' only)':'')+this.staleNote()+(total>300?' · showing 300':'')+' · local time');
   },
   geoSet(){
     const key=this.key();
@@ -1335,7 +1374,7 @@ const PB={
     else this.empty(src.length?'Nothing matching these filters is above the horizon right now.':'No objects loaded.',cols);
     const ld=SITECAT.state==='loading'?' · still loading ('+this.cat().length+' so far)':'';
     this.sub(geo?total+' geosynchronous objects in '+this.catLabel()+' above the horizon for the next 24 h · sorted by azimuth'
-                :total+' of '+src.length+' objects in '+this.catLabel()+' above the horizon'+(total>300?' · showing the 300 highest':'')+ld+' · RA/Dec topocentric J2000');
+                :total+' of '+src.length+' objects in '+this.catLabel()+' above the horizon'+(total>300?' · showing the 300 highest':'')+ld+this.staleNote()+' · RA/Dec topocentric J2000');
   },
   loadGeo(){
     const sel=document.getElementById('cat-select');
