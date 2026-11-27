@@ -71,10 +71,15 @@ const SSA=(function(){
     for(const P of pools()) P.forEach(t=>{if(norm(t.name).includes(n)) add(t);});
     return [...out.values()];
   }
+  /* everyday names whose catalog names differ ("Hubble" is listed as HST; "HUBBLE 6" is something else) */
+  const COMMON={'HUBBLE':20580,'HUBBLE SPACE TELESCOPE':20580,'HST':20580,'ISS':25544,'SPACE STATION':25544,
+    'INTERNATIONAL SPACE STATION':25544,'THE SPACE STATION':25544,'ZARYA':25544,'TIANGONG':48274,'CHINESE SPACE STATION':48274,
+    'CSS':48274,'TIANHE':48274};
   /* one object from a name or NORAD number; asks for clarification when the name is ambiguous */
   async function findTLE(q){
     if(q===undefined||q===null||String(q).trim()==='') fail('Name an object (name or NORAD number).');
-    const s=String(q).trim();
+    let s=String(q).trim();
+    if(COMMON[norm(s)]) s=String(COMMON[norm(s)]);
     if(/^\d+$/.test(s)){
       const id=+s;
       for(const P of pools()){const t=P.find(x=>x.satnum===id&&x.satrec);if(t) return t;}
@@ -640,7 +645,9 @@ const SSA=(function(){
     if(!W) return{...base,status:'no data',message:document.getElementById('eph-target-sub').textContent};
     const r=W.rNow,au=r.delta;
     return{...base,status:'ok',min_elevation_deg:W.minEl,darkness_rule:W.exempt?'not applied (Sun or Moon)':'astronomical darkness required',
-      visible_now:W.visNow,verdict:W.visNow?'visible now':W.upNow?'above the limit but the sky is too bright':'below the elevation limit',
+      visible_now:W.visNow,
+      brightness:r.mag==null?null:r.mag<=6?'naked eye (V '+r.mag.toFixed(1)+')':r.mag<=9?'binoculars (V '+r.mag.toFixed(1)+')':'telescope needed (V '+r.mag.toFixed(1)+')',
+      verdict:W.visNow?'visible now':W.upNow?'above the limit but the sky is too bright':'below the elevation limit',
       sky:EPH.twiLabel(r.sunFlag).toLowerCase(),
       now:{time:when(r.d.getTime()),azimuth_deg:num(r.az,1),direction:r.az!==null?compass(r.az):null,elevation_deg:num(r.el,1),
         ra_icrf_deg:num(r.ra,4),dec_icrf_deg:num(r.dec,4),magnitude_v:num(r.mag,2),

@@ -1020,6 +1020,8 @@ const OBS={
   frame(d){const g=gmst_from_jd(julianDate(d));return{d,c:Math.cos(g),s:Math.sin(g),su:null,j2k:null};},
   look(satrec,F,C,full){
     const pv=sgp4ECI(satrec,F.d);if(!pv||!isFinite(pv.r[0])) return null;
+    const rr=Math.hypot(pv.r[0],pv.r[1],pv.r[2]);
+    if(!(rr>6300&&rr<2e6)) return null;          /* below the surface or beyond the Moon: a broken element set */
     const r=pv.r,xf=F.c*r[0]+F.s*r[1],yf=-F.s*r[0]+F.c*r[1],zf=r[2];
     const dx=xf-C.site[0],dy=yf-C.site[1],dz=zf-C.site[2],R=C.R;
     const e=R[0]*dx+R[1]*dy+R[2]*dz,n=R[3]*dx+R[4]*dy+R[5]*dz,u=R[6]*dx+R[7]*dy+R[8]*dz;
