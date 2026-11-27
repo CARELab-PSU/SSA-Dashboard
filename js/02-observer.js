@@ -759,7 +759,7 @@ function drawGroundTrack(canvas,sels){
   let W=canvas.width,H=canvas.height;
   const xy=(la,lo)=>({x:((lo+180)/360)*W,y:((90-la)/180)*H});
   ctx.clearRect(0,0,W,H);
-  const bp=worldMapImg?blueprintMap(worldMapImg):null;
+  const bp=worldMapImg?blueprintMap(worldMapImg,W,H):null;
   if(bp) ctx.drawImage(bp,0,0,W,H);
   else if(worldMapImg){ctx.drawImage(worldMapImg,0,0,W,H);ctx.fillStyle='rgba(0,0,0,0.80)';ctx.fillRect(0,0,W,H);}
   else{ctx.fillStyle='#080808';ctx.fillRect(0,0,W,H);}
@@ -2009,44 +2009,45 @@ let worldMapImg=null,_bpCache=null;
    majority filter, and coastlines are the land pixels that touch sea.
    Built once, then reused. Falls back to a darkened photo if the image
    cannot be read. */
-function blueprintMap(img){
-  if(_bpCache!==null) return _bpCache||null;
-  try{
-    const W=2048,H=1024,c=document.createElement('canvas');c.width=W;c.height=H;
-    const x=c.getContext('2d');x.drawImage(img,0,0,W,H);
-    const d=x.getImageData(0,0,W,H),p=d.data;
-    const land=new Uint8Array(W*H);
-    for(let i=0,k=0;k<W*H;k++,i+=4){
-      const r=p[i],g=p[i+1],b=p[i+2];
-      land[k]=(b>r*1.25&&b>=g*1.0)?0:1;
+function blueprintMap(img,W0,H0){
+  /* 1. land/sea mask, once, at 2048×1024 */
+  if(_bpCache===null){
+    try{
+      const W=2048,H=1024,c=document.createElement('canvas');c.width=W;c.height=H;
+      const x=c.getContext('2d');x.drawImage(img,0,0,W,H);
+      const p=x.getImageData(0,0,W,H).data;
+      let m=new Uint8Array(W*H);
+      for(let i=0,k=0;k<W*H;k++,i+=4){const r=p[i],g=p[i+1],b=p[i+2];m[k]=(b>r*1.25&&b>=g)?0:1;}
+      const vote=(src,rad,need)=>{const o=new Uint8Array(W*H);
+        for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){let s=0;
+          for(let dy=-rad;dy<=rad;dy++){const y2=Math.min(H-1,Math.max(0,yy+dy));
+            for(let dx=-rad;dx<=rad;dx++) s+=src[y2*W+((xx+dx+W)%W)];}
+          o[yy*W+xx]=s>=need?1:0;}
+        return o;};
+      m=vote(m,1,5);m=vote(m,2,13);
+      _bpCache={mask:m,W,H,draw:null,dw:0,dh:0};
+    }catch(e){_bpCache=false;}   /* image not readable (cross-origin): use the darkened photo */
+  }
+  if(!_bpCache) return null;
+  /* 2. outline drawn at the size it is shown, so coastlines stay one crisp pixel */
+  const C=_bpCache;
+  if(C.draw&&C.dw===W0&&C.dh===H0) return C.draw;
+  const c=document.createElement('canvas');c.width=W0;c.height=H0;
+  const x=c.getContext('2d'),d=x.createImageData(W0,H0),p=d.data;
+  const s=new Uint8Array(W0*H0);
+  for(let yy=0;yy<H0;yy++){const sy=Math.min(C.H-1,(yy*C.H/H0)|0);
+    for(let xx=0;xx<W0;xx++) s[yy*W0+xx]=C.mask[sy*C.W+Math.min(C.W-1,(xx*C.W/W0)|0)];}
+  for(let k=0,i=0;k<W0*H0;k++,i+=4){
+    const yy=(k/W0)|0,xx=k-yy*W0;let v=4;
+    if(s[k]){
+      const coast=(xx>0&&!s[k-1])||(xx<W0-1&&!s[k+1])||(yy>0&&!s[k-W0])||(yy<H0-1&&!s[k+W0]);
+      v=coast?150:20;
     }
-    const sm=new Uint8Array(W*H);
-    for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){
-      let s=0;
-      for(let dy=-1;dy<=1;dy++){const y2=Math.min(H-1,Math.max(0,yy+dy));
-        for(let dx=-1;dx<=1;dx++){s+=land[y2*W+((xx+dx+W)%W)];}}
-      sm[yy*W+xx]=s>=5?1:0;
-    }
-    const sm2=new Uint8Array(W*H);
-    for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){
-      let s=0;
-      for(let dy=-2;dy<=2;dy++){const y2=Math.min(H-1,Math.max(0,yy+dy));
-        for(let dx=-2;dx<=2;dx++){s+=sm[y2*W+((xx+dx+W)%W)];}}
-      sm2[yy*W+xx]=s>=13?1:0;
-    }
-    sm.set(sm2);
-    for(let k=0,i=0;k<W*H;k++,i+=4){
-      let v,yy=(k/W)|0,xx=k-yy*W;
-      if(sm[k]){
-        const coast=(xx>0&&!sm[k-1])||(xx<W-1&&!sm[k+1])||(yy>0&&!sm[k-W])||(yy<H-1&&!sm[k+W]);
-        v=coast?[120,120,120]:[16,16,16];
-      } else v=[3,3,3];
-      p[i]=v[0];p[i+1]=v[1];p[i+2]=v[2];p[i+3]=255;
-    }
-    x.putImageData(d,0,0);
-    _bpCache=c;
-  }catch(e){_bpCache=false;}   /* image not readable (cross-origin): use the darkened photo */
-  return _bpCache||null;
+    p[i]=p[i+1]=p[i+2]=v;p[i+3]=255;
+  }
+  x.putImageData(d,0,0);
+  C.draw=c;C.dw=W0;C.dh=H0;
+  return c;
 }
 function loadWorldMap(cb){
   if(worldMapImg){cb(worldMapImg);return;}
