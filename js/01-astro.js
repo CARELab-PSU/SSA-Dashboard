@@ -195,7 +195,9 @@ function parseTleSci(s){
 function parseTLE(name,l1,l2){
   if(!l1||!l2||l1.length<69||l2.length<69||l1[0]!=='1'||l2[0]!=='2') return null;
   try{
-    let satnum=parseInt(l1.slice(2,7).trim());
+    /* Alpha-5 catalog numbers (above 99999): a leading letter A..Z, skipping I and O, stands for 10..33 */
+    const f5=l1.slice(2,7).trim();
+    let satnum=/^[A-HJ-NP-Z]\d{4}$/.test(f5)?('ABCDEFGHJKLMNPQRSTUVWXYZ'.indexOf(f5[0])+10)*10000+parseInt(f5.slice(1),10):parseInt(f5,10);
     let yr2=parseInt(l1.slice(18,20));
     let doy=parseFloat(l1.slice(20,32));
     let bstar=0;try{bstar=parseTleSci(l1.slice(53,61));}catch(e){}
