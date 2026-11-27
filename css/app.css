@@ -932,3 +932,6 @@ body[data-rview="sky"] #gt-panel,body[data-rview="gt"] #sky-panel{visibility:hid
 /* equirectangular map keeps its 2:1 shape, centred in the panel */
 #gt-panel{justify-content:center;}
 #gt-canvas{flex:none!important;width:100%!important;height:auto!important;aspect-ratio:2/1;max-height:100%;}
+#site-pop{box-sizing:border-box;}
+#site-pop .site-input{min-width:0;width:100%;box-sizing:border-box;}
+#site-pop .site-lbl{flex:0 0 52px;}
