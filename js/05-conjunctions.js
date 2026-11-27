@@ -75,6 +75,12 @@ const CA={
     if(!rows||!rows.length){
       rows=[];src='SOCRATES FEED UNREACHABLE · NO CONJUNCTION DATA';
     }
+    /* SOCRATES lists objects docked to each other (station modules, crew ships) as
+       zero-distance, zero-speed "conjunctions"; they are not close approaches */
+    const n0=rows.length;
+    rows=rows.filter(r=>!(r.rangeKm===0&&r.relV===0));
+    this._docked=n0-rows.length;
+    if(this._docked) src+=' · '+this._docked+' DOCKED PAIRS HIDDEN';
     this._src=src;
     this.rows=rows;
     this.renderList();
