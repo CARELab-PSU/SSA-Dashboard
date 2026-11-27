@@ -217,12 +217,13 @@
         <button class="pt-export" onclick="exportCSV()" title="Export the primary object's passes as CSV">Export CSV</button>
       </div>
       <div id="pb-filters" style="display:none;">
-        <label>Next <select id="pbf-hours" onchange="PB.rescan()"><option>1</option><option selected>2</option><option>4</option><option>6</option></select> h</label>
-        <label>Max elevation above <select id="pbf-minel" onchange="PB.render()"><option>0</option><option>10</option><option>20</option><option selected>30</option><option>45</option><option>60</option></select>°</label>
-        <label><input type="checkbox" id="pbf-vis" onchange="PB.render()"/> Naked-eye visible only</label>
-        <label><input type="checkbox" id="pbf-noday" onchange="PB.render()"/> Exclude daytime passes</label>
-        <input id="pbf-name" placeholder="Name or NORAD contains" oninput="PB.render()"/>
-        <button class="hud-btn sm" onclick="PB.rescan()">Recalculate</button>
+        <label>Show <select id="pbf-type" onchange="PB.refilter()"><option value="ALL" selected>All objects</option><option value="PAYLOAD">Payloads</option><option value="RB">Rocket bodies</option><option value="DEBRIS">Debris</option></select></label>
+        <label class="pbf-pass">Next <select id="pbf-hours" onchange="PB.rescan()"><option>1</option><option selected>2</option><option>4</option><option>6</option></select> h</label>
+        <label class="pbf-pass">Max elevation above <select id="pbf-minel" onchange="PB.render()"><option>0</option><option>10</option><option>20</option><option selected>30</option><option>45</option><option>60</option></select>°</label>
+        <label class="pbf-pass"><input type="checkbox" id="pbf-vis" onchange="PB.render()"/> Naked-eye visible only</label>
+        <label class="pbf-pass"><input type="checkbox" id="pbf-noday" onchange="PB.render()"/> Exclude daytime passes</label>
+        <input id="pbf-name" placeholder="Name or NORAD contains" oninput="PB.refilter()"/>
+        <button class="hud-btn sm pbf-pass" onclick="PB.rescan()">Recalculate</button>
       </div>
       <div id="pb-scroll">
         <table id="pb-table">

@@ -1049,16 +1049,50 @@ const OBS={
     return D+'°'+String(M).padStart(2,'0')+'′'+String(S).padStart(2,'0')+'″';}
 };
 function pbPick(n){
-  const t=allSats.find(x=>x.satnum===n);if(!t) return;
+  const t=allSats.find(x=>x.satnum===n)||SITECAT.list.find(x=>x.satnum===n);if(!t) return;
   if(SEL.find(q=>q.tle.satnum===n)) makePrimary(n); else selectSat(t);
 }
 
-/* ════ PB · site-wide lists over the loaded TLE group ════
-   passes : every pass of every loaded object in the next few hours
+/* ════ SITECAT · the whole catalog for the site-wide lists ════
+   The passes, in-view and GEO lists cover every tracked object, not just the
+   TLE group picked in the sidebar. Loaded once, on first use, from the same
+   OrbitSmith mirror the Catalog tab uses (CelesTrak as fallback), and shared
+   with that tab so it is downloaded only once per visit. */
+const SITECAT={
+  list:[],state:'idle',src:'',prog:'',
+  ensure(){
+    if(this.state==='loading'||this.state==='ready') return;
+    const c=(typeof CAT!=='undefined'&&CAT._groupCache)?CAT._groupCache.__full:null;
+    if(c){this.adopt(c);return;}
+    this.state='loading';this.prog='Loading the full catalog…';PB.onCat(true);
+    (async()=>{
+      let raw=await OS.fetchCatalog(
+        (d,tot,n)=>{this.prog='Loading the full catalog, shard '+d+' of '+tot+' · '+n+' objects so far';PB.onCat();},
+        m=>{this.list=[...m.values()];this.src='OrbitSmith';PB.onCat();});
+      if(!raw){
+        this.prog='OrbitSmith unreachable, trying CelesTrak…';PB.onCat(true);
+        raw=await fetchFullCatalog(b=>{this.prog='Loading the CelesTrak catalog · '+(b/1048576).toFixed(1)+' MB';PB.onCat();});
+      }
+      if(!raw){this.state='fail';this.list=[];this.prog='';PB.onCat(true);return;}
+      if(typeof CAT!=='undefined'&&CAT._groupCache&&!CAT._groupCache.__full) CAT._groupCache.__full=raw;
+      this.adopt(raw);
+    })();
+  },
+  adopt(raw){
+    const L=(Array.isArray(raw)?raw:parseCatalog(raw)).filter(t=>t.satrec);
+    L.forEach(t=>{if(!t.objType) t.objType=(typeof CAT!=='undefined'&&CAT.objTypeOfName)?CAT.objTypeOfName(t):'UNKNOWN';});
+    this.src=Array.isArray(raw)?'OrbitSmith':'CelesTrak';
+    this.list=L;this.state='ready';this.prog='';
+    PB.onCat(true);
+  }
+};
+
+/* ════ PB · site-wide lists over the whole catalog ════
+   passes : every pass of every catalogued object in the next few hours
    inview : everything above the horizon right now
    geo    : geosynchronous objects that stay above the horizon for a full day */
 const PB={
-  tab:'tracked',MAXOBJ:6000,_tok:0,res:null,busy:false,_last:0,_geo:null,
+  tab:'tracked',MAXOBJ:60000,_nc:null,_onCatT:0,_tok:0,res:null,busy:false,_last:0,_geo:null,
   HEAD:{
     tracked:'<tr><th>Object</th><th>Status</th><th>Rise (AOS)</th><th>Set (LOS)</th><th>Max el</th><th>Next naked-eye pass</th><th>TLE age</th></tr>',
     passes:'<tr><th>Name</th><th>NORAD</th><th>AOS</th><th>LOS</th><th>Elevation</th><th>Max elevation</th><th>Visibility</th></tr>',
@@ -1073,19 +1107,66 @@ const PB={
     this.tab=t;
     document.querySelectorAll('.pb-tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
     document.getElementById('pb-thead').innerHTML=this.HEAD[t];
-    document.getElementById('pb-filters').style.display=t==='passes'?'flex':'none';
+    document.getElementById('pb-filters').style.display=t==='tracked'?'none':'flex';
+    document.querySelectorAll('#pb-filters .pbf-pass').forEach(e=>e.style.display=t==='passes'?'':'none');
+    if(t!=='tracked') SITECAT.ensure();
     document.querySelector('.pb-head .pt-export').style.display=t==='tracked'?'':'none';
     document.getElementById('pb-sub').textContent=this.SUB[t];
     document.getElementById('pb-body').innerHTML='';
     this._last=0;
     if(t==='tracked') renderPassBoard(); else this.tick(true);
   },
-  key(){return allSats.length+'|'+(allSats[0]?allSats[0].satnum:0)+'|'+SITE.lat_deg+'|'+SITE.lon_deg+'|'+SITE.h_m;},
+  /* the list the site-wide tabs scan: the whole catalog, or the sidebar group if the catalog could not be fetched */
+  cat(){return SITECAT.list.length?SITECAT.list:allSats;},
+  catLabel(){
+    if(SITECAT.list.length) return 'the full catalog ('+SITECAT.src+')';
+    const g=document.getElementById('cat-select');
+    return '“'+(g&&g.selectedOptions[0]?g.selectedOptions[0].textContent.trim():'group')+'” (full catalog unavailable)';
+  },
+  /* type and name filters shared by the three site-wide tabs */
+  pass(t){
+    const ty=document.getElementById('pbf-type').value;
+    if(ty!=='ALL'&&(t.objType||'UNKNOWN')!==ty) return false;
+    const q=document.getElementById('pbf-name').value.trim().toLowerCase();
+    return !q||t.name.toLowerCase().includes(q)||String(t.satnum).includes(q);
+  },
+  refilter(){this._last=0;if(this.tab==='passes') this.render();else if(this.tab!=='tracked') this.renderNow();},
+  /* the catalog grew or finished loading */
+  onCat(force){
+    if(this.tab==='tracked') return;
+    const now=performance.now();
+    if(!force&&now-this._onCatT<800) return;
+    this._onCatT=now;
+    if(this.tab==='passes'&&SITECAT.state==='loading'){this.empty(SITECAT.prog||'Loading the full catalog…',7);this.sub('Passes are computed once the whole catalog has arrived.');return;}
+    if(this.tab==='geo'&&SITECAT.state==='loading'){this.empty(SITECAT.prog||'Loading the full catalog…',9);this.sub('');return;}
+    this.tick(true);
+  },
+  /* Lower bound on the seconds before an object can rise above this site's horizon.
+     The angle at Earth's centre between object and site must shrink to the horizon
+     cone angle (largest at apogee) before it can be seen, and it shrinks no faster
+     than the object's peak angular rate (at perigee) plus Earth's spin. */
+  bound(t,r,sx,sy,sz){
+    let B=t._pbB;
+    if(!B){
+      const s=t.satrec,e=Math.min(0.99,Math.max(0,s.ecco||0)),n=(s.no||0)/60;
+      if(!(n>0)){B=t._pbB={w:1,lam:Math.PI};}
+      else{
+        const a=Math.cbrt(398600.4418/(n*n)),ra=a*(1+e);
+        B=t._pbB={w:n*Math.sqrt((1+e)/Math.pow(1-e,3))+7.2921159e-5,lam:Math.acos(Math.min(1,6356.75/Math.max(ra,6356.75)))};
+      }
+    }
+    const rm=Math.hypot(r[0],r[1],r[2]),sm=Math.hypot(sx,sy,sz);
+    const psi=Math.acos(Math.max(-1,Math.min(1,(r[0]*sx+r[1]*sy+r[2]*sz)/(rm*sm))));
+    const d=psi-B.lam-0.035;                                 /* 2° margin */
+    return d>0?0.8*d/B.w:0;
+  },
+  key(){const L=this.cat();return L.length+'|'+(L[0]?L[0].satnum:0)+'|'+SITE.lat_deg+'|'+SITE.lon_deg+'|'+SITE.h_m;},
   sub(t){document.getElementById('pb-sub').textContent=t;},
   empty(msg,cols){document.getElementById('pb-body').innerHTML='<tr><td colspan="'+cols+'" class="pb-empty">'+msg+'</td></tr>';},
   tick(force){
     const now=performance.now();
     if(this.tab==='passes'){
+      if(SITECAT.state==='loading'){if(force) this.onCat(true);return;}
       const hrs=+document.getElementById('pbf-hours').value;
       const stale=!this.res||this.res.key!==this.key()+'|'+hrs||EPOCH.ms()<this.res.t0||EPOCH.ms()-this.res.t0>600000;
       if(stale&&!this.busy) this.rescan();
@@ -1096,25 +1177,34 @@ const PB={
   },
   rescan(){
     const tok=++this._tok;this.busy=true;
-    const sats=allSats.filter(t=>t.satrec).slice(0,this.MAXOBJ);
+    const all=this.cat(),sats=all.filter(t=>t.satrec).slice(0,this.MAXOBJ);
     const hrs=+document.getElementById('pbf-hours').value;
     const W=hrs*3600,step=W>7200?60:30,N=Math.floor(W/step);
     const t0=EPOCH.ms(),C=OBS.ctx(),F=[],sAlt=[];
-    for(let i=0;i<=N;i++){const d=new Date(t0+i*step*1000);F.push(OBS.frame(d));sAlt.push(OBS.sunAlt(d));}
+    const SX=new Float64Array(N+1),SY=new Float64Array(N+1),SZ=C.site[2];
+    for(let i=0;i<=N;i++){const d=new Date(t0+i*step*1000),f=OBS.frame(d);F.push(f);sAlt.push(OBS.sunAlt(d));
+      SX[i]=f.c*C.site[0]-f.s*C.site[1];SY[i]=f.s*C.site[0]+f.c*C.site[1];}
     const out=[],key=this.key()+'|'+hrs;
     const el=new Float32Array(N+1);
     const tAt=i=>t0+i*step*1000;
     const one=t=>{
-      /* coarse elevation series; far below the horizon, skip ahead */
-      let any=false;
-      for(let i=0;i<=N;i++){
+      /* coarse elevation series; while the object cannot possibly be up yet, jump ahead */
+      let any=false,i=0;
+      while(i<=N){
         const o=OBS.look(t.satrec,F[i],C);
-        el[i]=o?o.el:-90;
-        if(el[i]>0) any=true;
-        if(el[i]<-25){const k=Math.min(N,i+2);for(let q=i+1;q<=k;q++) el[q]=el[i];i=k;}
+        if(!o){if(i===0) return;el[i]=-90;i++;continue;}
+        el[i]=o.el;
+        if(o.el>0){any=true;i++;continue;}
+        const sk=Math.floor(this.bound(t,o.r,SX[i],SY[i],SZ)/step);
+        if(sk>=2){
+          const k=i+sk;
+          if(k>N){for(let q=i+1;q<=N;q++) el[q]=-90;break;}
+          for(let q=i+1;q<k;q++) el[q]=-90;
+          i=k;
+        } else i++;
       }
       if(!any) return;
-      let i=0;
+      i=0;
       while(i<=N){
         if(el[i]<=0){i++;continue;}
         let i0=i,i1=i;while(i1<N&&el[i1+1]>0) i1++;
@@ -1150,12 +1240,12 @@ const PB={
         const now=performance.now();
         if(this.tab==='passes'&&now-this._last>500){
           this._last=now;
-          this.res={key,t0,hrs,list:out,n:sats.length,capped:allSats.length>sats.length,pct:Math.round(100*idx/sats.length)};
+          this.res={key,t0,hrs,list:out,n:sats.length,capped:all.length>sats.length,pct:Math.round(100*idx/sats.length)};
           this.render();
         }
         setTimeout(chunk,0);
       } else {
-        this.res={key,t0,hrs,list:out,n:sats.length,capped:allSats.length>sats.length};
+        this.res={key,t0,hrs,list:out,n:sats.length,capped:all.length>sats.length};
         this.busy=false;this._last=performance.now();
         if(this.tab==='passes') this.render();
       }
@@ -1169,9 +1259,7 @@ const PB={
     const R=this.res,now=EPOCH.ms(),tz=SITE.tz;
     const minEl=+document.getElementById('pbf-minel').value;
     const visOnly=document.getElementById('pbf-vis').checked,noDay=document.getElementById('pbf-noday').checked;
-    const q=document.getElementById('pbf-name').value.trim().toLowerCase();
-    let L=R.list.filter(p=>p.elpk>=minEl&&(!visOnly||p.vis)&&(!noDay||!p.day)&&(p.los===null||p.los>now)&&
-      (!q||p.tle.name.toLowerCase().includes(q)||String(p.tle.satnum).includes(q)));
+    let L=R.list.filter(p=>p.elpk>=minEl&&(!visOnly||p.vis)&&(!noDay||!p.day)&&(p.los===null||p.los>now)&&this.pass(p.tle));
     const cur=p=>(p.aos===null||p.aos<=now);
     L.sort((a,b)=>{const ca=cur(a),cb=cur(b);
       if(ca!==cb) return ca?-1:1;
@@ -1194,8 +1282,7 @@ const PB={
     }).join('');
     if(rows) document.getElementById('pb-body').innerHTML=rows;
     else this.empty(R.pct!==undefined?'Computing passes…':R.n?'No passes match these filters.':'No objects loaded.',7);
-    const grp=document.getElementById('cat-select');
-    this.sub((R.pct!==undefined?'Computing… '+R.pct+'% · ':'')+total+' passes in the next '+R.hrs+' h · '+R.n+' objects in “'+(grp&&grp.selectedOptions[0]?grp.selectedOptions[0].textContent.trim():'group')+'”'+
+    this.sub((R.pct!==undefined?'Computing… '+R.pct+'% · ':'')+total+' passes in the next '+R.hrs+' h · '+R.n+' objects in '+this.catLabel()+
       (R.capped?' (first '+this.MAXOBJ+' only)':'')+(total>300?' · showing 300':'')+' · local time');
   },
   geoSet(){
@@ -1203,7 +1290,7 @@ const PB={
     if(this._geo&&this._geo.key===key) return this._geo.set;
     const set=new Set(),C=OBS.ctx(),t0=EPOCH.ms(),F=[];
     for(let i=0;i<48;i++) F.push(OBS.frame(new Date(t0+i*1800000)));
-    allSats.forEach(t=>{
+    this.cat().forEach(t=>{
       if(!t.satrec||!(t.n>0.9&&t.n<1.1)) return;
       for(let i=0;i<48;i++){const o=OBS.look(t.satrec,F[i],C);if(!o||o.el<=0) return;}
       set.add(t.satnum);
@@ -1214,9 +1301,20 @@ const PB={
     const geo=this.tab==='geo',cols=geo?9:8;
     const now=EPOCH.ms(),C=OBS.ctx(),F0=OBS.frame(new Date(now)),F1=OBS.frame(new Date(now+2000));
     const gs=geo?this.geoSet():null;
-    const src=allSats.filter(t=>t.satrec&&(!geo||gs.has(t.satnum))).slice(0,this.MAXOBJ);
+    const src=this.cat().filter(t=>t.satrec&&(!geo||gs.has(t.satnum))&&this.pass(t)).slice(0,this.MAXOBJ);
+    /* objects far below the horizon are not re-propagated until they could have risen */
+    const key=this.key();
+    if(!this._nc||this._nc.key!==key||now<this._nc.t) this._nc={key,t:now,m:new Map()};
+    this._nc.t=now;
+    const M=this._nc.m,sx=F0.c*C.site[0]-F0.s*C.site[1],sy=F0.s*C.site[0]+F0.c*C.site[1],sz=C.site[2];
     let L=[];
-    src.forEach(t=>{const o=OBS.look(t.satrec,F0,C,true);if(o&&o.el>0) L.push({t,o});});
+    src.forEach(t=>{
+      const nc=M.get(t.satnum);if(nc!==undefined&&nc>now) return;
+      const o=OBS.look(t.satrec,F0,C);
+      if(!o){M.set(t.satnum,Infinity);return;}
+      if(o.el<=0){const b=this.bound(t,o.r,sx,sy,sz);if(b>20) M.set(t.satnum,now+b*1000);return;}
+      const of=OBS.look(t.satrec,F0,C,true);if(of) L.push({t,o:of});
+    });
     L.sort((a,b)=>geo?a.o.az-b.o.az:b.o.el-a.o.el);
     const total=L.length;L=L.slice(0,300);
     const rows=L.map(({t,o})=>{
@@ -1232,10 +1330,12 @@ const PB={
         '<td>'+(o.sunlit?'Sunlit':'Eclipsed')+'</td></tr>';
     }).join('');
     if(rows) document.getElementById('pb-body').innerHTML=rows;
-    else if(geo) this.empty('No geosynchronous objects in the loaded group stay above this site\'s horizon. <button class="hud-btn sm" onclick="PB.loadGeo()">Load the Geostationary group</button>',cols);
-    else this.empty(allSats.length?'Nothing in the loaded group is above the horizon right now.':'No objects loaded.',cols);
-    this.sub(geo?total+' geosynchronous objects above the horizon for the next 24 h · sorted by azimuth'
-                :total+' of '+src.length+' loaded objects above the horizon'+(total>300?' · showing the 300 highest':'')+' · RA/Dec topocentric J2000');
+    else if(SITECAT.state==='loading'&&!src.length) this.empty(SITECAT.prog||'Loading the full catalog…',cols);
+    else if(geo) this.empty('No geosynchronous objects matching these filters stay above this site\'s horizon.',cols);
+    else this.empty(src.length?'Nothing matching these filters is above the horizon right now.':'No objects loaded.',cols);
+    const ld=SITECAT.state==='loading'?' · still loading ('+this.cat().length+' so far)':'';
+    this.sub(geo?total+' geosynchronous objects in '+this.catLabel()+' above the horizon for the next 24 h · sorted by azimuth'
+                :total+' of '+src.length+' objects in '+this.catLabel()+' above the horizon'+(total>300?' · showing the 300 highest':'')+ld+' · RA/Dec topocentric J2000');
   },
   loadGeo(){
     const sel=document.getElementById('cat-select');
