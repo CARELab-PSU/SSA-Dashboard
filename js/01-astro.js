@@ -312,7 +312,7 @@ function sgp4ECI(satrec, date){
    through the lab's own relay: proxy/jpl-proxy-worker.js in this repo.
    Set JPL_PROXY_DEFAULT to the deployed Worker URL, or open the page once
    with ?proxy=<url> (remembered in this browser). */
-const JPL_PROXY_DEFAULT='';
+const JPL_PROXY_DEFAULT='https://ssa-jpl.roshanthomase.workers.dev/';
 const JPL_PROXY=(()=>{
   try{
     const q=new URLSearchParams(location.search);
