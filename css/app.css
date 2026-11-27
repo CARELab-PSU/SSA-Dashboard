@@ -929,3 +929,6 @@ body[data-rview="sky"] #gt-panel,body[data-rview="gt"] #sky-panel{visibility:hid
 #sky-legend{top:62px!important;}
 #sky-sunmoon{top:122px!important;}
 #gt-panel .site-info-gt{bottom:8px;}
+/* equirectangular map keeps its 2:1 shape, centred in the panel */
+#gt-panel{justify-content:center;}
+#gt-canvas{flex:none!important;width:100%!important;height:auto!important;aspect-ratio:2/1;max-height:100%;}

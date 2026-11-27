@@ -2027,6 +2027,14 @@ function blueprintMap(img){
         for(let dx=-1;dx<=1;dx++){s+=land[y2*W+((xx+dx+W)%W)];}}
       sm[yy*W+xx]=s>=5?1:0;
     }
+    const sm2=new Uint8Array(W*H);
+    for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++){
+      let s=0;
+      for(let dy=-2;dy<=2;dy++){const y2=Math.min(H-1,Math.max(0,yy+dy));
+        for(let dx=-2;dx<=2;dx++){s+=sm[y2*W+((xx+dx+W)%W)];}}
+      sm2[yy*W+xx]=s>=13?1:0;
+    }
+    sm.set(sm2);
     for(let k=0,i=0;k<W*H;k++,i+=4){
       let v,yy=(k/W)|0,xx=k-yy*W;
       if(sm[k]){
