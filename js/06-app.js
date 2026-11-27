@@ -191,11 +191,13 @@ window.addEventListener('load',async()=>{
 
   /* continuous cache: heartbeat save every 10 s + camera deltas */
   setInterval(()=>STATE.save(),10000);
+  if(typeof SSA!=='undefined') SSA._booted();
   }catch(err){
     console.error('[boot]',err);
     if(typeof reportRuntimeError==='function') reportRuntimeError('BOOT FAILED: '+err.message,err);
     /* never strand the user behind the loading overlay */
     const ov=document.getElementById('loading-overlay');
     if(ov){ov.classList.add('hide');setTimeout(()=>ov.style.display='none',700);}
+    if(typeof SSA!=='undefined') SSA._booted(err);
   }
 });

@@ -1,0 +1,1125 @@
+[
+ {
+  "name": "help",
+  "description": "List the commands (optionally only those whose name starts with a prefix). Example requests: \"what can you do on the dashboard\", \"list dashboard commands\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "prefix": {
+     "type": "string",
+     "description": "Only commands starting with this, e.g. \"lists\"."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "state",
+  "description": "What the dashboard is showing right now: view, clock, site, tracked objects, filters, loaded data. Example requests: \"what is on the screen\", \"where are we\", \"current settings\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "app_ready",
+  "description": "Wait until the dashboard has started (and optionally until the full catalog has loaded).",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "full_catalog": {
+     "type": "boolean",
+     "description": "Also wait for the full public catalog. Default false."
+    },
+    "timeout_s": {
+     "type": "number",
+     "description": "Range 1 to 300. Default 60."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "view_show",
+  "description": "Switch the main tab. Example requests: \"go to the catalog\", \"open the JPL tab\", \"show conjunctions\", \"back to the observer\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "view": {
+     "type": "string",
+     "enum": [
+      "observer",
+      "catalog",
+      "ephemeris",
+      "conjunctions"
+     ],
+     "description": "Also accepts: observer (tracker, tracking, passes, sky); catalog (3d, 3-d, globe, earth); ephemeris (jpl, horizons, eph, deep space); conjunctions (conjunction, close approach, close approaches, socrates)."
+    }
+   },
+   "required": [
+    "view"
+   ]
+  }
+ },
+ {
+  "name": "time_get",
+  "description": "The dashboard clock: simulated time, speed, and offset from real time. Example requests: \"what time is it on the dashboard\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "time_live",
+  "description": "Return to real time at normal speed. Example requests: \"go live\", \"back to now\", \"reset time\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "time_pause",
+  "description": "Freeze the clock. Example requests: \"pause\", \"stop the animation\", \"freeze\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "time_play",
+  "description": "Run the clock (resume after a pause), optionally at a new speed. Example requests: \"play\", \"play the animation\", \"resume\", \"animate\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "rate": {
+     "type": "number",
+     "description": "Simulated seconds per real second (1 = real time, 60, 1000…). Range -10000000 to 10000000."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "time_rate",
+  "description": "Set clock speed in simulated seconds per real second. 0 pauses; negative runs backward. Example requests: \"speed up\", \"fast forward\", \"60 times speed\", \"slow down\", \"run backward\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "rate": {
+     "type": "number",
+     "description": "Range -10000000 to 10000000."
+    }
+   },
+   "required": [
+    "rate"
+   ]
+  }
+ },
+ {
+  "name": "time_set",
+  "description": "Jump the clock to a date and time. ISO 8601; without an offset it is read as UTC, or as site local time with local=true. Example requests: \"set the time to 9 pm\", \"jump to tomorrow at 6\", \"go to 2026-12-01 03:00 UTC\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "time": {
+     "type": "string",
+     "description": "e.g. \"2026-12-01T03:00:00Z\", \"2026-12-01 21:30\", or \"now\"."
+    },
+    "local": {
+     "type": "boolean",
+     "description": "Read a time without offset as site local time. Default false."
+    }
+   },
+   "required": [
+    "time"
+   ]
+  }
+ },
+ {
+  "name": "time_shift",
+  "description": "Move the clock forward (positive) or back (negative). Example requests: \"go forward two hours\", \"back 30 minutes\", \"skip ahead a day\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "days": {
+     "type": "number",
+     "description": "Default 0."
+    },
+    "hours": {
+     "type": "number",
+     "description": "Default 0."
+    },
+    "minutes": {
+     "type": "number",
+     "description": "Default 0."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "site_get",
+  "description": "The observer site (latitude, longitude, altitude, time zone). Example requests: \"where is my site\", \"what site are we using\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "site_set",
+  "description": "Move the observer site. Every pass, list and ephemeris is recomputed for it. Example requests: \"set my site to\", \"observe from\", \"change location to\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "lat": {
+     "type": "number",
+     "description": "Degrees north. Range -90 to 90."
+    },
+    "lon": {
+     "type": "number",
+     "description": "Degrees east (west is negative). Range -180 to 360."
+    },
+    "alt_m": {
+     "type": "number",
+     "description": "Metres above sea level (kept if omitted). Range -500 to 9000."
+    }
+   },
+   "required": [
+    "lat",
+    "lon"
+   ]
+  }
+ },
+ {
+  "name": "site_preset",
+  "description": "Use one of the built-in observatory sites. Example requests: \"observe from Mauna Kea\", \"use the Penn State site\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "enum": [
+      "penn state",
+      "mauna kea",
+      "paranal",
+      "kitt peak",
+      "greenwich",
+      "siding spring"
+     ],
+     "description": "Also accepts: penn state (state college, psu, home, university park); paranal (cerro paranal, vlt, chile); greenwich (royal greenwich, london); mauna kea (hawaii, maunakea)."
+    }
+   },
+   "required": [
+    "name"
+   ]
+  }
+ },
+ {
+  "name": "site_locate",
+  "description": "Set the site from this computer's location (the browser may ask for permission). Example requests: \"use my location\", \"locate me\", \"where am I\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "observer_groups",
+  "description": "The TLE groups the observer sidebar can load.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "observer_group",
+  "description": "Load a TLE group into the observer sidebar (Space Stations, Starlink, GPS …). Example requests: \"load starlink\", \"show the weather satellites\", \"list GPS satellites\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "group": {
+     "type": "string",
+     "description": "Group id or label, e.g. \"starlink\", \"gps-ops\", \"Space Stations\". See observer.groups."
+    }
+   },
+   "required": [
+    "group"
+   ]
+  }
+ },
+ {
+  "name": "objects_find",
+  "description": "Search Earth-orbiting objects by name or NORAD number across the loaded group, the full catalog and CelesTrak. Example requests: \"find Hubble\", \"is there a satellite called\", \"search for Starlink 1000\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "query": {
+     "type": "string"
+    },
+    "limit": {
+     "type": "number",
+     "description": "Range 1 to 100. Default 10."
+    }
+   },
+   "required": [
+    "query"
+   ]
+  }
+ },
+ {
+  "name": "objects_track",
+  "description": "Track an object in the observer tab (orbit, ground track, sky plot, passes). Up to 5 at once; the newest becomes primary. Example requests: \"track the ISS\", \"show me Hubble\", \"follow NORAD 25544\", \"plot Tiangong\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "object": {
+     "type": [
+      "string",
+      "integer"
+     ],
+     "description": "Object name (e.g. \"ISS\", \"Hubble\") or NORAD catalog number (e.g. 25544)."
+    },
+    "replace": {
+     "type": "boolean",
+     "description": "Stop tracking everything else first. Default false."
+    }
+   },
+   "required": [
+    "object"
+   ]
+  }
+ },
+ {
+  "name": "objects_untrack",
+  "description": "Stop tracking one object, or all of them. Example requests: \"stop tracking\", \"remove the ISS\", \"clear tracked objects\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "object": {
+     "type": [
+      "string",
+      "integer"
+     ],
+     "description": "Name, NORAD number, or \"all\"."
+    }
+   },
+   "required": [
+    "object"
+   ]
+  }
+ },
+ {
+  "name": "objects_primary",
+  "description": "Make a tracked object the primary one (data panel, sky plot focus).",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "object": {
+     "type": [
+      "string",
+      "integer"
+     ],
+     "description": "Object name (e.g. \"ISS\", \"Hubble\") or NORAD catalog number (e.g. 25544)."
+    }
+   },
+   "required": [
+    "object"
+   ]
+  }
+ },
+ {
+  "name": "objects_tracked",
+  "description": "The tracked objects with where they are now, the current or next pass, and the next naked-eye pass. Example requests: \"when does it rise\", \"is the ISS up\", \"what am I tracking\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "objects_info",
+  "description": "Everything about one Earth-orbiting object without changing the screen: orbital elements, position and pointing now (J2000 RA/Dec), and its passes over the site. Example requests: \"tell me about Hubble\", \"is the ISS visible tonight\", \"when is the next Tiangong pass\", \"where is NORAD 20580\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "object": {
+     "type": [
+      "string",
+      "integer"
+     ],
+     "description": "Object name (e.g. \"ISS\", \"Hubble\") or NORAD catalog number (e.g. 25544)."
+    },
+    "hours": {
+     "type": "number",
+     "description": "How far ahead to list passes. Range 1 to 72. Default 24."
+    }
+   },
+   "required": [
+    "object"
+   ]
+  }
+ },
+ {
+  "name": "objects_download_tle",
+  "description": "Download the primary tracked object's element set as a .txt file.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "observer_horizon",
+  "description": "Forecast horizon for tracked objects (how far ahead orbits and passes are drawn). Example requests: \"show the next 6 hours\", \"forecast 24 hours\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "hours": {
+     "type": "number",
+     "enum": [
+      6,
+      12,
+      18,
+      24
+     ]
+    }
+   },
+   "required": [
+    "hours"
+   ]
+  }
+ },
+ {
+  "name": "observer_plot",
+  "description": "Right-hand plot: sky plot (alt/az dome) or ground track (map). Example requests: \"show the sky plot\", \"switch to the map\", \"show ground track\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "plot": {
+     "type": "string",
+     "enum": [
+      "sky",
+      "groundtrack"
+     ],
+     "description": "Also accepts: sky (skyplot, sky plot, dome, polar); groundtrack (ground track, map, gt, track)."
+    }
+   },
+   "required": [
+    "plot"
+   ]
+  }
+ },
+ {
+  "name": "observer_frame",
+  "description": "3-D orbit view frame: inertial (ECI) or Earth-fixed (ECEF). Example requests: \"show inertial frame\", \"switch to earth fixed\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "frame": {
+     "type": "string",
+     "enum": [
+      "inertial",
+      "earthfixed"
+     ],
+     "description": "Also accepts: inertial (eci, teme, j2000, space fixed); earthfixed (ecef, earth fixed, rotating, itrf)."
+    }
+   },
+   "required": [
+    "frame"
+   ]
+  }
+ },
+ {
+  "name": "skyplot_options",
+  "description": "Sky plot options: draw every pass in the horizon (not just the next) and/or only naked-eye-visible segments. Example requests: \"show all passes on the sky plot\", \"only visible passes\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "all_passes": {
+     "type": "boolean"
+    },
+    "visible_only": {
+     "type": "boolean"
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "observer_conditions",
+  "description": "Observing weather at the site for the coming hours (cloud cover, wind, rain chance, temperature); can open or refresh the panel. Example requests: \"is it cloudy tonight\", \"what is the weather for observing\", \"show observing conditions\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "open": {
+     "type": "boolean",
+     "description": "Open (true) or close (false) the conditions panel."
+    },
+    "refresh": {
+     "type": "boolean",
+     "description": "Default false."
+    },
+    "hours": {
+     "type": "number",
+     "description": "Range 1 to 48. Default 12."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "observer_export_csv",
+  "description": "Download the primary object's pass table as CSV.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "lists_show",
+  "description": "Show one of the site lists under the observer tab, optionally setting filters. Passes, in-view and GEO lists cover the whole public catalog. Example requests: \"show debris overhead\", \"what is above me\", \"show upcoming passes\", \"show geostationary satellites I can see\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "tab": {
+     "type": "string",
+     "enum": [
+      "tracked",
+      "passes",
+      "inview",
+      "geo"
+     ],
+     "description": "Also accepts: tracked (selected, my objects, tracked objects); passes (upcoming, current and upcoming, next passes, rising); inview (in view, overhead, above, up now); geo (always in view, geostationary, geosynchronous, geo belt)."
+    },
+    "type": {
+     "type": "string",
+     "enum": [
+      "all",
+      "payload",
+      "rb",
+      "debris"
+     ],
+     "description": "Object type to show. Also accepts: all (everything, all objects, any); payload (payloads, satellite, satellites, active); rb (rocket body, rocket bodies, r/b, rockets); debris (junk, fragments, deb)."
+    },
+    "name": {
+     "type": "string",
+     "description": "Only names or NORAD numbers containing this text (\"\" clears)."
+    },
+    "hours": {
+     "type": "number",
+     "enum": [
+      1,
+      2,
+      4,
+      6
+     ],
+     "description": "Passes list: how many hours ahead."
+    },
+    "min_elevation": {
+     "type": "number",
+     "enum": [
+      0,
+      10,
+      20,
+      30,
+      45,
+      60
+     ],
+     "description": "Passes list: only passes whose peak is above this many degrees."
+    },
+    "visible_only": {
+     "type": "boolean",
+     "description": "Passes list: only naked-eye-visible passes (sunlit object, dark sky)."
+    },
+    "exclude_daytime": {
+     "type": "boolean",
+     "description": "Passes list: hide passes that peak in daylight."
+    }
+   },
+   "required": [
+    "tab"
+   ]
+  }
+ },
+ {
+  "name": "lists_filter",
+  "description": "Change filters on the site lists without switching list. Example requests: \"only debris\", \"only visible ones\", \"payloads only\", \"clear the filter\", \"next 6 hours\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "type": {
+     "type": "string",
+     "enum": [
+      "all",
+      "payload",
+      "rb",
+      "debris"
+     ],
+     "description": "Object type to show. Also accepts: all (everything, all objects, any); payload (payloads, satellite, satellites, active); rb (rocket body, rocket bodies, r/b, rockets); debris (junk, fragments, deb)."
+    },
+    "name": {
+     "type": "string",
+     "description": "Only names or NORAD numbers containing this text (\"\" clears)."
+    },
+    "hours": {
+     "type": "number",
+     "enum": [
+      1,
+      2,
+      4,
+      6
+     ],
+     "description": "Passes list: how many hours ahead."
+    },
+    "min_elevation": {
+     "type": "number",
+     "enum": [
+      0,
+      10,
+      20,
+      30,
+      45,
+      60
+     ],
+     "description": "Passes list: only passes whose peak is above this many degrees."
+    },
+    "visible_only": {
+     "type": "boolean",
+     "description": "Passes list: only naked-eye-visible passes (sunlit object, dark sky)."
+    },
+    "exclude_daytime": {
+     "type": "boolean",
+     "description": "Passes list: hide passes that peak in daylight."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "lists_get",
+  "description": "Read a site list as data (shows it on screen too). Waits for the catalog and the pass scan to finish. Example requests: \"how many objects are overhead\", \"which debris is above me\", \"what passes are coming up\", \"list the visible passes\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "tab": {
+     "type": "string",
+     "enum": [
+      "tracked",
+      "passes",
+      "inview",
+      "geo"
+     ],
+     "description": "Defaults to the list on screen. Also accepts: tracked (selected, my objects, tracked objects); passes (upcoming, current and upcoming, next passes, rising); inview (in view, overhead, above, up now); geo (always in view, geostationary, geosynchronous, geo belt)."
+    },
+    "limit": {
+     "type": "number",
+     "description": "Range 1 to 500. Default 20."
+    },
+    "timeout_s": {
+     "type": "number",
+     "description": "Range 5 to 300. Default 90."
+    },
+    "type": {
+     "type": "string",
+     "enum": [
+      "all",
+      "payload",
+      "rb",
+      "debris"
+     ],
+     "description": "Object type to show. Also accepts: all (everything, all objects, any); payload (payloads, satellite, satellites, active); rb (rocket body, rocket bodies, r/b, rockets); debris (junk, fragments, deb)."
+    },
+    "name": {
+     "type": "string",
+     "description": "Only names or NORAD numbers containing this text (\"\" clears)."
+    },
+    "hours": {
+     "type": "number",
+     "enum": [
+      1,
+      2,
+      4,
+      6
+     ],
+     "description": "Passes list: how many hours ahead."
+    },
+    "min_elevation": {
+     "type": "number",
+     "enum": [
+      0,
+      10,
+      20,
+      30,
+      45,
+      60
+     ],
+     "description": "Passes list: only passes whose peak is above this many degrees."
+    },
+    "visible_only": {
+     "type": "boolean",
+     "description": "Passes list: only naked-eye-visible passes (sunlit object, dark sky)."
+    },
+    "exclude_daytime": {
+     "type": "boolean",
+     "description": "Passes list: hide passes that peak in daylight."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "lists_recalculate",
+  "description": "Recompute the passes list from the current clock.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "catalog_filter",
+  "description": "Show all objects, payloads, debris or rocket bodies in the 3-D catalog. Example requests: \"show only debris in the catalog\", \"show rocket bodies\", \"show everything\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "type": {
+     "type": "string",
+     "enum": [
+      "all",
+      "payload",
+      "rb",
+      "debris"
+     ],
+     "description": "Object type to show. Also accepts: all (everything, all objects, any); payload (payloads, satellite, satellites, active); rb (rocket body, rocket bodies, r/b, rockets); debris (junk, fragments, deb)."
+    }
+   },
+   "required": [
+    "type"
+   ]
+  }
+ },
+ {
+  "name": "catalog_buckets",
+  "description": "Choose which data sets the 3-D catalog loads (full catalog, Starlink, GPS, debris clouds …) and reload. Example requests: \"add starlink to the catalog\", \"load only the GEO belt\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "only": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Exactly these bucket ids."
+    },
+    "add": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "remove": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "load": {
+     "type": "boolean",
+     "description": "Default true."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "catalog_counts",
+  "description": "How many objects the 3-D catalog holds, by class. Example requests: \"how many objects are in orbit\", \"how much debris is there\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "catalog_select",
+  "description": "Highlight one object in the 3-D catalog, draw its orbit and open its card. Example requests: \"show me where the ISS is in the catalog\", \"highlight Hubble\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "object": {
+     "type": [
+      "string",
+      "integer"
+     ],
+     "description": "Object name (e.g. \"ISS\", \"Hubble\") or NORAD catalog number (e.g. 25544)."
+    }
+   },
+   "required": [
+    "object"
+   ]
+  }
+ },
+ {
+  "name": "catalog_deselect",
+  "description": "Clear the highlighted object in the 3-D catalog.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "catalog_track_selected",
+  "description": "Send the highlighted catalog object to the observer tab for tracking.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "camera_zoom",
+  "description": "Zoom the 3-D view in or out. Example requests: \"zoom out\", \"zoom in\", \"closer\", \"further away\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "direction": {
+     "type": "string",
+     "enum": [
+      "in",
+      "out"
+     ],
+     "description": "Also accepts: in (closer, nearer); out (further, farther, away, back)."
+    },
+    "factor": {
+     "type": "number",
+     "description": "Range 1.05 to 50. Default 1.8."
+    },
+    "view": {
+     "type": "string",
+     "enum": [
+      "current",
+      "observer",
+      "catalog",
+      "ephemeris",
+      "conjunctions"
+     ],
+     "description": "Which 3-D view (defaults to the one on screen). Default \"current\"."
+    }
+   },
+   "required": [
+    "direction"
+   ]
+  }
+ },
+ {
+  "name": "camera_rotate",
+  "description": "Turn the 3-D view. Example requests: \"rotate left\", \"look from above\", \"tilt down\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "direction": {
+     "type": "string",
+     "enum": [
+      "left",
+      "right",
+      "up",
+      "down"
+     ]
+    },
+    "degrees": {
+     "type": "number",
+     "description": "Range 1 to 180. Default 30."
+    },
+    "view": {
+     "type": "string",
+     "enum": [
+      "current",
+      "observer",
+      "catalog",
+      "ephemeris",
+      "conjunctions"
+     ],
+     "description": "Which 3-D view (defaults to the one on screen). Default \"current\"."
+    }
+   },
+   "required": [
+    "direction"
+   ]
+  }
+ },
+ {
+  "name": "camera_reset",
+  "description": "Put the 3-D view back to its starting angle and distance. Example requests: \"reset the view\", \"recenter\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "view": {
+     "type": "string",
+     "enum": [
+      "current",
+      "observer",
+      "catalog",
+      "ephemeris",
+      "conjunctions"
+     ],
+     "description": "Which 3-D view (defaults to the one on screen). Default \"current\"."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "eph_resolve",
+  "description": "Find a deep-space object in JPL Horizons by name or number without plotting it. Example requests: \"look up Maruthiakella\", \"what is the Horizons id of CAPSTONE\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "query": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "query"
+   ]
+  }
+ },
+ {
+  "name": "eph_plot",
+  "description": "Plot a planet, moon, asteroid, comet or spacecraft from JPL Horizons and return its visibility from the site. Example requests: \"plot Mars\", \"show CAPSTONE\", \"add Kathleenhowell\", \"plot Artemis II\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "target": {
+     "type": "string",
+     "description": "Name or Horizons id, e.g. \"Mars\", \"Maruthiakella\", \"CAPSTONE\", \"433\", \"Halley\"."
+    }
+   },
+   "required": [
+    "target"
+   ]
+  }
+ },
+ {
+  "name": "eph_visibility",
+  "description": "Is a deep-space object visible from the site now, and when in the next 72 hours (elevation limit, astronomical darkness). Example requests: \"is Maruthiakella visible from my site\", \"can I see Jupiter tonight\", \"when is Mars up\", \"is CAPSTONE still tracked\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "target": {
+     "type": "string",
+     "description": "Defaults to the active ephemeris target."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "eph_focus",
+  "description": "Make one of the plotted targets the active one.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "target": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "target"
+   ]
+  }
+ },
+ {
+  "name": "eph_remove",
+  "description": "Remove a plotted target, or all of them.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "target": {
+     "type": "string",
+     "description": "Name or \"all\"."
+    }
+   },
+   "required": [
+    "target"
+   ]
+  }
+ },
+ {
+  "name": "eph_list",
+  "description": "Plotted targets and the built-in target list.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "eph_min_elevation",
+  "description": "Elevation limit (degrees) used for ephemeris visibility windows.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "degrees": {
+     "type": "number",
+     "description": "Range 0 to 30."
+    }
+   },
+   "required": [
+    "degrees"
+   ]
+  }
+ },
+ {
+  "name": "eph_refetch",
+  "description": "Fetch the active target again from JPL Horizons.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "solar_scale",
+  "description": "Solar-system map scale: compact (readable) or true linear distances.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "mode": {
+     "type": "string",
+     "enum": [
+      "compact",
+      "true"
+     ],
+     "description": "Also accepts: compact (compressed, log, readable); true (true scale, linear, real, actual)."
+    }
+   },
+   "required": [
+    "mode"
+   ]
+  }
+ },
+ {
+  "name": "solar_rate",
+  "description": "Animate the solar-system map at this many days per second. Example requests: \"speed up the planets\", \"run the solar system\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "days_per_second": {
+     "type": "number",
+     "description": "Range -3650 to 3650."
+    }
+   },
+   "required": [
+    "days_per_second"
+   ]
+  }
+ },
+ {
+  "name": "solar_step",
+  "description": "Step the clock by a number of days (for the solar-system map; affects every view).",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "days": {
+     "type": "number"
+    }
+   },
+   "required": [
+    "days"
+   ]
+  }
+ },
+ {
+  "name": "conj_list",
+  "description": "Predicted close approaches between catalogued objects (CelesTrak SOCRATES). Example requests: \"any close approaches\", \"what conjunctions are coming\", \"riskiest conjunctions\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "sort": {
+     "type": "string",
+     "enum": [
+      "range",
+      "tca",
+      "probability"
+     ],
+     "description": "Order (defaults to the one on screen). Also accepts: range (distance, miss distance, closest); tca (time, soonest, next); probability (prob, pc, risk, likelihood)."
+    },
+    "limit": {
+     "type": "number",
+     "description": "Range 1 to 50. Default 10."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "conj_select",
+  "description": "Open one conjunction (by rank in the current order, or by an object in it) and draw the encounter.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "rank": {
+     "type": "number",
+     "description": "Range 1 to ."
+    },
+    "object": {
+     "type": "string",
+     "description": "Name or NORAD number of either object."
+    }
+   },
+   "required": []
+  }
+ },
+ {
+  "name": "conj_refresh",
+  "description": "Fetch the SOCRATES report again.",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "spaceweather_get",
+  "description": "Planetary K index and 10.7 cm solar flux from NOAA SWPC (drag and aurora conditions). Example requests: \"how is space weather\", \"is there a geomagnetic storm\", \"what is Kp\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "share_link",
+  "description": "A web address that opens the dashboard in its current state (view, site, tracked objects, list, filters, target). Example requests: \"give me a link to this view\", \"share this\".",
+  "input_schema": {
+   "type": "object",
+   "properties": {},
+   "required": []
+  }
+ },
+ {
+  "name": "ui_caption",
+  "description": "Show a short caption at the bottom of the dashboard (for example what Claire is saying). Empty text hides it.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "text": {
+     "type": "string"
+    },
+    "seconds": {
+     "type": "number",
+     "description": "0 keeps it until replaced. Range 0 to 120. Default 6."
+    }
+   },
+   "required": []
+  }
+ }
+]

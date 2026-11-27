@@ -10,6 +10,7 @@ const SWX={
       if(!kp||!kp.length) return;
       const last=kp[kp.length-1],k=parseFloat(last.estimated_kp??last.kp_index);
       if(!isFinite(k)) return;
+      SWX.kp=k;SWX.kpAt=last.time_tag||null;
       const e=document.getElementById('ep-kp');
       e.textContent='Kp '+k.toFixed(1);e.className=k>=5?'storm':'';
       e.title='Planetary K index (NOAA SWPC). '+(k<4?'Quiet field.':k<5?'Unsettled.':'Geomagnetic storm: expect higher drag in LEO.');
@@ -19,6 +20,7 @@ const SWX={
       const rec=Array.isArray(f)?f[f.length-1]:f;
       const v=rec?parseFloat(rec.flux??rec.Flux):NaN;
       if(!isFinite(v)) return;
+      SWX.f107=v;
       const e=document.getElementById('ep-f107');
       e.textContent='F10.7 '+v.toFixed(0)+' sfu';
       e.title='10.7 cm solar radio flux (NOAA SWPC), the standard proxy for thermospheric density and drag.';
@@ -73,6 +75,12 @@ const CA={
     if(!rows||!rows.length){
       rows=[];src='SOCRATES FEED UNREACHABLE · NO CONJUNCTION DATA';
     }
+    /* SOCRATES lists objects docked to each other (station modules, crew ships) as
+       zero-distance, zero-speed "conjunctions"; they are not close approaches */
+    const n0=rows.length;
+    rows=rows.filter(r=>!(r.rangeKm===0&&r.relV===0));
+    this._docked=n0-rows.length;
+    if(this._docked) src+=' · '+this._docked+' DOCKED PAIRS HIDDEN';
     this._src=src;
     this.rows=rows;
     this.renderList();
