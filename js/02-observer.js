@@ -1129,6 +1129,7 @@ const PB={
   staleNote(){return this._stale?' · '+this._stale+' with element sets older than '+TLE_STALE_D+' d left out':'';},
   catLabel(){
     if(SITECAT.list.length) return 'the full catalog ('+SITECAT.src+')';
+    if(SITECAT.state==='loading'||SITECAT.state==='idle') return 'the full catalog (loading)';
     const g=document.getElementById('cat-select');
     return '“'+(g&&g.selectedOptions[0]?g.selectedOptions[0].textContent.trim():'group')+'” (full catalog unavailable)';
   },
