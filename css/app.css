@@ -935,3 +935,16 @@ body[data-rview="sky"] #gt-panel,body[data-rview="gt"] #sky-panel{visibility:hid
 #site-pop{box-sizing:border-box;}
 #site-pop .site-input{min-width:0;width:100%;box-sizing:border-box;}
 #site-pop .site-lbl{flex:0 0 52px;}
+
+/* ── command interface: caption and typed console (js/07-api.js) ── */
+#ssa-caption{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);max-width:70vw;padding:8px 16px;
+  background:rgba(0,0,0,.88);border:1px solid #333;border-radius:6px;color:#e0e0e0;font-size:13px;line-height:1.45;
+  opacity:0;pointer-events:none;transition:opacity .3s;z-index:300;}
+#ssa-caption.on{opacity:1;}
+#ssa-console{position:fixed;right:12px;bottom:52px;width:min(560px,92vw);max-height:60vh;display:flex;flex-direction:column;
+  background:#050505;border:1px solid #2a2a2a;border-radius:6px;z-index:310;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#cfcfcf;}
+#ssa-console .sc-head{display:flex;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid #1d1d1d;color:#e0e0e0;letter-spacing:.06em;}
+#ssa-console .sc-head span{color:#6f6f6f;letter-spacing:0;flex:1;}
+#ssa-console .sc-head i{cursor:pointer;font-style:normal;color:#8a8a8a;}
+#ssa-console input{margin:8px 10px 6px;padding:6px 8px;background:#000;border:1px solid #333;border-radius:4px;color:#f0f0f0;font:inherit;}
+#ssa-console pre{margin:0;padding:6px 10px 10px;overflow:auto;white-space:pre-wrap;word-break:break-word;flex:1;}

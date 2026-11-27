@@ -1275,15 +1275,30 @@ const EPH={
   activePlot(){return this.plotted.find(p=>p.cmd===this.active);},
 
   /* ───────── rendering ───────── */
-  renderAll(){
-    const ap=this.activePlot();if(!ap) return;
-    if(!ap.rows||!ap.rows.length) return;
+  /* visibility of one plotted target: the row nearest now and the windows when it is
+     above the elevation limit in astronomical darkness (Sun and Moon are exempt from
+     the darkness rule). Shared by the page and the command interface. */
+  windowsOf(ap){
+    if(!ap||!ap.rows||!ap.rows.length) return null;
     const rows=ap.rows,minEl=this.minEl();
     const exempt=ap.cmd==='10'||ap.cmd==='301';
     const visAt=r=>r.el!==null&&r.el>minEl&&(exempt||this.darkOK(r.sunFlag));
     const nowMs=Date.now();
     let iNow=0;for(let i=0;i<rows.length;i++) if(Math.abs(rows[i].d-nowMs)<Math.abs(rows[iNow].d-nowMs)) iNow=i;
     const rNow=rows[iNow];
+    const wins=[];let w=null;
+    rows.forEach((r,i)=>{
+      if(visAt(r)){if(!w)w={i0:i,i1:i,pk:r.el,iPk:i};else{w.i1=i;if(r.el>w.pk){w.pk=r.el;w.iPk=i;}}}
+      else if(w){wins.push(w);w=null;}
+    });
+    if(w)wins.push(w);
+    return{rows,minEl,exempt,iNow,rNow,wins,visNow:visAt(rNow),upNow:rNow.el!==null&&rNow.el>minEl};
+  },
+  renderAll(){
+    const ap=this.activePlot();if(!ap) return;
+    const W0=this.windowsOf(ap);if(!W0) return;
+    const{rows,minEl,exempt,rNow,wins}=W0;
+    const visAt=r=>r.el!==null&&r.el>minEl&&(exempt||this.darkOK(r.sunFlag));
 
     /* plotted chips */
     const pc=document.getElementById('eph-plotted');
@@ -1318,12 +1333,6 @@ const EPH={
       cell('SKY',this.twiLabel(rNow.sunFlag),this.darkOK(rNow.sunFlag)?'green':'amber');
 
     /* windows (active target) */
-    const wins=[];let w=null;
-    rows.forEach((r,i)=>{
-      if(visAt(r)){if(!w)w={i0:i,i1:i,pk:r.el,iPk:i};else{w.i1=i;if(r.el>w.pk){w.pk=r.el;w.iPk=i;}}}
-      else if(w){wins.push(w);w=null;}
-    });
-    if(w)wins.push(w);
     const wt=document.getElementById('eph-win-title'),wb=document.getElementById('eph-windows');
     wt.style.display='block';
     wt.textContent='VISIBILITY WINDOWS · '+ap.name.toUpperCase()+' · EL >'+minEl+'°'+(exempt?'':' IN ASTRONOMICAL DARKNESS');

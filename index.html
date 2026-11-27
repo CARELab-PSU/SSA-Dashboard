@@ -28,10 +28,10 @@
     <div class="header-sub">SPACE SITUATIONAL AWARENESS · PENN STATE UNIVERSITY</div>
   </div>
   <nav id="tab-nav">
-    <button class="tab-btn active" data-view="tracker" onclick="switchView('tracker')">Observer</button>
-    <button class="tab-btn" data-view="catalog" onclick="switchView('catalog')">Catalog</button>
-    <button class="tab-btn" data-view="eph" onclick="switchView('eph')">Ephemeris</button>
-    <button class="tab-btn" data-view="ca" onclick="switchView('ca')">Conjunctions</button>
+    <button class="tab-btn active" data-view="tracker" data-cmd="view.show:view=observer" onclick="switchView('tracker')">Observer</button>
+    <button class="tab-btn" data-view="catalog" data-cmd="view.show:view=catalog" onclick="switchView('catalog')">Catalog</button>
+    <button class="tab-btn" data-view="eph" data-cmd="view.show:view=ephemeris" onclick="switchView('eph')">Ephemeris</button>
+    <button class="tab-btn" data-view="ca" data-cmd="view.show:view=conjunctions" onclick="switchView('ca')">Conjunctions</button>
   </nav>
   <div class="clock-block">
     <div class="ck-label">UTC</div>
@@ -167,10 +167,10 @@
     <div class="mi" id="hz-cluster">
       <div class="ml">FORECAST HORIZON</div>
       <div class="hz-row">
-        <button class="hz-btn" data-h="6"  onclick="setHorizon(6,this)">6H</button>
-        <button class="hz-btn" data-h="12" onclick="setHorizon(12,this)">12H</button>
-        <button class="hz-btn" data-h="18" onclick="setHorizon(18,this)">18H</button>
-        <button class="hz-btn on" data-h="24" onclick="setHorizon(24,this)">24H</button>
+        <button class="hz-btn" data-h="6"  data-cmd="observer.horizon:hours=6" onclick="setHorizon(6,this)">6H</button>
+        <button class="hz-btn" data-h="12" data-cmd="observer.horizon:hours=12" onclick="setHorizon(12,this)">12H</button>
+        <button class="hz-btn" data-h="18" data-cmd="observer.horizon:hours=18" onclick="setHorizon(18,this)">18H</button>
+        <button class="hz-btn on" data-h="24" data-cmd="observer.horizon:hours=24" onclick="setHorizon(24,this)">24H</button>
       </div>
     </div>
     <div class="msep"></div>
@@ -178,8 +178,8 @@
       <div class="ml">OBSERVER SITE</div>
       <div class="hz-row">
         <button class="hz-btn" id="site-btn" onclick="toggleSitePop()" title="Edit the observer site">40.79°N 77.86°W · 354 m</button>
-        <button class="hz-btn" onclick="geolocateMe()" title="Use this device's location">Locate me</button>
-        <button class="hz-btn" id="tle-dl-btn" onclick="downloadTLE()" title="Download the primary object's TLE">TLE ↓</button>
+        <button class="hz-btn" data-cmd="site.locate" onclick="geolocateMe()" title="Use this device's location">Locate me</button>
+        <button class="hz-btn" id="tle-dl-btn" data-cmd="objects.download_tle" onclick="downloadTLE()" title="Download the primary object's TLE">TLE ↓</button>
       </div>
       <div id="site-pop">
       <div class="site-row">
@@ -195,7 +195,7 @@
         <input class="site-input" id="inp-alt" value="354" placeholder="354"/>
       </div>
       <div class="site-btn-row">
-                <button class="hud-btn" onclick="applySite();toggleSitePop(false)">Apply</button>
+                <button class="hud-btn" data-cmd="site.set" onclick="applySite();toggleSitePop(false)">Apply</button>
       </div>
       <div id="site-tz-display">TZ: America/New_York (UTC-4)</div>
     </div>
@@ -208,13 +208,13 @@
     <div id="pb-left">
       <div class="pb-head">
         <div id="pb-tabs">
-          <button class="pb-tab on" data-tab="tracked" onclick="PB.setTab('tracked')">Tracked</button>
-          <button class="pb-tab" data-tab="passes" onclick="PB.setTab('passes')">Current and upcoming passes</button>
-          <button class="pb-tab" data-tab="inview" onclick="PB.setTab('inview')">In view now</button>
-          <button class="pb-tab" data-tab="geo" onclick="PB.setTab('geo')">Always in view (GEO)</button>
+          <button class="pb-tab on" data-tab="tracked" data-cmd="lists.show:tab=tracked" onclick="PB.setTab('tracked')">Tracked</button>
+          <button class="pb-tab" data-tab="passes" data-cmd="lists.show:tab=passes" onclick="PB.setTab('passes')">Current and upcoming passes</button>
+          <button class="pb-tab" data-tab="inview" data-cmd="lists.show:tab=inview" onclick="PB.setTab('inview')">In view now</button>
+          <button class="pb-tab" data-tab="geo" data-cmd="lists.show:tab=geo" onclick="PB.setTab('geo')">Always in view (GEO)</button>
         </div>
         <span class="pb-sub" id="pb-sub"></span>
-        <button class="pt-export" onclick="exportCSV()" title="Export the primary object's passes as CSV">Export CSV</button>
+        <button class="pt-export" data-cmd="observer.export_csv" onclick="exportCSV()" title="Export the primary object's passes as CSV">Export CSV</button>
       </div>
       <div id="pb-filters" style="display:none;">
         <label>Show <select id="pbf-type" onchange="PB.refilter()"><option value="ALL" selected>All objects</option><option value="PAYLOAD">Payloads</option><option value="RB">Rocket bodies</option><option value="DEBRIS">Debris</option></select></label>
@@ -223,7 +223,7 @@
         <label class="pbf-pass"><input type="checkbox" id="pbf-vis" onchange="PB.render()"/> Naked-eye visible only</label>
         <label class="pbf-pass"><input type="checkbox" id="pbf-noday" onchange="PB.render()"/> Exclude daytime passes</label>
         <input id="pbf-name" placeholder="Name or NORAD contains" oninput="PB.refilter()"/>
-        <button class="hud-btn sm pbf-pass" onclick="PB.rescan()">Recalculate</button>
+        <button class="hud-btn sm pbf-pass" data-cmd="lists.recalculate" onclick="PB.rescan()">Recalculate</button>
       </div>
       <div id="pb-scroll">
         <table id="pb-table">
@@ -245,8 +245,8 @@
       <span class="wx-title">OBSERVING CONDITIONS</span>
       <span class="wx-site" id="wx-site-label">—</span>
       <span class="wx-status" id="wx-status">LOADING…</span>
-      <span class="wx-toggle" id="wx-toggle-btn" onclick="toggleWx()" title="Show / hide the observing-conditions timeline">▸ EXPAND</span>
-      <button class="pt-export" onclick="fetchConditions()" title="Refresh conditions" style="margin-left:8px;font-size:8px;">↺ REFRESH</button>
+      <span class="wx-toggle" id="wx-toggle-btn" data-cmd="observer.conditions:open" onclick="toggleWx()" title="Show / hide the observing-conditions timeline">▸ EXPAND</span>
+      <button class="pt-export" data-cmd="observer.conditions:refresh=true" onclick="fetchConditions()" title="Refresh conditions" style="margin-left:8px;font-size:8px;">↺ REFRESH</button>
     </div>
     <div id="wx-timeline">
       <div id="wx-hours-row" class="wx-row"><span class="wx-row-label">TIME</span><div class="wx-cells" id="wx-hours"></div></div>
@@ -261,8 +261,8 @@
 
   <div id="plots-grid">
     <div id="frame-toggle">
-      <button class="hud-btn sm on" data-f="eci" onclick="setFrame('eci')" title="Inertial frame (TEME)">Inertial</button>
-      <button class="hud-btn sm" data-f="ecef" onclick="setFrame('ecef')" title="Earth-fixed frame (WGS-84)">Earth-fixed</button>
+      <button class="hud-btn sm on" data-f="eci" data-cmd="observer.frame:frame=inertial" onclick="setFrame('eci')" title="Inertial frame (TEME)">Inertial</button>
+      <button class="hud-btn sm" data-f="ecef" data-cmd="observer.frame:frame=earthfixed" onclick="setFrame('ecef')" title="Earth-fixed frame (WGS-84)">Earth-fixed</button>
     </div>
     <div class="plot-panel" id="eci-panel">
       <div class="plot-label">ECI TRAJECTORY</div>
@@ -277,8 +277,8 @@
     <div class="plot-panel" id="gt-panel">
       <div class="plot-label">GROUND TRACK</div>
       <div class="rview-toggle">
-        <button class="hud-btn sm" data-r="sky" onclick="setRView('sky')">Sky plot</button>
-        <button class="hud-btn sm" data-r="gt" onclick="setRView('gt')">Ground track</button>
+        <button class="hud-btn sm" data-r="sky" data-cmd="observer.plot:plot=sky" onclick="setRView('sky')">Sky plot</button>
+        <button class="hud-btn sm" data-r="gt" data-cmd="observer.plot:plot=groundtrack" onclick="setRView('gt')">Ground track</button>
       </div>
       <div class="plot-status">Click the map to move the site</div>
       <canvas id="gt-canvas" class="plot-canvas"></canvas>
@@ -291,19 +291,19 @@
     <div class="plot-panel" id="sky-panel">
       <div class="plot-label">VISIBILITY PASSES · SKY PLOT</div>
       <div class="rview-toggle">
-        <button class="hud-btn sm" data-r="sky" onclick="setRView('sky')">Sky plot</button>
-        <button class="hud-btn sm" data-r="gt" onclick="setRView('gt')">Ground track</button>
+        <button class="hud-btn sm" data-r="sky" data-cmd="observer.plot:plot=sky" onclick="setRView('sky')">Sky plot</button>
+        <button class="hud-btn sm" data-r="gt" data-cmd="observer.plot:plot=groundtrack" onclick="setRView('gt')">Ground track</button>
       </div>
       <div class="plot-status" id="sky-site-label">AZ/EL · PENN STATE</div>
       <div id="sky-btns">
-        <button id="sky-all-btn" class="hud-btn sm" onclick="toggleSkyAll(this)" title="Show every pass in the forecast horizon instead of only the next one">All passes</button>
-        <button id="sky-vis-btn" class="hud-btn sm" onclick="toggleSkyVis(this)" title="Plot only passes that are naked-eye visible">Visible only</button>
+        <button id="sky-all-btn" class="hud-btn sm" data-cmd="skyplot.options:all_passes" onclick="toggleSkyAll(this)" title="Show every pass in the forecast horizon instead of only the next one">All passes</button>
+        <button id="sky-vis-btn" class="hud-btn sm" data-cmd="skyplot.options:visible_only" onclick="toggleSkyVis(this)" title="Plot only passes that are naked-eye visible">Visible only</button>
       </div>
       <div id="sky-split">
         <div id="pass-table-wrap" style="display:none;">
           <div class="pt-header">
             <span class="pt-title">VISIBILITY PASSES</span>
-            <button class="pt-export" onclick="exportCSV()" title="Export CSV">⬇ CSV</button>
+            <button class="pt-export" data-cmd="observer.export_csv" onclick="exportCSV()" title="Export CSV">⬇ CSV</button>
           </div>
           <div id="pass-table-body"></div>
         </div>
@@ -333,15 +333,15 @@
     </div>
     <div class="ct-group">
       <span class="ct-lbl">TIME</span>
-      <button class="tw-btn" id="tw-pause" onclick="CAT.setPause()" title="Pause / resume">⏸</button>
-      <button class="tw-btn on" onclick="CAT.setScale(1,this)">1×</button>
-      <button class="tw-btn" onclick="CAT.setScale(2,this)">2×</button>
-      <button class="tw-btn" onclick="CAT.setScale(5,this)">5×</button>
-      <button class="tw-btn" onclick="CAT.setScale(10,this)">10×</button>
-      <button class="tw-btn" onclick="CAT.setScale(60,this)">60×</button>
-      <button class="tw-btn" onclick="CAT.setScale(300,this)">300×</button>
-      <button class="tw-btn" onclick="CAT.setScale(1000,this)">1000×</button>
-      <button class="tw-btn" onclick="CAT.resetNow()" title="Resync to real time">⟲ NOW</button>
+      <button class="tw-btn" id="tw-pause" data-cmd="time.pause" onclick="CAT.setPause()" title="Pause / resume">⏸</button>
+      <button class="tw-btn on" data-cmd="time.rate:rate=1" onclick="CAT.setScale(1,this)">1×</button>
+      <button class="tw-btn" data-cmd="time.rate:rate=2" onclick="CAT.setScale(2,this)">2×</button>
+      <button class="tw-btn" data-cmd="time.rate:rate=5" onclick="CAT.setScale(5,this)">5×</button>
+      <button class="tw-btn" data-cmd="time.rate:rate=10" onclick="CAT.setScale(10,this)">10×</button>
+      <button class="tw-btn" data-cmd="time.rate:rate=60" onclick="CAT.setScale(60,this)">60×</button>
+      <button class="tw-btn" data-cmd="time.rate:rate=300" onclick="CAT.setScale(300,this)">300×</button>
+      <button class="tw-btn" data-cmd="time.rate:rate=1000" onclick="CAT.setScale(1000,this)">1000×</button>
+      <button class="tw-btn" data-cmd="time.live" onclick="CAT.resetNow()" title="Resync to real time">⟲ NOW</button>
     </div>
     <div class="ct-group">
       <span class="ct-lbl">SIM CLOCK</span>
@@ -365,21 +365,21 @@
     </div>
     <div id="cat-help">HOVER — DETAILS · CLICK — ORBIT · DRAG — ROTATE<br/>SCROLL — ZOOM · DBL-CLICK — RESET VIEW</div>
     <div id="cat-filter-bar">
-      <button class="cfb-btn on" onclick="CAT.setFilter('ALL',this)">ALL OBJECTS</button>
-      <button class="cfb-btn" onclick="CAT.setFilter('ACTIVE',this)">ACTIVE SATS</button>
-      <button class="cfb-btn" onclick="CAT.setFilter('DEBRIS',this)">DEBRIS ONLY</button>
-      <button class="cfb-btn" onclick="CAT.setFilter('RB',this)">ROCKET BODIES</button>
+      <button class="cfb-btn on" data-cmd="catalog.filter:type=all" onclick="CAT.setFilter('ALL',this)">ALL OBJECTS</button>
+      <button class="cfb-btn" data-cmd="catalog.filter:type=payload" onclick="CAT.setFilter('ACTIVE',this)">ACTIVE SATS</button>
+      <button class="cfb-btn" data-cmd="catalog.filter:type=debris" onclick="CAT.setFilter('DEBRIS',this)">DEBRIS ONLY</button>
+      <button class="cfb-btn" data-cmd="catalog.filter:type=rb" onclick="CAT.setFilter('RB',this)">ROCKET BODIES</button>
     </div>
     <div id="cat-hover"></div>
     <div id="cat-card">
       <div class="cc-head">
         <div class="sdot amber"></div>
         <div class="cc-name" id="cc-name">—</div>
-        <button class="cc-close" onclick="CAT.deselect()">✕</button>
+        <button class="cc-close" data-cmd="catalog.deselect" onclick="CAT.deselect()">✕</button>
       </div>
       <div class="cc-grid" id="cc-grid"></div>
       <div class="cc-btns">
-        <button class="hud-btn" onclick="CAT.trackSelected()">▶ TRACK IN OBSERVER VIEW</button>
+        <button class="hud-btn" data-cmd="catalog.track_selected" onclick="CAT.trackSelected()">▶ TRACK IN OBSERVER VIEW</button>
       </div>
     </div>
   </div>
@@ -422,7 +422,7 @@
         <span class="ct-lbl">MIN EL</span>
         <input type="range" id="eph-minel" min="0" max="30" value="10" step="1"/>
         <span id="eph-minel-val">10°</span>
-        <button class="hud-btn sm" onclick="EPH.refetch()" title="Refetch from JPL">↺</button>
+        <button class="hud-btn sm" data-cmd="eph.refetch" onclick="EPH.refetch()" title="Refetch from JPL">↺</button>
       </div>
     </div>
     <div id="eph-site-form" style="display:none;">
@@ -438,7 +438,7 @@
         <span class="ss-title" id="traj-title">TRAJECTORY · GEOCENTRIC ICRF</span>
         <span id="traj-window"></span>
         <span class="ss-sep"></span>
-        <button class="tw-btn" onclick="TRAJ.resetView()" title="Reset camera">RESET VIEW</button>
+        <button class="tw-btn" data-cmd="camera.reset" onclick="TRAJ.resetView()" title="Reset camera">RESET VIEW</button>
       </div>
       <div id="traj-wrap"><div id="traj-info"></div></div>
     </div>
@@ -447,20 +447,20 @@
         <span class="ss-title">◈ SOLAR SYSTEM · ECLIPTIC J2000</span>
         <span id="ss-date">—</span><span id="ss-offset"></span>
         <span class="ss-sep"></span>
-        <button class="tw-btn" onclick="SS.step(-365.25)" title="Back one year">«1y</button>
-        <button class="tw-btn" onclick="SS.step(-30)" title="Back 30 days">«30d</button>
-        <button class="tw-btn" id="ss-play" onclick="SS.togglePlay()">⏸</button>
-        <button class="tw-btn" onclick="SS.step(30)" title="Forward 30 days">30d»</button>
-        <button class="tw-btn" onclick="SS.step(365.25)" title="Forward one year">1y»</button>
+        <button class="tw-btn" data-cmd="solar.step:days=-365.25" onclick="SS.step(-365.25)" title="Back one year">«1y</button>
+        <button class="tw-btn" data-cmd="solar.step:days=-30" onclick="SS.step(-30)" title="Back 30 days">«30d</button>
+        <button class="tw-btn" id="ss-play" data-cmd="time.pause" onclick="SS.togglePlay()">⏸</button>
+        <button class="tw-btn" data-cmd="solar.step:days=30" onclick="SS.step(30)" title="Forward 30 days">30d»</button>
+        <button class="tw-btn" data-cmd="solar.step:days=365.25" onclick="SS.step(365.25)" title="Forward one year">1y»</button>
         <span class="ss-sep"></span>
-        <button class="tw-btn ss-rate-btn on" onclick="SS.setRate(2,this)">2 d/s</button>
-        <button class="tw-btn ss-rate-btn" onclick="SS.setRate(10,this)">10 d/s</button>
-        <button class="tw-btn ss-rate-btn" onclick="SS.setRate(60,this)">60 d/s</button>
-        <button class="tw-btn" onclick="SS.goNow()" title="Resync to real time">⟲ NOW</button>
+        <button class="tw-btn ss-rate-btn on" data-cmd="solar.rate:days_per_second=2" onclick="SS.setRate(2,this)">2 d/s</button>
+        <button class="tw-btn ss-rate-btn" data-cmd="solar.rate:days_per_second=10" onclick="SS.setRate(10,this)">10 d/s</button>
+        <button class="tw-btn ss-rate-btn" data-cmd="solar.rate:days_per_second=60" onclick="SS.setRate(60,this)">60 d/s</button>
+        <button class="tw-btn" data-cmd="time.live" onclick="SS.goNow()" title="Resync to real time">⟲ NOW</button>
         <span class="ss-sep"></span>
-        <button class="tw-btn ss-scale-btn on" onclick="SS.setScaleMode(false,this)" title="Compressed radial scale r^0.42 for readability">COMPACT</button>
-        <button class="tw-btn ss-scale-btn" onclick="SS.setScaleMode(true,this)" title="True linear scale">TRUE SCALE</button>
-        <button class="tw-btn" onclick="SS.resetView()" title="Release camera focus and recentre on the Sun">⟲ RESET VIEW</button>
+        <button class="tw-btn ss-scale-btn on" data-cmd="solar.scale:mode=compact" onclick="SS.setScaleMode(false,this)" title="Compressed radial scale r^0.42 for readability">COMPACT</button>
+        <button class="tw-btn ss-scale-btn" data-cmd="solar.scale:mode=true" onclick="SS.setScaleMode(true,this)" title="True linear scale">TRUE SCALE</button>
+        <button class="tw-btn" data-cmd="camera.reset:view=ephemeris" onclick="SS.resetView()" title="Release camera focus and recentre on the Sun">⟲ RESET VIEW</button>
       </div>
       <div id="ss-wrap"><div id="ss-info" style="display:none;"></div></div>
       <div id="ss-help">CLICK A BODY → LOAD ITS OBSERVER EPHEMERIS · DRAG — ROTATE · SCROLL — ZOOM</div>
@@ -505,10 +505,10 @@
       </div>
       <div class="eph-head-sub" id="ca-feed-state">BOOTING…</div>
       <div class="d-sb-presets" style="padding:6px 10px 2px;">
-        <button class="hud-btn sm ca-sort on" onclick="CA.setSort('range',this)">MIN RANGE</button>
-        <button class="hud-btn sm ca-sort" onclick="CA.setSort('tca',this)">NEXT TCA</button>
-        <button class="hud-btn sm ca-sort" onclick="CA.setSort('prob',this)">MAX Pc</button>
-        <button class="hud-btn sm" onclick="CA.refresh()" title="Refetch SOCRATES">↺</button>
+        <button class="hud-btn sm ca-sort on" data-cmd="conj.list:sort=range" onclick="CA.setSort('range',this)">MIN RANGE</button>
+        <button class="hud-btn sm ca-sort" data-cmd="conj.list:sort=tca" onclick="CA.setSort('tca',this)">NEXT TCA</button>
+        <button class="hud-btn sm ca-sort" data-cmd="conj.list:sort=probability" onclick="CA.setSort('prob',this)">MAX Pc</button>
+        <button class="hud-btn sm" data-cmd="conj.refresh" onclick="CA.refresh()" title="Refetch SOCRATES">↺</button>
       </div>
     </div>
     <div id="ca-list"></div>
@@ -549,11 +549,11 @@
   <span id="ep-offset" class="live">● LIVE</span>
   <input type="range" id="ep-scrub" min="-48" max="96" step="0.1" value="0" title="Scrub the master epoch ±hours — SGP4 and planetary ephemerides move in lockstep"/>
   <span class="ep-lbl">RATE</span>
-  <button class="tw-btn ep-rate on" data-r="1" onclick="EPOCH.setRate(1,this)">1×</button>
-  <button class="tw-btn ep-rate" data-r="60" onclick="EPOCH.setRate(60,this)">60×</button>
-  <button class="tw-btn ep-rate" data-r="1000" onclick="EPOCH.setRate(1000,this)">1000×</button>
-  <button class="tw-btn" id="ep-pause" onclick="EPOCH.togglePause()">⏸</button>
-  <button class="tw-btn" onclick="EPOCH.live()" title="Snap back to real time">⟲ LIVE</button>
+  <button class="tw-btn ep-rate on" data-r="1" data-cmd="time.rate:rate=1" onclick="EPOCH.setRate(1,this)">1×</button>
+  <button class="tw-btn ep-rate" data-r="60" data-cmd="time.rate:rate=60" onclick="EPOCH.setRate(60,this)">60×</button>
+  <button class="tw-btn ep-rate" data-r="1000" data-cmd="time.rate:rate=1000" onclick="EPOCH.setRate(1000,this)">1000×</button>
+  <button class="tw-btn" id="ep-pause" data-cmd="time.pause" onclick="EPOCH.togglePause()">⏸</button>
+  <button class="tw-btn" data-cmd="time.live" onclick="EPOCH.live()" title="Snap back to real time">⟲ LIVE</button>
 </div>
 
 </div><!-- /app -->
@@ -562,4 +562,5 @@
 <script src="js/03-catalog.js"></script>
 <script src="js/04-ephemeris.js"></script>
 <script src="js/05-conjunctions.js"></script>
-<script src="js/06-app.js"></script></body></html>
+<script src="js/06-app.js"></script>
+<script src="js/07-api.js"></script></body></html>

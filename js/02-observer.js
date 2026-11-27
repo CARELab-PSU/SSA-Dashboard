@@ -325,6 +325,8 @@ function makeOrbitCtrl(dom,camera,opts={}){
   }
   ctrl.setTarget=function(v,rad){ctrl.tTarget.copy(v);if(rad!==undefined)ctrl.tRad=Math.max(ctrl.minR,Math.min(ctrl.maxR,rad));};
   ctrl.clearTarget=function(){ctrl.tTarget.set(0,0,0);};
+  ctrl.home={theta:ctrl.theta,phi:ctrl.phi,rad:rad0};
+  ctrl.reset=function(){ctrl.tRad=ctrl.home.rad;ctrl.tTheta=ctrl.home.theta;ctrl.tPhi=ctrl.home.phi;ctrl.tTarget.set(0,0,0);ctrl.vT=0;ctrl.vP=0;};
   applyCam();
   dom.style.touchAction='none';dom.style.cursor='grab';
   let px=0,py=0;
@@ -1304,6 +1306,7 @@ const PB={
     L.sort((a,b)=>{const ca=cur(a),cb=cur(b);
       if(ca!==cb) return ca?-1:1;
       return ca?((a.los||Infinity)-(b.los||Infinity)):(a.aos-b.aos);});
+    this._view={kind:'passes',list:L,at:now,done:R.pct===undefined};
     const total=L.length;L=L.slice(0,300);
     const hms=ms=>fmtLocalTime(new Date(ms),tz);
     const C=OBS.ctx(),F0=OBS.frame(new Date(now)),F1=OBS.frame(new Date(now+2000));
@@ -1356,6 +1359,7 @@ const PB={
       const of=OBS.look(t.satrec,F0,C,true);if(of) L.push({t,o:of});
     });
     L.sort((a,b)=>geo?a.o.az-b.o.az:b.o.el-a.o.el);
+    this._view={kind:this.tab,list:L,at:now,done:SITECAT.state!=='loading'};
     const total=L.length;L=L.slice(0,300);
     const rows=L.map(({t,o})=>{
       let ad='';
